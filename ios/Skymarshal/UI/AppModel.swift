@@ -60,7 +60,7 @@ final class AppModel {
         return AppModel(
             client: client,
             content: ContentService(client: client, container: container),
-            followers: FollowerService(client: client)
+            followers: FollowerService(client: client, container: container)
         )
     }
 

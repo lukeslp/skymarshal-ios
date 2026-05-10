@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 
 /// Orchestration boundary for follower / bot / inactive cleanup.
 /// Mirrors ``ContentService`` shape: actor + five public methods.
@@ -11,10 +12,12 @@ import Foundation
 public actor FollowerService {
 
     private let client: ATProtoClient
+    private let container: ModelContainer?
     private var loaded: [AnalyzedAccount] = []
 
-    public init(client: ATProtoClient) {
+    public init(client: ATProtoClient, container: ModelContainer? = nil) {
         self.client = client
+        self.container = container
     }
 
     /// Snapshot of in-flight cache. UI pulls between progress ticks.
@@ -43,8 +46,16 @@ public actor FollowerService {
         guard let did = await client.currentDid else {
             throw ATProtoError(status: 401, message: "Not authenticated")
         }
+        // Capture the owner handle once for cache-key construction.
+        // Falls back to DID if handle isn't set (shouldn't happen
+        // post-login but defensive).
+        let ownerHandle = await client.currentHandle ?? did
 
         loaded = []
+        // Replace any prior cached scan for THIS owner so the cache
+        // reflects current truth — accounts the user has unfollowed
+        // since the last scan won't reappear on cold-start.
+        clearPersistedScan(owner: ownerHandle)
 
         // Phase 1 — paginated getFollows. Result list isn't yet visible to
         // the UI — we don't surface accounts until phase 2 starts giving us
@@ -92,6 +103,7 @@ public actor FollowerService {
                 ))
             }
             loaded.append(contentsOf: batchAnalyzed)
+            persist(batchAnalyzed, owner: ownerHandle)
 
             await progress?(ScanProgress(
                 phase: .hydrating,
@@ -119,6 +131,7 @@ public actor FollowerService {
                         interactedRecently: loaded[index].interactedRecently,
                         inactivityDays: inactivityDays
                     )
+                    persist([loaded[index]], owner: ownerHandle)
                 }
                 if index % 25 == 0 || index == loaded.count - 1 {
                     await progress?(ScanProgress(
@@ -150,6 +163,7 @@ public actor FollowerService {
     /// — concurrent fan-out is intentionally avoided so we don't sprint
     /// past the per-account write budget.
     public func unfollow(dids: [String]) async -> (done: Int, errors: [String]) {
+        let owner = await client.currentHandle
         var done = 0
         var errors: [String] = []
         for did in dids {
@@ -165,6 +179,7 @@ public actor FollowerService {
                 try await client.deleteRecord(uri: followURI)
                 done += 1
                 loaded.removeAll { $0.did == did }
+                if let owner { deletePersistedAccount(did: did, owner: owner) }
             } catch {
                 errors.append("\(acc.handle): \(error.localizedDescription)")
             }
@@ -174,6 +189,75 @@ public actor FollowerService {
 
     public func clear() {
         loaded = []
+    }
+
+    /// Inject a snapshot from the SwiftData cache during cold-start
+    /// hydration. Only used by AppModel.hydrateFromCache; never call
+    /// from a UI code path during a session (it bypasses the scan
+    /// progress callbacks the UI binds to).
+    public func setLoaded(_ accounts: [AnalyzedAccount]) {
+        self.loaded = accounts
+    }
+
+    // MARK: - Persistence
+
+    /// Upsert a slice of analyzed accounts into the SwiftData cache.
+    /// Called once per phase-2 batch and per phase-3 update. Uses a
+    /// fresh ModelContext per call — SwiftData contexts aren't actor-
+    /// safe to share across save() calls in different scopes.
+    private func persist(_ accounts: [AnalyzedAccount], owner: String) {
+        guard let container else { return }
+        let context = ModelContext(container)
+        let now = Date()
+        for acc in accounts {
+            let key = "\(owner)|\(acc.did)"
+            let descriptor = FetchDescriptor<AnalyzedAccountRecord>(
+                predicate: #Predicate { $0.compositeKey == key }
+            )
+            if let existing = try? context.fetch(descriptor).first {
+                existing.update(from: acc, scannedAt: now)
+            } else {
+                context.insert(AnalyzedAccountRecord(
+                    account: acc,
+                    ownerHandle: owner,
+                    scannedAt: now
+                ))
+            }
+        }
+        try? context.save()
+    }
+
+    /// Drop a single record after successful unfollow so the cache
+    /// reflects current truth (otherwise the unfollowed account
+    /// reappears on the next cold-start).
+    private func deletePersistedAccount(did: String, owner: String) {
+        guard let container else { return }
+        let context = ModelContext(container)
+        let key = "\(owner)|\(did)"
+        let descriptor = FetchDescriptor<AnalyzedAccountRecord>(
+            predicate: #Predicate { $0.compositeKey == key }
+        )
+        if let existing = try? context.fetch(descriptor).first {
+            context.delete(existing)
+            try? context.save()
+        }
+    }
+
+    /// Wipe all cached records for one owner before a fresh scan.
+    /// Called from `scan()` so a re-scan starts from a clean slate
+    /// per-owner — accounts you've unfollowed since the last scan
+    /// don't reappear, deleted accounts get cleaned up, the snapshot
+    /// reflects what was actually returned this run.
+    private func clearPersistedScan(owner: String) {
+        guard let container else { return }
+        let context = ModelContext(container)
+        let descriptor = FetchDescriptor<AnalyzedAccountRecord>(
+            predicate: #Predicate { $0.ownerHandle == owner }
+        )
+        if let rows = try? context.fetch(descriptor) {
+            for row in rows { context.delete(row) }
+            try? context.save()
+        }
     }
 
     // MARK: - Internals
