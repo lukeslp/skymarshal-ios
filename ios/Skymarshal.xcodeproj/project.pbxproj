@@ -1,0 +1,678 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		01804EFE9494B0A0017495BB /* SkymarshalCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0F041B18B2706EE31852A54 /* SkymarshalCore.swift */; };
+		0D03C1581D93604048D7D28D /* SkymarshalCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 822EC83D35348BBCCDA83D23 /* SkymarshalCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		38F8AAEE9C83AF2876B0E3E8 /* SkymarshalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3349AFD3577BD6BAAA9C6C /* SkymarshalApp.swift */; };
+		3FEAC6025218D495E63963C8 /* SkymarshalCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 822EC83D35348BBCCDA83D23 /* SkymarshalCore.framework */; };
+		61FAC6C736986FA6DCF8368C /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C63DDD72BCB5341FA0A17C6 /* SmokeTests.swift */; };
+		7C428FCAD76857EC460DBB92 /* SkymarshalCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 822EC83D35348BBCCDA83D23 /* SkymarshalCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		7F4EFD5F9A3E507B27191B16 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B614BA930FB2C911FC531324 /* Assets.xcassets */; };
+		C6D0E62272D1E341867E5FEB /* SkymarshalCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 822EC83D35348BBCCDA83D23 /* SkymarshalCore.framework */; };
+		CBBEF1B5596F78C2A7CD2FF5 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D3FBECFCC0C54AC18EFD4B94 /* PrivacyInfo.xcprivacy */; };
+		E0AB715968300F8D9359DCB6 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51EA66592A7FD0BA02349271 /* RootView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		0F843E7A73129DBC7CF97638 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 32C1FA2301ADCCE579C6EB9D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A6A353D5E054B4298ADE0C13;
+			remoteInfo = SkymarshalCore;
+		};
+		92642EF473AEDAF04F50160A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 32C1FA2301ADCCE579C6EB9D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A6A353D5E054B4298ADE0C13;
+			remoteInfo = SkymarshalCore;
+		};
+		A32AE8321C6BB445F25F2A6F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 32C1FA2301ADCCE579C6EB9D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C1BE9C3F451A2C6856B01893;
+			remoteInfo = Skymarshal;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		458DE29D123874CA375F8376 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				7C428FCAD76857EC460DBB92 /* SkymarshalCore.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6BD6DBAD2F8677A8AC3D2990 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				0D03C1581D93604048D7D28D /* SkymarshalCore.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		14B50B641FB406502CA6835B /* Skymarshal.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Skymarshal.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2A68109DA988C288562EC79A /* SkymarshalTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SkymarshalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2C63DDD72BCB5341FA0A17C6 /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
+		4EB48E9C25EE90822DDAFDCB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		51EA66592A7FD0BA02349271 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		5F3349AFD3577BD6BAAA9C6C /* SkymarshalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkymarshalApp.swift; sourceTree = "<group>"; };
+		822EC83D35348BBCCDA83D23 /* SkymarshalCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SkymarshalCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		B0F041B18B2706EE31852A54 /* SkymarshalCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkymarshalCore.swift; sourceTree = "<group>"; };
+		B614BA930FB2C911FC531324 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D3FBECFCC0C54AC18EFD4B94 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		E5473889BD7929C3288FF1B2 /* Skymarshal.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Skymarshal.entitlements; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7EB31078453E6D4784C4327A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3FEAC6025218D495E63963C8 /* SkymarshalCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		90E2A7A59433FABC46C14198 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C6D0E62272D1E341867E5FEB /* SkymarshalCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		28AC78C315D3F3D027FCA54D /* Network */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
+		28DCBB5A7CAAE8904831E32E /* App */ = {
+			isa = PBXGroup;
+			children = (
+				5F3349AFD3577BD6BAAA9C6C /* SkymarshalApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		3CD4A59CCB6ED61135ED2077 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				51EA66592A7FD0BA02349271 /* RootView.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		48FEC0B7706BF32F4064CEFD /* SkymarshalCore */ = {
+			isa = PBXGroup;
+			children = (
+				788A295B4EB4C976172CBFCA /* Models */,
+				28AC78C315D3F3D027FCA54D /* Network */,
+				C5B0488F8F953FE1602CDAB5 /* Services */,
+				F8D8F2A80FD6ECB628761990 /* Standards */,
+				C1B7468DEDB7AB82BB0E77ED /* Storage */,
+				B0F041B18B2706EE31852A54 /* SkymarshalCore.swift */,
+			);
+			path = SkymarshalCore;
+			sourceTree = "<group>";
+		};
+		788A295B4EB4C976172CBFCA /* Models */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		862B8F842ABCFA0495AD571B /* Skymarshal */ = {
+			isa = PBXGroup;
+			children = (
+				28DCBB5A7CAAE8904831E32E /* App */,
+				3CD4A59CCB6ED61135ED2077 /* UI */,
+				B614BA930FB2C911FC531324 /* Assets.xcassets */,
+				4EB48E9C25EE90822DDAFDCB /* Info.plist */,
+				D3FBECFCC0C54AC18EFD4B94 /* PrivacyInfo.xcprivacy */,
+				E5473889BD7929C3288FF1B2 /* Skymarshal.entitlements */,
+			);
+			path = Skymarshal;
+			sourceTree = "<group>";
+		};
+		C1B7468DEDB7AB82BB0E77ED /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Storage;
+			sourceTree = "<group>";
+		};
+		C5B0488F8F953FE1602CDAB5 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		D246A0AAF428E74AD7A99869 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				14B50B641FB406502CA6835B /* Skymarshal.app */,
+				822EC83D35348BBCCDA83D23 /* SkymarshalCore.framework */,
+				2A68109DA988C288562EC79A /* SkymarshalTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E198E32ECE1F7A60313C754C = {
+			isa = PBXGroup;
+			children = (
+				862B8F842ABCFA0495AD571B /* Skymarshal */,
+				48FEC0B7706BF32F4064CEFD /* SkymarshalCore */,
+				FCE7966212BB75311499EAF0 /* SkymarshalTests */,
+				D246A0AAF428E74AD7A99869 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		F8D8F2A80FD6ECB628761990 /* Standards */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Standards;
+			sourceTree = "<group>";
+		};
+		FCE7966212BB75311499EAF0 /* SkymarshalTests */ = {
+			isa = PBXGroup;
+			children = (
+				2C63DDD72BCB5341FA0A17C6 /* SmokeTests.swift */,
+			);
+			path = SkymarshalTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A6A353D5E054B4298ADE0C13 /* SkymarshalCore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F2B30BF01A6CEF28291C1BE4 /* Build configuration list for PBXNativeTarget "SkymarshalCore" */;
+			buildPhases = (
+				9142ABC179BA99539161C28B /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SkymarshalCore;
+			packageProductDependencies = (
+			);
+			productName = SkymarshalCore;
+			productReference = 822EC83D35348BBCCDA83D23 /* SkymarshalCore.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		C1BE9C3F451A2C6856B01893 /* Skymarshal */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B49D77300E53F63B93D68D0D /* Build configuration list for PBXNativeTarget "Skymarshal" */;
+			buildPhases = (
+				BF936EA9AA5E79D0657A61B8 /* Sources */,
+				8C51AE43C865E1E10D89272B /* Resources */,
+				7EB31078453E6D4784C4327A /* Frameworks */,
+				458DE29D123874CA375F8376 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8C764EE1340543AB07AB70E4 /* PBXTargetDependency */,
+			);
+			name = Skymarshal;
+			packageProductDependencies = (
+			);
+			productName = Skymarshal;
+			productReference = 14B50B641FB406502CA6835B /* Skymarshal.app */;
+			productType = "com.apple.product-type.application";
+		};
+		D45A95CC0A47421B60314C9C /* SkymarshalTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FEB6E18BE7C015FDF0B2C344 /* Build configuration list for PBXNativeTarget "SkymarshalTests" */;
+			buildPhases = (
+				A41B694FF3D99B4BE4913524 /* Sources */,
+				90E2A7A59433FABC46C14198 /* Frameworks */,
+				6BD6DBAD2F8677A8AC3D2990 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BD3D63951A4D36485389684F /* PBXTargetDependency */,
+				BECB629391D88952E117E4EB /* PBXTargetDependency */,
+			);
+			name = SkymarshalTests;
+			packageProductDependencies = (
+			);
+			productName = SkymarshalTests;
+			productReference = 2A68109DA988C288562EC79A /* SkymarshalTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		32C1FA2301ADCCE579C6EB9D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					A6A353D5E054B4298ADE0C13 = {
+						DevelopmentTeam = 596T7J7FB6;
+						ProvisioningStyle = Automatic;
+					};
+					C1BE9C3F451A2C6856B01893 = {
+						DevelopmentTeam = 596T7J7FB6;
+						ProvisioningStyle = Automatic;
+					};
+					D45A95CC0A47421B60314C9C = {
+						DevelopmentTeam = 596T7J7FB6;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 89AF42162D4A75E44A3F7715 /* Build configuration list for PBXProject "Skymarshal" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = E198E32ECE1F7A60313C754C;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = D246A0AAF428E74AD7A99869 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C1BE9C3F451A2C6856B01893 /* Skymarshal */,
+				A6A353D5E054B4298ADE0C13 /* SkymarshalCore */,
+				D45A95CC0A47421B60314C9C /* SkymarshalTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8C51AE43C865E1E10D89272B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7F4EFD5F9A3E507B27191B16 /* Assets.xcassets in Resources */,
+				CBBEF1B5596F78C2A7CD2FF5 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9142ABC179BA99539161C28B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				01804EFE9494B0A0017495BB /* SkymarshalCore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A41B694FF3D99B4BE4913524 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				61FAC6C736986FA6DCF8368C /* SmokeTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF936EA9AA5E79D0657A61B8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E0AB715968300F8D9359DCB6 /* RootView.swift in Sources */,
+				38F8AAEE9C83AF2876B0E3E8 /* SkymarshalApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		8C764EE1340543AB07AB70E4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A6A353D5E054B4298ADE0C13 /* SkymarshalCore */;
+			targetProxy = 0F843E7A73129DBC7CF97638 /* PBXContainerItemProxy */;
+		};
+		BD3D63951A4D36485389684F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C1BE9C3F451A2C6856B01893 /* Skymarshal */;
+			targetProxy = A32AE8321C6BB445F25F2A6F /* PBXContainerItemProxy */;
+		};
+		BECB629391D88952E117E4EB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A6A353D5E054B4298ADE0C13 /* SkymarshalCore */;
+			targetProxy = 92642EF473AEDAF04F50160A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		56EA6051A128D0A641633239 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = SkymarshalCore;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = blue.skymarshal.ios.core;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Release;
+		};
+		88B176A262C0CA4BA07FB1BD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Skymarshal/Skymarshal.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Skymarshal/Info.plist;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIRequiresFullScreen = NO;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = blue.skymarshal.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		93C6A85EFC73339109B397C2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = blue.skymarshal.ios.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Skymarshal.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Skymarshal";
+			};
+			name = Debug;
+		};
+		953B84309C172AC1DAD35EDB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = blue.skymarshal.ios.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Skymarshal.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Skymarshal";
+			};
+			name = Release;
+		};
+		BC7A6876E6F64DA25032DB6A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Skymarshal/Skymarshal.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Skymarshal/Info.plist;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIRequiresFullScreen = NO;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = blue.skymarshal.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		CF0E90D1152655E7D558230F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = SkymarshalCore;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = blue.skymarshal.ios.core;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Debug;
+		};
+		E0F576B5A16AAA447C4564E8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 596T7J7FB6;
+				ENABLE_BITCODE = NO;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		FAD8E98DAA6D09EEBCE243FD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 596T7J7FB6;
+				ENABLE_BITCODE = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		89AF42162D4A75E44A3F7715 /* Build configuration list for PBXProject "Skymarshal" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FAD8E98DAA6D09EEBCE243FD /* Debug */,
+				E0F576B5A16AAA447C4564E8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		B49D77300E53F63B93D68D0D /* Build configuration list for PBXNativeTarget "Skymarshal" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				88B176A262C0CA4BA07FB1BD /* Debug */,
+				BC7A6876E6F64DA25032DB6A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F2B30BF01A6CEF28291C1BE4 /* Build configuration list for PBXNativeTarget "SkymarshalCore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CF0E90D1152655E7D558230F /* Debug */,
+				56EA6051A128D0A641633239 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FEB6E18BE7C015FDF0B2C344 /* Build configuration list for PBXNativeTarget "SkymarshalTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				93C6A85EFC73339109B397C2 /* Debug */,
+				953B84309C172AC1DAD35EDB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 32C1FA2301ADCCE579C6EB9D /* Project object */;
+}
