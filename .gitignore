@@ -1,0 +1,90 @@
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editors / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Xcode
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+build/
+*.ipa
+*.dSYM.zip
+*.dSYM
+xcuserdata/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xccheckout
+*.xcscmblueprint
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+
+# Code coverage
+*.gcov
+*.profraw
+*.profdata
+coverage.xml
+
+# Python (residual — only inside reference/)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node (residual — only inside reference/)
+node_modules/
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.tmp
+
+# AI tooling cruft
+.aider*
+.cursor/
+.cursorignore
+.claude/
+GEMINI.md
+AGENTS.md
+CONSOLIDATION*.md
+SUGGESTIONS.md
+CRITIC.md
+ONBOARD.md
+SESSION_LOG.md
+WORK_LOG.md
+AGENT_REPORT.md
+EXPLORATION_SUMMARY.md
+REPO_AUDIT.md
+*_IMPLEMENTATION_STATUS.md
+*_PROGRESS.md
+*_STATUS.md
+WORKING_SCRIPTS_TEST_REPORT.md
+
+# Reports and outputs
+reports/
+*.log
