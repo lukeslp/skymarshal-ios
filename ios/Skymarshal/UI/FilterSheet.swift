@@ -11,8 +11,13 @@ struct FilterSheet: View {
     @Binding var draft: SearchRequest
     @Environment(\.dismiss) private var dismiss
 
-    @State private var startDate: Date = .distantPast
-    @State private var endDate: Date = .distantFuture
+    // Defaults to Date() so flipping the toggle on doesn't show "Dec 31,
+    // year 1" / "Dec 31, 4000" — those are .distantPast/.distantFuture's
+    // literal values rendered by DatePicker. The pickers clamp to ...Date()
+    // so the user can't accidentally select a future date (Bluesky posts
+    // can't be in the future, so a "before tomorrow" filter is nonsense).
+    @State private var startDate: Date = Date()
+    @State private var endDate: Date = Date()
     @State private var enableStartDate: Bool = false
     @State private var enableEndDate: Bool = false
 
@@ -43,11 +48,21 @@ struct FilterSheet: View {
                 Section("Dates") {
                     Toggle("After…", isOn: $enableStartDate)
                     if enableStartDate {
-                        DatePicker("Earliest", selection: $startDate, displayedComponents: .date)
+                        DatePicker(
+                            "Earliest",
+                            selection: $startDate,
+                            in: ...Date(),
+                            displayedComponents: .date
+                        )
                     }
                     Toggle("Before…", isOn: $enableEndDate)
                     if enableEndDate {
-                        DatePicker("Latest", selection: $endDate, displayedComponents: .date)
+                        DatePicker(
+                            "Latest",
+                            selection: $endDate,
+                            in: ...Date(),
+                            displayedComponents: .date
+                        )
                     }
                 }
 
