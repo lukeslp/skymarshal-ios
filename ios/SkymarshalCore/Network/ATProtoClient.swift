@@ -117,7 +117,7 @@ public actor ATProtoClient {
             .init(name: "limit", value: "\(min(max(limit, 1), 100))"),
         ]
         if let cursor { params.append(.init(name: "cursor", value: cursor)) }
-        return try await withTimeout(seconds: 30) {
+        return try await withTimeout(seconds: 30) { [params] in
             try await self.get(lexicon: "app.bsky.graph.getFollows", queryItems: params)
         }
     }
@@ -130,11 +130,12 @@ public actor ATProtoClient {
         guard !actors.isEmpty else { return GetProfilesResponse(profiles: []) }
         let capped = Array(actors.prefix(25))
         let params = capped.map { URLQueryItem(name: "actors", value: $0) }
-        return try await withTimeout(seconds: 30) {
+        let publicURL = self.publicURL
+        return try await withTimeout(seconds: 30) { [params] in
             try await self.get(
                 lexicon: "app.bsky.actor.getProfiles",
                 queryItems: params,
-                base: self.publicURL,
+                base: publicURL,
                 requireAuth: false
             )
         }
@@ -153,11 +154,12 @@ public actor ATProtoClient {
             .init(name: "limit", value: "\(min(max(limit, 1), 100))"),
         ]
         if let cursor { params.append(.init(name: "cursor", value: cursor)) }
-        return try await withTimeout(seconds: 30) {
+        let publicURL = self.publicURL
+        return try await withTimeout(seconds: 30) { [params] in
             try await self.get(
                 lexicon: "app.bsky.feed.getLikes",
                 queryItems: params,
-                base: self.publicURL,
+                base: publicURL,
                 requireAuth: false
             )
         }
