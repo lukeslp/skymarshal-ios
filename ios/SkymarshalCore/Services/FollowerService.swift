@@ -14,6 +14,10 @@ public actor FollowerService {
     private let client: ATProtoClient
     private let container: ModelContainer?
     private var loaded: [AnalyzedAccount] = []
+    /// Session-scoped cache so re-opening the AccountDetailView for
+    /// the same target doesn't re-fetch their follow list. Keyed by
+    /// target DID; cleared on logout via clear().
+    private var mutualFollowsCache: [String: MutualFollowResult] = [:]
 
     public init(client: ATProtoClient, container: ModelContainer? = nil) {
         self.client = client
@@ -189,6 +193,7 @@ public actor FollowerService {
 
     public func clear() {
         loaded = []
+        mutualFollowsCache = [:]
     }
 
     /// Inject a snapshot from the SwiftData cache during cold-start
@@ -197,6 +202,57 @@ public actor FollowerService {
     /// progress callbacks the UI binds to).
     public func setLoaded(_ accounts: [AnalyzedAccount]) {
         self.loaded = accounts
+    }
+
+    /// Find accounts that BOTH the user and the target follow. One
+    /// paginated `getFollows(actor: targetDID)` walk (capped at 5
+    /// pages = 500 follows examined) intersected against the user's
+    /// cached `loaded` follow list. Result is session-cached per
+    /// target DID so reopening the AccountDetailView doesn't refetch.
+    public func loadMutualFollows(
+        withDID targetDID: String
+    ) async throws -> MutualFollowResult {
+        if let cached = mutualFollowsCache[targetDID] { return cached }
+
+        let userDIDs = Set(loaded.map(\.did))
+        guard !userDIDs.isEmpty else {
+            return MutualFollowResult(matches: [], truncated: false)
+        }
+
+        let maxPages = 5  // 5 × 100 = 500 follows max
+        let selfDID = await client.currentDid
+        var cursor: String? = nil
+        var page = 0
+        var matches: [MutualFollow] = []
+        var seenDIDs = Set<String>()
+
+        repeat {
+            try Task.checkCancellation()
+            let response = try await client.getFollows(
+                actor: targetDID, limit: 100, cursor: cursor
+            )
+            for profile in response.follows {
+                guard !seenDIDs.contains(profile.did),
+                      profile.did != selfDID,
+                      userDIDs.contains(profile.did) else { continue }
+                seenDIDs.insert(profile.did)
+                matches.append(MutualFollow(
+                    did: profile.did,
+                    handle: profile.handle,
+                    displayName: profile.displayName,
+                    avatar: profile.avatar
+                ))
+            }
+            cursor = response.cursor
+            page += 1
+        } while cursor != nil && page < maxPages
+
+        let result = MutualFollowResult(
+            matches: matches,
+            truncated: cursor != nil
+        )
+        mutualFollowsCache[targetDID] = result
+        return result
     }
 
     // MARK: - Persistence

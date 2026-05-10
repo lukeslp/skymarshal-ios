@@ -13,9 +13,12 @@ struct AccountDetailView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @Environment(AppModel.self) private var model
 
     @State private var showUnfollowConfirm: Bool = false
     @State private var showInteractions: Bool = false
+    @State private var mutuals: MutualFollowResult?
+    @State private var mutualsLoading: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -33,6 +36,8 @@ struct AccountDetailView: View {
                     if account.lastPostDate != nil || account.isInactive {
                         activitySection
                     }
+
+                    mutualsSection
 
                     Divider().padding(.vertical, 4)
 
@@ -64,6 +69,22 @@ struct AccountDetailView: View {
             .sheet(isPresented: $showInteractions) {
                 InteractionHistoryView(target: account)
             }
+            .task(id: account.did) {
+                await loadMutuals()
+            }
+        }
+    }
+
+    private func loadMutuals() async {
+        guard mutuals == nil, !mutualsLoading else { return }
+        mutualsLoading = true
+        defer { mutualsLoading = false }
+        do {
+            let result = try await model.followers.loadMutualFollows(withDID: account.did)
+            self.mutuals = result
+        } catch {
+            // Silent fail — section just doesn't appear. Common path
+            // is the target's follow list is private or rate-limited.
         }
     }
 
@@ -299,6 +320,68 @@ struct AccountDetailView: View {
         }
     }
 
+    // MARK: - Mutual follows
+
+    @ViewBuilder
+    private var mutualsSection: some View {
+        if mutualsLoading {
+            HStack(spacing: 8) {
+                ProgressView().controlSize(.small)
+                Text("Checking who you both follow…")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+        } else if let result = mutuals, !result.matches.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 8) {
+                    Image(systemName: "person.2.crop.square.stack")
+                        .foregroundStyle(.tint)
+                    Text("You both follow \(result.matches.count)")
+                        .font(.subheadline.weight(.semibold))
+                    if result.truncated {
+                        Text("(showing first 500)")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                    Spacer()
+                }
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(result.matches.prefix(40)) { mutual in
+                            MutualTile(mutual: mutual)
+                        }
+                        if result.matches.count > 40 {
+                            Text("+\(result.matches.count - 40)")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                                .frame(width: 56, height: 56)
+                                .background(Color(.tertiarySystemFill), in: Circle())
+                        }
+                    }
+                }
+                .scrollClipDisabled()
+            }
+            .padding(12)
+            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+        } else if mutuals != nil {
+            // Loaded with empty result — explicit "no overlap" so the
+            // user knows we checked.
+            HStack(spacing: 8) {
+                Image(systemName: "person.2.slash")
+                    .foregroundStyle(.tertiary)
+                Text("No mutual follows")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+            .padding(12)
+            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+        }
+    }
+
     // MARK: - Actions
 
     @ViewBuilder
@@ -446,5 +529,54 @@ public enum BotFlagSeverity: Sendable, Equatable {
         // Low — informational signals (round numbers, suspiciously high
         // ratio, young account but sub-flooding, etc.)
         return .low
+    }
+}
+
+// MARK: - Mutual avatar tile
+
+@available(iOS 17, *)
+private struct MutualTile: View {
+    let mutual: MutualFollow
+
+    var body: some View {
+        VStack(spacing: 4) {
+            avatar
+                .frame(width: 56, height: 56)
+                .clipShape(Circle())
+                .overlay(Circle().strokeBorder(.tertiary, lineWidth: 0.5))
+            Text("@\(mutual.handle)")
+                .font(.caption2.monospaced())
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .frame(maxWidth: 64)
+        }
+        .accessibilityLabel(mutual.displayName ?? mutual.handle)
+        .accessibilityHint("Mutual follow")
+    }
+
+    private var avatar: some View {
+        Group {
+            if let url = mutual.avatar.flatMap(URL.init(string:)) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image): image.resizable().scaledToFill()
+                    default: placeholder
+                    }
+                }
+            } else {
+                placeholder
+            }
+        }
+    }
+
+    private var placeholder: some View {
+        Circle()
+            .fill(.tint.opacity(0.15))
+            .overlay {
+                Text(String(mutual.handle.first ?? "?").uppercased())
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.tint)
+            }
     }
 }
