@@ -76,7 +76,7 @@ public actor ATProtoClient {
             .init(name: "filter", value: filter),
         ]
         if let cursor { params.append(.init(name: "cursor", value: cursor)) }
-        return try await withTimeout(seconds: 30) {
+        return try await withTimeout(seconds: 30) { [params] in
             try await self.get(lexicon: "app.bsky.feed.getAuthorFeed", queryItems: params)
         }
     }
@@ -92,7 +92,7 @@ public actor ATProtoClient {
             .init(name: "limit", value: "\(min(max(limit, 1), 100))"),
         ]
         if let cursor { params.append(.init(name: "cursor", value: cursor)) }
-        return try await withTimeout(seconds: 30) {
+        return try await withTimeout(seconds: 30) { [params] in
             try await self.get(lexicon: "app.bsky.feed.getActorLikes", queryItems: params)
         }
     }

@@ -62,6 +62,20 @@ struct ContentListView: View {
                     }
                 }
 
+                if editMode.isEditing {
+                    EditActionBar(
+                        selectionCount: selection.count,
+                        visibleCount: filteredItems.count,
+                        allSelected: allFilteredSelected,
+                        onToggleAll: {
+                            let all = Set(filteredItems.map(\.uri))
+                            selection = allFilteredSelected ? [] : all
+                        },
+                        onDelete: { pendingDeletion = Array(selection) }
+                    )
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+
                 List(selection: $selection) {
                     if model.items.isEmpty && !model.isLoading {
                         ContentUnavailableView(
@@ -93,27 +107,15 @@ struct ContentListView: View {
             .navigationTitle(model.currentHandle ?? "Skymarshal")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    if editMode.isEditing {
-                        // Far from the search-bar clear-X (which sits in
-                        // the navigationBarDrawer below). Toggling
-                        // against `filteredItems` makes the search-then-
-                        // bulk-act flow one tap. Per technical-committee
-                        // architect verdict.
-                        Button(allFilteredSelected ? "Deselect All" : "Select All") {
-                            let all = Set(filteredItems.map(\.uri))
-                            selection = allFilteredSelected ? [] : all
+                    Menu {
+                        Button("Refresh") {
+                            model.startLoad(forceRefresh: true)
                         }
-                    } else {
-                        Menu {
-                            Button("Refresh") {
-                                model.startLoad(forceRefresh: true)
-                            }
-                            Button("Sign out", role: .destructive) {
-                                Task { await model.logout() }
-                            }
-                        } label: {
-                            Image(systemName: "person.circle")
+                        Button("Sign out", role: .destructive) {
+                            Task { await model.logout() }
                         }
+                    } label: {
+                        Image(systemName: "person.circle")
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -208,49 +210,82 @@ struct ContentRow: View {
     let item: ContentItem
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                Image(systemName: typeIcon)
-                    .foregroundStyle(.tint)
-                    .font(.caption)
-                Text(item.contentType.label)
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.secondary)
-                if let date = item.createdAt {
-                    Text(date, style: .date)
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                }
-                Spacer()
-                if item.engagementScore > 0 {
-                    Label("\(Int(item.engagementScore))", systemImage: "flame")
-                        .font(.caption2)
+        HStack(alignment: .top, spacing: 12) {
+            // 3pt leading hairline — Things-3-style category cue. Subtle
+            // enough not to compete with text; visible enough to give the
+            // eye a rhythm when scrolling through hundreds of rows.
+            Capsule()
+                .fill(item.contentType.stripeColor)
+                .frame(width: 3)
+                .frame(maxHeight: .infinity)
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 6) {
+                    Image(systemName: item.contentType.sfSymbol)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(item.contentType.stripeColor)
+                    Text(item.contentType.label.uppercased())
+                        .font(.caption2.weight(.semibold))
+                        .tracking(0.4)
                         .foregroundStyle(.secondary)
+                    if let date = item.createdAt {
+                        Text("·")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                        Text(date, style: .date)
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                    Spacer()
+                    if item.engagementScore > 0 {
+                        EngagementBadge(score: Int(item.engagementScore))
+                    }
                 }
+
+                if let text = item.text, !text.isEmpty {
+                    Text(text)
+                        .font(.callout)
+                        .lineLimit(3)
+                }
+
+                HStack(spacing: 14) {
+                    metric(count: item.likeCount, symbol: "heart")
+                    metric(count: item.repostCount, symbol: "arrow.2.squarepath")
+                    metric(count: item.replyCount, symbol: "bubble.left")
+                }
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .padding(.top, 1)
             }
-            if let text = item.text, !text.isEmpty {
-                Text(text)
-                    .font(.callout)
-                    .lineLimit(3)
-            }
-            HStack(spacing: 16) {
-                Label("\(item.likeCount)", systemImage: "heart")
-                Label("\(item.repostCount)", systemImage: "arrow.2.squarepath")
-                Label("\(item.replyCount)", systemImage: "bubble.left")
-            }
-            .font(.caption2)
-            .foregroundStyle(.secondary)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
     }
 
-    private var typeIcon: String {
-        switch item.contentType {
-        case .all:     return "tray"
-        case .posts:   return "doc.text"
-        case .replies: return "arrowshape.turn.up.left"
-        case .reposts: return "arrow.2.squarepath"
-        case .likes:   return "heart"
+    @ViewBuilder
+    private func metric(count: Int, symbol: String) -> some View {
+        Label("\(count)", systemImage: symbol)
+            .labelStyle(.titleAndIcon)
+            .symbolRenderingMode(.hierarchical)
+            .foregroundStyle(count == 0 ? .tertiary : .secondary)
+    }
+}
+
+/// The number is the point of a "find dead threads / find bangers"
+/// workflow; render it as a deliberate badge, not floating text.
+@available(iOS 17, *)
+struct EngagementBadge: View {
+    let score: Int
+
+    var body: some View {
+        HStack(spacing: 2) {
+            Image(systemName: "flame.fill")
+                .font(.system(size: 9))
+            Text("\(score)")
+                .font(.caption2.weight(.semibold).monospacedDigit())
         }
+        .foregroundStyle(.tint)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2)
+        .background(.tint.opacity(0.12), in: .capsule)
     }
 }

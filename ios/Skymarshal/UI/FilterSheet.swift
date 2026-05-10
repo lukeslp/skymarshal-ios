@@ -95,7 +95,6 @@ struct FilterSheet: View {
         case (let l?, nil):    return l...Int.max
         case (nil, let h?):    return 0...h
         case (let l?, let h?): return l <= h ? l...h : nil
-        default:               return nil
         }
     }
 }
