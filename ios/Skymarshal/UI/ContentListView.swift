@@ -45,34 +45,45 @@ struct ContentListView: View {
         @Bindable var model = model
         NavigationStack {
             VStack(spacing: 0) {
-                HStack(spacing: 10) {
-                    Picker("Type", selection: $scope) {
-                        ForEach(ContentType.allCases) { type in
-                            Text(type.label).tag(type)
-                        }
+                // The Select / Done toggle lives in this row — always
+                // visible regardless of whether .searchable is focused
+                // (the toolbar EditButton would be dead in that state).
+                // Two-row layout because a 5-segment picker eats every
+                // pixel of an iPhone's width — a sibling button next to
+                // it gets squeezed to zero.
+                Picker("Type", selection: $scope) {
+                    ForEach(ContentType.allCases) { type in
+                        Text(type.label).tag(type)
                     }
-                    .pickerStyle(.segmented)
-                    .layoutPriority(1)
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .padding(.top, 6)
 
-                    // The Select / Done toggle lives HERE — always
-                    // visible. The toolbar EditButton is dead during
-                    // search (iOS hides the nav bar on .searchable
-                    // focus), so this is the only reachable surface.
+                HStack {
+                    Spacer()
                     Button {
                         withAnimation(.snappy) {
                             editMode = editMode.isEditing ? .inactive : .active
                             if !editMode.isEditing { selection.removeAll() }
                         }
                     } label: {
-                        Text(editMode.isEditing ? "Done" : "Select")
-                            .font(.subheadline.weight(.medium))
+                        HStack(spacing: 4) {
+                            Image(systemName: editMode.isEditing
+                                  ? "checkmark.circle.fill"
+                                  : "checkmark.circle")
+                                .font(.footnote)
+                            Text(editMode.isEditing ? "Done" : "Select")
+                                .font(.footnote.weight(.medium))
+                        }
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(.tint)
                     .accessibilityLabel(editMode.isEditing ? "Exit selection mode" : "Enter selection mode")
                 }
                 .padding(.horizontal)
-                .padding(.vertical, 6)
+                .padding(.top, 4)
+                .padding(.bottom, 4)
 
                 ActiveFilterChips(filters: $filters)
 
@@ -129,6 +140,7 @@ struct ContentListView: View {
                 }
             }
             .navigationTitle(model.currentHandle ?? "Skymarshal")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Menu {
