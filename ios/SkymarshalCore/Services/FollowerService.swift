@@ -7,6 +7,7 @@ import Foundation
 /// 40 batched getProfiles + 1k optional getAuthorFeed-for-last-post.
 /// The progress stream pattern (lifted from ContentService) lets the
 /// UI render incrementally instead of waiting for everything.
+@available(iOS 17, *)
 public actor FollowerService {
 
     private let client: ATProtoClient
