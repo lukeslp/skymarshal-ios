@@ -18,6 +18,7 @@ struct ContentListView: View {
     @State private var pendingDeletion: [String]? = nil
     @State private var selection: Set<String> = []
     @State private var editMode: EditMode = .inactive
+    @State private var detailItem: ContentItem? = nil
 
     private var effectiveRequest: SearchRequest {
         var req = filters
@@ -124,6 +125,12 @@ struct ContentListView: View {
                                     ? Color.accentColor.opacity(0.08)
                                     : Color(.systemBackground)
                                 )
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    if !editMode.isEditing {
+                                        detailItem = item
+                                    }
+                                }
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     Button(role: .destructive) {
                                         pendingDeletion = [item.uri]
@@ -191,6 +198,13 @@ struct ContentListView: View {
                         // — FilterSheet mutates its own binding, so we copy.
                         filters = draftFilters
                     }
+            }
+            .sheet(item: $detailItem) { item in
+                PostDetailView(item: item) {
+                    Task {
+                        _ = await model.delete(uris: [item.uri])
+                    }
+                }
             }
             .confirmationDialog(
                 deletionTitle,

@@ -18,8 +18,30 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
     public var repostCount: Int
     public var replyCount: Int
     public var media: [MediaPreview]
+    public var linkCard: LinkCard?
+    public var textLinks: [TextLink]
 
     public var id: String { uri }
+
+    /// at:// URI parsed into the (handle/did, rkey) pair so we can build
+    /// a `https://bsky.app/profile/<handle>/post/<rkey>` deep link for
+    /// the "View on Bluesky" affordance in PostDetailView.
+    public var bskyAppURL: URL? {
+        guard uri.hasPrefix("at://") else { return nil }
+        let parts = uri.dropFirst("at://".count).split(separator: "/", omittingEmptySubsequences: false)
+        guard parts.count >= 3 else { return nil }
+        let actor = String(parts[0])         // did:plc:... — bsky.app accepts DIDs
+        let collection = String(parts[1])
+        let rkey = String(parts[2])
+        switch collection {
+        case "app.bsky.feed.post":
+            return URL(string: "https://bsky.app/profile/\(actor)/post/\(rkey)")
+        default:
+            // Likes and reposts also live on the user's profile but
+            // bsky.app doesn't have a stable per-record URL for them.
+            return URL(string: "https://bsky.app/profile/\(actor)")
+        }
+    }
 
     /// True when the post has any image or video attachment. External
     /// link cards do NOT count as media for filter purposes — that
@@ -42,7 +64,9 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
         likeCount: Int = 0,
         repostCount: Int = 0,
         replyCount: Int = 0,
-        media: [MediaPreview] = []
+        media: [MediaPreview] = [],
+        linkCard: LinkCard? = nil,
+        textLinks: [TextLink] = []
     ) {
         self.uri = uri
         self.cid = cid
@@ -53,6 +77,8 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
         self.repostCount = repostCount
         self.replyCount = replyCount
         self.media = media
+        self.linkCard = linkCard
+        self.textLinks = textLinks
     }
 
     /// Engagement score — the same `1L + 2R + 2.5Reply` formula as the
@@ -77,10 +103,12 @@ public enum EngagementScore {
 }
 
 /// One image or video attached to a post. We carry the thumbnail URL
-/// for inline rendering and the alt text for accessibility + search.
+/// for inline rendering, the fullsize URL for the lightbox, and the
+/// alt text for accessibility + search + lightbox caption.
 public struct MediaPreview: Hashable, Sendable, Codable {
     public let kind: Kind
     public let thumbnailURL: URL?
+    public let fullsizeURL: URL?
     public let alt: String?
 
     public enum Kind: String, Sendable, Codable {
@@ -88,9 +116,47 @@ public struct MediaPreview: Hashable, Sendable, Codable {
         case video
     }
 
-    public init(kind: Kind, thumbnailURL: URL? = nil, alt: String? = nil) {
+    public init(
+        kind: Kind,
+        thumbnailURL: URL? = nil,
+        fullsizeURL: URL? = nil,
+        alt: String? = nil
+    ) {
         self.kind = kind
         self.thumbnailURL = thumbnailURL
+        self.fullsizeURL = fullsizeURL ?? thumbnailURL  // fallback when not provided
         self.alt = alt?.isEmpty == false ? alt : nil
+    }
+}
+
+/// External link card on a post (`app.bsky.embed.external`). Renders
+/// as a tappable card showing the destination's title, description,
+/// and thumbnail. Tapping opens the URL in Safari.
+public struct LinkCard: Hashable, Sendable, Codable {
+    public let url: URL
+    public let title: String?
+    public let summary: String?
+    public let thumbnailURL: URL?
+
+    public init(url: URL, title: String? = nil, summary: String? = nil, thumbnailURL: URL? = nil) {
+        self.url = url
+        self.title = title
+        self.summary = summary
+        self.thumbnailURL = thumbnailURL
+    }
+}
+
+/// One tappable URL range inside a post's text body. Decoded from the
+/// post's richtext facets — Bluesky stores URL annotations as UTF-8
+/// byte ranges + a destination URI rather than embedded in the text.
+public struct TextLink: Hashable, Sendable, Codable {
+    public let url: URL
+    public let byteStart: Int
+    public let byteEnd: Int
+
+    public init(url: URL, byteStart: Int, byteEnd: Int) {
+        self.url = url
+        self.byteStart = byteStart
+        self.byteEnd = byteEnd
     }
 }

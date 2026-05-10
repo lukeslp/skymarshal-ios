@@ -256,14 +256,16 @@ public actor ContentService {
             likeCount: post.likeCount ?? 0,
             repostCount: post.repostCount ?? 0,
             replyCount: post.replyCount ?? 0,
-            media: extractMediaPreviews(post.embed)
+            media: extractMediaPreviews(post.embed),
+            linkCard: extractLinkCard(post.embed),
+            textLinks: extractTextLinks(post.record?.facets)
         )
     }
 
     /// Walk an `app.bsky.embed.*#view` and pull out image / video previews
     /// with their alt text. External link cards are intentionally skipped
     /// — "media" filter means photos and videos, matching the user's
-    /// mental model.
+    /// mental model. Link cards travel separately on `linkCard`.
     private static func extractMediaPreviews(_ embed: PostEmbedView?) -> [MediaPreview] {
         guard let embed else { return [] }
         var previews: [MediaPreview] = []
@@ -272,6 +274,7 @@ public actor ContentService {
             previews.append(MediaPreview(
                 kind: .image,
                 thumbnailURL: image.thumb.flatMap(URL.init(string:)),
+                fullsizeURL: image.fullsize.flatMap(URL.init(string:)),
                 alt: image.alt
             ))
         }
@@ -288,6 +291,7 @@ public actor ContentService {
                 previews.append(MediaPreview(
                     kind: .image,
                     thumbnailURL: image.thumb.flatMap(URL.init(string:)),
+                    fullsizeURL: image.fullsize.flatMap(URL.init(string:)),
                     alt: image.alt
                 ))
             }
@@ -300,5 +304,40 @@ public actor ContentService {
             }
         }
         return previews
+    }
+
+    /// Pull out the `app.bsky.embed.external` link card, if any. Lives
+    /// alongside (not inside) the media list — it has different render
+    /// affordances (title + description + thumb, tap = open in Safari).
+    private static func extractLinkCard(_ embed: PostEmbedView?) -> LinkCard? {
+        guard let extEmbed = embed?.external?.external,
+              let urlString = extEmbed.uri,
+              let url = URL(string: urlString) else { return nil }
+        return LinkCard(
+            url: url,
+            title: extEmbed.title,
+            summary: extEmbed.description,
+            thumbnailURL: extEmbed.thumb.flatMap(URL.init(string:))
+        )
+    }
+
+    /// Decode `app.bsky.richtext.facet#link` features into TextLink
+    /// records. Mentions and hashtags are skipped — content management
+    /// doesn't need them tappable. UTF-8 byte ranges flow through
+    /// unchanged; the AttributedString builder converts them to
+    /// String.Index when rendering.
+    private static func extractTextLinks(_ facets: [Facet]?) -> [TextLink] {
+        guard let facets else { return [] }
+        return facets.compactMap { facet in
+            guard let link = facet.features.first(where: {
+                $0.type == "app.bsky.richtext.facet#link"
+            })?.uri,
+                  let url = URL(string: link) else { return nil }
+            return TextLink(
+                url: url,
+                byteStart: facet.index.byteStart,
+                byteEnd: facet.index.byteEnd
+            )
+        }
     }
 }

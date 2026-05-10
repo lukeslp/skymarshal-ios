@@ -68,6 +68,13 @@ public struct PostEmbedMedia: Decodable, Sendable {
 public struct EmbedImage: Decodable, Sendable {
     public let alt: String?
     public let thumb: String?
+    public let fullsize: String?
+    public let aspectRatio: AspectRatio?
+}
+
+public struct AspectRatio: Decodable, Sendable {
+    public let width: Int
+    public let height: Int
 }
 
 public struct EmbedVideo: Decodable, Sendable {
@@ -96,9 +103,36 @@ public struct PostRecord: Decodable, Sendable {
     public let text: String?
     public let createdAt: String?
     public let reply: ReplyRef?
+    public let facets: [Facet]?
 
     enum CodingKeys: String, CodingKey {
-        case text, createdAt, reply
+        case text, createdAt, reply, facets
+    }
+}
+
+/// `app.bsky.richtext.facet` — annotation on a UTF-8 byte range of
+/// post text. Used for inline links, mentions, hashtags. We only
+/// surface the link facet for now (mentions and hashtags are
+/// out of scope for content management).
+public struct Facet: Decodable, Sendable {
+    public let index: FacetIndex
+    public let features: [FacetFeature]
+
+    public struct FacetIndex: Decodable, Sendable {
+        public let byteStart: Int
+        public let byteEnd: Int
+    }
+
+    public struct FacetFeature: Decodable, Sendable {
+        public let type: String
+        public let uri: String?      // present on #link
+        public let did: String?      // present on #mention
+        public let tag: String?      // present on #tag
+
+        enum CodingKeys: String, CodingKey {
+            case type = "$type"
+            case uri, did, tag
+        }
     }
 }
 
