@@ -44,6 +44,7 @@
 		B2BE03AF8B77BD2712A8A946 /* EngagementCacheTTL.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33CEEA494ABBF59FFC62725 /* EngagementCacheTTL.swift */; };
 		B2FC3293128DA0A039ADA88B /* LinkCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEF4AB6F390008D3FB71D87 /* LinkCardView.swift */; };
 		C1A74D6E4DA3521208E736A3 /* BluescreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E2CDB04D72BD83F6387C6A3 /* BluescreenView.swift */; };
+		C4489477052539873B9BF20B /* BotFlagSeverityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B7701520804115EB93F81E /* BotFlagSeverityTests.swift */; };
 		C6D0E62272D1E341867E5FEB /* SkymarshalCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 822EC83D35348BBCCDA83D23 /* SkymarshalCore.framework */; };
 		C7BE4FC7164409E9DF588C27 /* AccountRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F13FF534F6122C655A075286 /* AccountRow.swift */; };
 		C7C0BF6AFF715DB2189F5EEC /* FollowerFiltersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3786F0727744BDFB53F1DD6C /* FollowerFiltersTests.swift */; };
@@ -53,6 +54,7 @@
 		D14D6DA2B8C31DCCFA245EE9 /* ScanInFlightView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E2A563F59D0EAACF6B93C1D /* ScanInFlightView.swift */; };
 		D342FD00DA0941C8320845D4 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BDFE71499511839E0BFE29C /* AppModel.swift */; };
 		E0AB715968300F8D9359DCB6 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51EA66592A7FD0BA02349271 /* RootView.swift */; };
+		F2489F5E05A1AD96DAFAFB31 /* AccountDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B74AACF37FEDE7F8B59D9D64 /* AccountDetailView.swift */; };
 		F27CE9228345BE86F36E04A7 /* StorageModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABB23B2F9DD406B2A2A17ED /* StorageModels.swift */; };
 		F4DF3B33546DDBBE157F599F /* ScanSummaryStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E30699ACD9FBA95746DC78E /* ScanSummaryStrip.swift */; };
 /* End PBXBuildFile section */
@@ -132,6 +134,7 @@
 		7E2CDB04D72BD83F6387C6A3 /* BluescreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluescreenView.swift; sourceTree = "<group>"; };
 		822EC83D35348BBCCDA83D23 /* SkymarshalCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SkymarshalCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		916FD0F19FC4F52773CE1628 /* StatusBanners.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBanners.swift; sourceTree = "<group>"; };
+		95B7701520804115EB93F81E /* BotFlagSeverityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BotFlagSeverityTests.swift; sourceTree = "<group>"; };
 		9FAC32C76753E6DF41BB9650 /* FollowerFilters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowerFilters.swift; sourceTree = "<group>"; };
 		A3D884AC9F343474B2875C22 /* BluescreenAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluescreenAnalyzerTests.swift; sourceTree = "<group>"; };
 		A72EBFD4D9593869B7E87AF6 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
@@ -141,6 +144,7 @@
 		B3C69F277B3E01241BBC1AF4 /* ContentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentService.swift; sourceTree = "<group>"; };
 		B614BA930FB2C911FC531324 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B6D3BE832B28566F7FA58947 /* MediaThumbnailRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaThumbnailRow.swift; sourceTree = "<group>"; };
+		B74AACF37FEDE7F8B59D9D64 /* AccountDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDetailView.swift; sourceTree = "<group>"; };
 		B782349CA1305BCCC0AE2EE9 /* RateLimitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RateLimitTests.swift; sourceTree = "<group>"; };
 		B9DD6042E5FF9F3EC2084666 /* SearchRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchRequest.swift; sourceTree = "<group>"; };
 		BADD57E99019D70492F0107E /* ContentListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentListView.swift; sourceTree = "<group>"; };
@@ -198,6 +202,7 @@
 		3CD4A59CCB6ED61135ED2077 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				B74AACF37FEDE7F8B59D9D64 /* AccountDetailView.swift */,
 				F13FF534F6122C655A075286 /* AccountRow.swift */,
 				BEA5E5F56D11FF95180F9AC1 /* ActiveFilterChips.swift */,
 				1BDFE71499511839E0BFE29C /* AppModel.swift */,
@@ -313,6 +318,7 @@
 			isa = PBXGroup;
 			children = (
 				A3D884AC9F343474B2875C22 /* BluescreenAnalyzerTests.swift */,
+				95B7701520804115EB93F81E /* BotFlagSeverityTests.swift */,
 				3786F0727744BDFB53F1DD6C /* FollowerFiltersTests.swift */,
 				B782349CA1305BCCC0AE2EE9 /* RateLimitTests.swift */,
 				AC1C886B8184F15CA15F3F32 /* SearchAndScoreTests.swift */,
@@ -468,6 +474,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				48037B237AE29F0675B1547A /* BluescreenAnalyzerTests.swift in Sources */,
+				C4489477052539873B9BF20B /* BotFlagSeverityTests.swift in Sources */,
 				C7C0BF6AFF715DB2189F5EEC /* FollowerFiltersTests.swift in Sources */,
 				07AEC3916E73202457B28033 /* RateLimitTests.swift in Sources */,
 				1E17874CFF06F47B8EC2FC59 /* SearchAndScoreTests.swift in Sources */,
@@ -479,6 +486,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F2489F5E05A1AD96DAFAFB31 /* AccountDetailView.swift in Sources */,
 				C7BE4FC7164409E9DF588C27 /* AccountRow.swift in Sources */,
 				AEB39AA5C6426D1883174790 /* ActiveFilterChips.swift in Sources */,
 				D342FD00DA0941C8320845D4 /* AppModel.swift in Sources */,

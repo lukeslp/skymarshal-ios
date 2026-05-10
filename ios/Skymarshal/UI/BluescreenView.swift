@@ -15,6 +15,7 @@ struct BluescreenView: View {
     @State private var editMode: EditMode = .inactive
     @State private var sortField: FollowerFilters.SortField = .botScore
     @State private var sortDirection: FollowerFilters.SortDirection = .desc
+    @State private var detailAccount: AnalyzedAccount? = nil
 
     private var filtered: [AnalyzedAccount] {
         var f = FollowerFilters()
@@ -141,6 +142,12 @@ struct BluescreenView: View {
                                     ? Color.accentColor.opacity(0.08)
                                     : Color(.systemBackground)
                                 )
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    if !editMode.isEditing {
+                                        detailAccount = account
+                                    }
+                                }
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     Button(role: .destructive) {
                                         pendingUnfollow = [account.did]
@@ -174,6 +181,11 @@ struct BluescreenView: View {
             }
             .environment(\.editMode, $editMode)
             .searchable(text: $keyword, prompt: "Search handle or name")
+            .sheet(item: $detailAccount) { acc in
+                AccountDetailView(account: acc) {
+                    Task { _ = await model.unfollow(dids: [acc.did]) }
+                }
+            }
             .confirmationDialog(
                 unfollowTitle,
                 isPresented: unfollowBinding,
