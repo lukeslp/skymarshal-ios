@@ -13,15 +13,25 @@ struct BluescreenView: View {
     @State private var pendingUnfollow: [String]? = nil
     @State private var selection: Set<String> = []
     @State private var editMode: EditMode = .inactive
-    @State private var sortField: FollowerFilters.SortField = .botScore
-    @State private var sortDirection: FollowerFilters.SortDirection = .desc
     @State private var detailAccount: AnalyzedAccount? = nil
 
-    private var filtered: [AnalyzedAccount] {
+    /// Single source of truth for the trim-fakes filter UI: the pill
+    /// taps in ScanSummaryStrip AND the full BluescreenFilterSheet
+    /// both write into this struct. Search keyword is layered on per
+    /// render in `filtered` since it has its own State (.searchable
+    /// binding lives separately).
+    @State private var filters: FollowerFilters = {
         var f = FollowerFilters()
+        f.sortField = .botScore
+        f.sortDirection = .desc
+        return f
+    }()
+    @State private var draftFilters: FollowerFilters = FollowerFilters()
+    @State private var showFilterSheet: Bool = false
+
+    private var filtered: [AnalyzedAccount] {
+        var f = filters
         f.search = keyword
-        f.sortField = sortField
-        f.sortDirection = sortDirection
         return f.apply(to: model.accounts)
     }
 
@@ -38,7 +48,7 @@ struct BluescreenView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 if !model.accounts.isEmpty {
-                    ScanSummaryStrip(summary: model.scanSummary)
+                    ScanSummaryStrip(summary: model.scanSummary, filters: $filters)
                 }
 
                 // "Last scanned 3h ago" — only when no live scan is
@@ -75,13 +85,13 @@ struct BluescreenView: View {
                 if !model.accounts.isEmpty {
                     HStack(spacing: 12) {
                         Menu {
-                            Picker("Sort by", selection: $sortField) {
+                            Picker("Sort by", selection: $filters.sortField) {
                                 ForEach(FollowerFilters.SortField.allCases) { field in
                                     Text(field.label).tag(field)
                                 }
                             }
                             Divider()
-                            Picker("Order", selection: $sortDirection) {
+                            Picker("Order", selection: $filters.sortDirection) {
                                 Label("Descending", systemImage: "arrow.down")
                                     .tag(FollowerFilters.SortDirection.desc)
                                 Label("Ascending", systemImage: "arrow.up")
@@ -89,9 +99,9 @@ struct BluescreenView: View {
                             }
                         } label: {
                             HStack(spacing: 4) {
-                                Image(systemName: sortDirection == .desc ? "arrow.down" : "arrow.up")
+                                Image(systemName: filters.sortDirection == .desc ? "arrow.down" : "arrow.up")
                                     .font(.caption2)
-                                Text("Sort: \(sortField.label)")
+                                Text("Sort: \(filters.sortField.label)")
                                     .font(.footnote.weight(.medium))
                                     .lineLimit(1)
                                 Image(systemName: "chevron.down")
@@ -99,6 +109,22 @@ struct BluescreenView: View {
                             }
                             .foregroundStyle(.tint)
                         }
+
+                        Button {
+                            draftFilters = filters
+                            showFilterSheet = true
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: filters.hasActiveFilters
+                                      ? "line.3.horizontal.decrease.circle.fill"
+                                      : "line.3.horizontal.decrease.circle")
+                                    .font(.footnote)
+                                Text("Filter")
+                                    .font(.footnote.weight(.medium))
+                            }
+                            .foregroundStyle(.tint)
+                        }
+                        .buttonStyle(.plain)
 
                         Spacer(minLength: 8)
 
@@ -226,6 +252,17 @@ struct BluescreenView: View {
                 AccountDetailView(account: acc) {
                     Task { _ = await model.unfollow(dids: [acc.did]) }
                 }
+            }
+            .sheet(isPresented: $showFilterSheet) {
+                BluescreenFilterSheet(draft: $draftFilters)
+                    .onDisappear {
+                        // Apply on dismiss only if Apply was tapped —
+                        // the sheet only updates draft when Apply runs.
+                        // Comparing draft vs filters is the safe way:
+                        // if the user tapped Cancel, draft is unchanged
+                        // and we don't replace.
+                        filters = draftFilters
+                    }
             }
             .confirmationDialog(
                 unfollowTitle,

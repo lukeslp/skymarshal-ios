@@ -3,22 +3,65 @@ import SkymarshalCore
 
 /// Horizontally-scrolling color-coded count pills above the
 /// AccountRow list. Six categories: total / bots / inactive /
-/// deleted / mutuals / bad ratio. Each pill's color matches the
-/// AccountRow leading-stripe color for the same category — quiet
-/// visual through-line.
+/// deleted / mutuals / bad ratio. Each pill is **tap-to-filter** —
+/// the canonical "show me only the bots and let me bulk-act" flow.
+/// Tap an active pill again to clear that filter.
+///
+/// State binding: pills mutate the shared `FollowerFilters` struct
+/// the BluescreenView holds. The same struct is also editable via
+/// the full BluescreenFilterSheet — both UIs converge on a single
+/// source of truth.
 @available(iOS 17, *)
 struct ScanSummaryStrip: View {
     let summary: ScanSummary
+    @Binding var filters: FollowerFilters
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                stat("\(summary.totalAnalyzed.formatted())", "analyzed", .secondary)
-                stat("\(summary.bots)", "bots", .red)
-                stat("\(summary.inactive)", "inactive", .orange)
-                stat("\(summary.deleted)", "deleted", .red)
-                stat("\(summary.mutuals)", "mutuals", .accentColor)
-                stat("\(summary.badRatio)", "bad ratio", .yellow)
+                // Total — display-only (no filter axis matches "all")
+                Pill(
+                    value: "\(summary.totalAnalyzed.formatted())",
+                    label: "analyzed",
+                    color: .secondary,
+                    isActive: false,
+                    onTap: nil
+                )
+                Pill(
+                    value: "\(summary.bots)",
+                    label: "bots",
+                    color: .red,
+                    isActive: filters.showBots,
+                    onTap: { filters.showBots.toggle() }
+                )
+                Pill(
+                    value: "\(summary.inactive)",
+                    label: "inactive",
+                    color: .orange,
+                    isActive: filters.showInactive,
+                    onTap: { filters.showInactive.toggle() }
+                )
+                Pill(
+                    value: "\(summary.deleted)",
+                    label: "deleted",
+                    color: .red,
+                    isActive: filters.showDeleted,
+                    onTap: { filters.showDeleted.toggle() }
+                )
+                Pill(
+                    value: "\(summary.mutuals)",
+                    label: "mutuals",
+                    color: .accentColor,
+                    isActive: filters.showMutualOnly,
+                    onTap: { filters.showMutualOnly.toggle() }
+                )
+                Pill(
+                    value: "\(summary.badRatio)",
+                    label: "bad ratio",
+                    color: .yellow,
+                    isActive: filters.showBadRatio,
+                    onTap: { filters.showBadRatio.toggle() }
+                )
             }
             .padding(.horizontal)
             .padding(.vertical, 6)
@@ -26,17 +69,49 @@ struct ScanSummaryStrip: View {
         .background(.thinMaterial)
         .scrollClipDisabled()
     }
+}
 
-    private func stat(_ value: String, _ label: String, _ color: Color) -> some View {
+/// Single count pill. Tap-to-filter when `onTap` is provided; pure
+/// display when nil (used for the total-analyzed pill).
+@available(iOS 17, *)
+private struct Pill: View {
+    let value: String
+    let label: String
+    let color: Color
+    let isActive: Bool
+    let onTap: (() -> Void)?
+
+    var body: some View {
+        Group {
+            if let onTap {
+                Button(action: { withAnimation(.snappy) { onTap() } }) {
+                    content
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("\(label), \(value)")
+                .accessibilityHint(isActive ? "Active filter, tap to clear" : "Tap to filter")
+                .accessibilityAddTraits(isActive ? [.isSelected] : [])
+            } else {
+                content
+            }
+        }
+    }
+
+    private var content: some View {
         HStack(spacing: 4) {
             Text(value)
                 .font(.caption.weight(.semibold).monospacedDigit())
-                .foregroundStyle(color)
+                .foregroundStyle(isActive ? .white : color)
             Text(label)
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(isActive ? .white.opacity(0.85) : .secondary)
         }
         .padding(.horizontal, 8).padding(.vertical, 4)
-        .background(color.opacity(0.10), in: .capsule)
+        .background(
+            isActive
+                ? AnyShapeStyle(color)
+                : AnyShapeStyle(color.opacity(0.10)),
+            in: .capsule
+        )
     }
 }
