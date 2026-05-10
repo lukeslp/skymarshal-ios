@@ -7,7 +7,12 @@ struct RootView: View {
 
     var body: some View {
         Group {
-            if model.isAuthenticated {
+            // Show the tab UI whenever we have data to show — either
+            // from a live session OR from the cached cold-start
+            // hydration. Sign-in stays the gate for any mutation,
+            // but read-only browsing of cached data works while
+            // signed out (the LastScannedBanner explains).
+            if model.isAuthenticated || !model.accounts.isEmpty || !model.items.isEmpty {
                 TabView {
                     ContentListView()
                         .tabItem { Label("Content", systemImage: "tray.full") }
@@ -19,6 +24,11 @@ struct RootView: View {
             }
         }
         .environment(model)
+        .task {
+            // Cold-start cache read. Idempotent — does nothing if
+            // already hydrated this session, or if cache is empty.
+            await model.hydrateFromCache()
+        }
     }
 }
 

@@ -32,6 +32,17 @@ struct BluescreenView: View {
                 if !model.accounts.isEmpty {
                     ScanSummaryStrip(summary: model.scanSummary)
                 }
+
+                // "Last scanned 3h ago" — only when no live scan is
+                // running. First thing the user sees on cold start.
+                if let lastScanned = model.lastFollowerScannedAt,
+                   model.scanProgress == nil,
+                   !model.isScanning {
+                    LastScannedBanner(lastScannedAt: lastScanned) {
+                        model.startScan()
+                    }
+                }
+
                 // Banner only when results have started arriving — the
                 // empty-while-scanning state below renders its own
                 // big centered status, no need to double up.

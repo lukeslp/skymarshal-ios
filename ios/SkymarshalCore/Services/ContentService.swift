@@ -108,10 +108,15 @@ public actor ContentService {
             throw ATProtoError(status: 401, message: "Not authenticated")
         }
 
-        if forceRefresh { loadedContent = [] }
+        let owner = await client.currentHandle ?? did
+        if forceRefresh {
+            loadedContent = []
+            clearPersistedContent(owner: owner)
+        }
 
         try await loopEndpoint(
             phase: .posts,
+            owner: owner,
             progress: progress
         ) { cursor in
             let response = try await self.client.getAuthorFeed(
@@ -122,6 +127,7 @@ public actor ContentService {
 
         try await loopEndpoint(
             phase: .likes,
+            owner: owner,
             progress: progress
         ) { cursor in
             let response = try await self.client.getActorLikes(
@@ -155,9 +161,11 @@ public actor ContentService {
 
     /// Loop one paginated endpoint until cursor is nil or the page cap
     /// trips. Appends each page's items to `loadedContent` so the UI can
-    /// render incrementally.
+    /// render incrementally, and persists each page to the SwiftData
+    /// cache so cold-start gets the same view back.
     private func loopEndpoint(
         phase: LoadProgress.Phase,
+        owner: String,
         progress: (@Sendable (LoadProgress) async -> Void)?,
         fetch: (String?) async throws -> ([ContentItem], String?)
     ) async throws {
@@ -167,6 +175,7 @@ public actor ContentService {
             try Task.checkCancellation()
             let (items, nextCursor) = try await fetch(cursor)
             loadedContent.append(contentsOf: items)
+            persist(items, owner: owner)
             pages += 1
             cursor = nextCursor
             await progress?(LoadProgress(
@@ -201,14 +210,19 @@ public actor ContentService {
     public func delete(uris: [String]) async -> (deleted: Int, errors: [String]) {
         var deleted = 0
         var errors: [String] = []
+        var deletedURIs: [String] = []
         for uri in uris {
             do {
                 try await client.deleteRecord(uri: uri)
                 deleted += 1
                 loadedContent.removeAll { $0.uri == uri }
+                deletedURIs.append(uri)
             } catch {
                 errors.append("\(uri): \(error.localizedDescription)")
             }
+        }
+        if !deletedURIs.isEmpty {
+            deletePersistedContent(uris: deletedURIs)
         }
         return (deleted, errors)
     }
@@ -338,6 +352,74 @@ public actor ContentService {
                 byteStart: facet.index.byteStart,
                 byteEnd: facet.index.byteEnd
             )
+        }
+    }
+
+    // MARK: - Persistence (write-through to SwiftData cache)
+
+    /// Upsert a slice of content items into the SwiftData cache.
+    /// Called once per page in loopEndpoint. Fresh ModelContext per
+    /// call — same pattern as FollowerService.
+    private func persist(_ items: [ContentItem], owner: String) {
+        let context = ModelContext(container)
+        let now = Date()
+        for item in items {
+            let uri = item.uri
+            let descriptor = FetchDescriptor<ContentItemRecord>(
+                predicate: #Predicate { $0.uri == uri }
+            )
+            if let existing = try? context.fetch(descriptor).first {
+                // Refresh counts (engagement may have changed since
+                // the cache was populated) and bump scannedAt.
+                existing.likeCount = item.likeCount
+                existing.repostCount = item.repostCount
+                existing.replyCount = item.replyCount
+                existing.hasMedia = item.hasMedia
+                existing.scannedAt = now
+            } else {
+                context.insert(ContentItemRecord(
+                    uri: item.uri,
+                    cid: item.cid,
+                    contentType: item.contentType,
+                    text: item.text,
+                    createdAt: item.createdAt,
+                    likeCount: item.likeCount,
+                    repostCount: item.repostCount,
+                    replyCount: item.replyCount,
+                    hasMedia: item.hasMedia,
+                    ownerHandle: owner,
+                    scannedAt: now
+                ))
+            }
+        }
+        try? context.save()
+    }
+
+    /// Drop matching cached records after a successful delete so they
+    /// don't reappear on cold-start.
+    private func deletePersistedContent(uris: [String]) {
+        let context = ModelContext(container)
+        for uri in uris {
+            let descriptor = FetchDescriptor<ContentItemRecord>(
+                predicate: #Predicate { $0.uri == uri }
+            )
+            if let existing = try? context.fetch(descriptor).first {
+                context.delete(existing)
+            }
+        }
+        try? context.save()
+    }
+
+    /// Wipe all cached content for one owner before a forceRefresh
+    /// scan — same rationale as FollowerService.clearPersistedScan.
+    private func clearPersistedContent(owner: String) {
+        let context = ModelContext(container)
+        let descriptor = FetchDescriptor<ContentItemRecord>(
+            predicate: #Predicate { $0.ownerHandle == owner }
+        )
+        if let rows = try? context.fetch(descriptor) {
+            for row in rows { context.delete(row) }
+            try? context.save()
         }
     }
 }

@@ -30,6 +30,18 @@ final class AppModel {
     private(set) var scanSummary: ScanSummary = ScanSummary()
     private(set) var scanProgress: ScanProgress?
 
+    // ----- Cold-start hydration markers -----
+    /// Most-recent scannedAt from the cached content items, set during
+    /// hydrateFromCache. Drives the "Last scanned 3 hours ago" banner
+    /// in ContentListView.
+    private(set) var lastContentScannedAt: Date?
+    /// Same, for the followers tab.
+    private(set) var lastFollowerScannedAt: Date?
+    /// True when the most-recent hydration source was the disk cache,
+    /// not a live scan. Used to gate the "Sign in to refresh" hint
+    /// when we're showing stale data without an authenticated client.
+    private(set) var hydratedFromCache: Bool = false
+
     // ----- Shared -----
     var isLoading: Bool = false
     var isScanning: Bool = false
@@ -37,11 +49,18 @@ final class AppModel {
 
     private var loadTask: Task<Void, Never>?
     private var scanTask: Task<Void, Never>?
+    private let container: ModelContainer?
 
-    init(client: ATProtoClient, content: ContentService, followers: FollowerService) {
+    init(
+        client: ATProtoClient,
+        content: ContentService,
+        followers: FollowerService,
+        container: ModelContainer? = nil
+    ) {
         self.client = client
         self.content = content
         self.followers = followers
+        self.container = container
     }
 
     static func liveDefault() -> AppModel {
@@ -60,7 +79,8 @@ final class AppModel {
         return AppModel(
             client: client,
             content: ContentService(client: client, container: container),
-            followers: FollowerService(client: client, container: container)
+            followers: FollowerService(client: client, container: container),
+            container: container
         )
     }
 
@@ -74,10 +94,79 @@ final class AppModel {
             _ = try await content.login(handle: handle, password: password)
             isAuthenticated = await content.isAuthenticated
             currentHandle = await content.currentHandle
-            startLoad(forceRefresh: false)
+            // If hydration already populated a snapshot for this handle,
+            // skip the immediate refetch — the cache is good enough until
+            // the user explicitly Refreshes. Avoids a double-fetch race
+            // where stale hydrated data immediately gets replaced.
+            if items.isEmpty {
+                startLoad(forceRefresh: false)
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    /// Read the SwiftData cache on cold start and pre-populate `items`
+    /// + `accounts`. Idempotent — safe to call from RootView.task on
+    /// every launch. Does nothing if there's nothing in the cache.
+    /// Surfaces a "Last scanned …" timestamp per tab.
+    ///
+    /// Per-handle isolation: hydrates the most-recently-scanned
+    /// owner's data. If the user later signs in as a different handle,
+    /// the live scan replaces it; if they sign in as the same handle,
+    /// the cache is the truth until they Refresh.
+    func hydrateFromCache() async {
+        guard let container, !hydratedFromCache else { return }
+        let context = ModelContext(container)
+
+        // Followers — pick the owner with the most recent scannedAt
+        let analyzedDescriptor = FetchDescriptor<AnalyzedAccountRecord>(
+            sortBy: [SortDescriptor(\.scannedAt, order: .reverse)]
+        )
+        if let allAccounts = try? context.fetch(analyzedDescriptor),
+           let lastOwner = allAccounts.first?.ownerHandle {
+            let mine = allAccounts.filter { $0.ownerHandle == lastOwner }
+            if !mine.isEmpty {
+                let restored = mine.map { $0.toAnalyzedAccount() }
+                self.accounts = restored
+                self.scanSummary = BluescreenAnalyzer.summarize(restored)
+                self.lastFollowerScannedAt = mine.map(\.scannedAt).max()
+                await followers.setLoaded(restored)
+            }
+        }
+
+        // Content — same pattern, sorted by scannedAt
+        let contentDescriptor = FetchDescriptor<ContentItemRecord>(
+            sortBy: [SortDescriptor(\.scannedAt, order: .reverse)]
+        )
+        if let allItems = try? context.fetch(contentDescriptor),
+           let lastOwner = allItems.first?.ownerHandle {
+            let mine = allItems.filter { $0.ownerHandle == lastOwner }
+            if !mine.isEmpty {
+                let restored = mine.map { $0.toContentItem() }
+                self.items = restored
+                self.summary = Self.computeContentSummary(restored)
+                self.lastContentScannedAt = mine.map(\.scannedAt).max()
+                self.currentHandle = self.currentHandle ?? lastOwner
+                await content.setLoadedContent(restored)
+            }
+        }
+
+        if !accounts.isEmpty || !items.isEmpty {
+            hydratedFromCache = true
+        }
+    }
+
+    /// Recompute the content-type counts from a list of items.
+    /// Mirrors ContentService.summarize but works on a pure-Swift
+    /// snapshot without an actor hop — needed during hydrateFromCache
+    /// where we have the items in hand already.
+    private static func computeContentSummary(_ items: [ContentItem]) -> [ContentType: Int] {
+        var counts: [ContentType: Int] = [:]
+        for item in items {
+            counts[item.contentType, default: 0] += 1
+        }
+        return counts
     }
 
     func logout() async {
@@ -121,6 +210,7 @@ final class AppModel {
             self.items = await svc.loadedSnapshot
             self.summary = await svc.summarize()
             self.loadProgress = nil
+            self.lastContentScannedAt = Date()
         } catch is CancellationError {
             // partial state is fine — user knows they stopped
         } catch {
@@ -176,6 +266,7 @@ final class AppModel {
             }
             self.accounts = await svc.loadedSnapshot
             self.scanSummary = await svc.summary
+            self.lastFollowerScannedAt = Date()
             // Keep the .complete progress around briefly; UI fades it.
         } catch is CancellationError {
             // partial state — user knows they stopped

@@ -84,6 +84,16 @@ struct ContentListView: View {
 
                 ActiveFilterChips(filters: $filters)
 
+                // "Last scanned 3h ago" — only when no live load is
+                // running and we have a hydrated snapshot to credit.
+                if let lastScanned = model.lastContentScannedAt,
+                   model.loadProgress == nil,
+                   !model.isLoading {
+                    LastScannedBanner(lastScannedAt: lastScanned) {
+                        model.startLoad(forceRefresh: true)
+                    }
+                }
+
                 if let progress = model.loadProgress, !progress.isComplete {
                     LoadProgressBanner(progress: progress) {
                         model.cancelLoad()
