@@ -46,6 +46,34 @@ public struct BskyProfile: Hashable, Sendable, Codable, Identifiable {
         self.viewer = viewer
     }
 
+    enum CodingKeys: String, CodingKey {
+        case did, handle, displayName, description, avatar, banner
+        case followersCount, followsCount, postsCount, createdAt, labels, viewer
+    }
+
+    /// Custom decoder so `app.bsky.graph.getFollows` (which returns
+    /// `ProfileView`, missing `followersCount` / `followsCount` /
+    /// `postsCount` / `createdAt`) decodes cleanly. The hydration phase
+    /// in `FollowerService.scan` backfills the real values via
+    /// `app.bsky.actor.getProfiles` (which returns `ProfileViewDetailed`).
+    /// Without this tolerance, the whole `[BskyProfile]` array fails to
+    /// decode on the first follow and the scan silently dies.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.did = try c.decode(String.self, forKey: .did)
+        self.handle = try c.decode(String.self, forKey: .handle)
+        self.displayName = try c.decodeIfPresent(String.self, forKey: .displayName)
+        self.description = try c.decodeIfPresent(String.self, forKey: .description)
+        self.avatar = try c.decodeIfPresent(String.self, forKey: .avatar)
+        self.banner = try c.decodeIfPresent(String.self, forKey: .banner)
+        self.followersCount = try c.decodeIfPresent(Int.self, forKey: .followersCount) ?? 0
+        self.followsCount = try c.decodeIfPresent(Int.self, forKey: .followsCount) ?? 0
+        self.postsCount = try c.decodeIfPresent(Int.self, forKey: .postsCount) ?? 0
+        self.createdAt = try c.decodeIfPresent(String.self, forKey: .createdAt) ?? ""
+        self.labels = try c.decodeIfPresent([Label].self, forKey: .labels)
+        self.viewer = try c.decodeIfPresent(ViewerState.self, forKey: .viewer)
+    }
+
     public struct Label: Hashable, Sendable, Codable {
         public let val: String
     }

@@ -176,4 +176,47 @@ final class BluescreenAnalyzerTests: XCTestCase {
         XCTAssertEqual(s.totalAnalyzed, 0)
         XCTAssertEqual(s.avgBotScore, 0)
     }
+
+    // MARK: - BskyProfile decode tolerance (regression for empty-scan bug)
+
+    func test_bskyProfile_decodes_when_count_fields_missing() throws {
+        // ProfileView from app.bsky.graph.getFollows lacks the *Count
+        // fields and createdAt — they only appear on ProfileViewDetailed
+        // from getProfiles. Without decode tolerance, the WHOLE follow
+        // list fails to decode and the scan silently dies.
+        let json = #"{"did":"did:plc:x","handle":"alice.bsky.social","displayName":"Alice"}"#
+        let profile = try JSONDecoder().decode(BskyProfile.self, from: Data(json.utf8))
+        XCTAssertEqual(profile.handle, "alice.bsky.social")
+        XCTAssertEqual(profile.followersCount, 0)
+        XCTAssertEqual(profile.followsCount, 0)
+        XCTAssertEqual(profile.postsCount, 0)
+        XCTAssertEqual(profile.createdAt, "")
+    }
+
+    func test_bskyProfile_decodes_full_detailed_shape() throws {
+        // ProfileViewDetailed shape with all the count fields.
+        let json = """
+        {"did":"did:plc:x","handle":"bob.bsky.social","displayName":"Bob",
+         "followersCount":100,"followsCount":50,"postsCount":12,
+         "createdAt":"2024-01-15T00:00:00Z"}
+        """
+        let profile = try JSONDecoder().decode(BskyProfile.self, from: Data(json.utf8))
+        XCTAssertEqual(profile.followersCount, 100)
+        XCTAssertEqual(profile.followsCount, 50)
+        XCTAssertEqual(profile.postsCount, 12)
+        XCTAssertEqual(profile.createdAt, "2024-01-15T00:00:00Z")
+    }
+
+    func test_getFollowsResponse_decodes_array_of_basic_profiles() throws {
+        let json = """
+        {"follows":[
+          {"did":"did:plc:1","handle":"a.bsky.social"},
+          {"did":"did:plc:2","handle":"b.bsky.social","displayName":"B"}
+        ],"cursor":"abc123"}
+        """
+        let response = try JSONDecoder().decode(GetFollowsResponse.self, from: Data(json.utf8))
+        XCTAssertEqual(response.follows.count, 2)
+        XCTAssertEqual(response.cursor, "abc123")
+        XCTAssertEqual(response.follows[1].displayName, "B")
+    }
 }
