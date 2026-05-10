@@ -45,22 +45,18 @@ struct ContentListView: View {
         @Bindable var model = model
         NavigationStack {
             VStack(spacing: 0) {
-                // The Select / Done toggle lives in this row — always
-                // visible regardless of whether .searchable is focused
-                // (the toolbar EditButton would be dead in that state).
-                // Two-row layout because a 5-segment picker eats every
-                // pixel of an iPhone's width — a sibling button next to
-                // it gets squeezed to zero.
-                Picker("Type", selection: $scope) {
-                    ForEach(ContentType.allCases) { type in
-                        Text(type.label).tag(type)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-                .padding(.top, 6)
+                // Pill-chip row — lifted from skymarshal-web's
+                // ContentManagement pattern. Each chip carries its
+                // category count, so a glance tells you "9,832 Posts,
+                // 856 Replies" without opening anything.
+                TypeChipsRow(scope: $scope, counts: model.summary)
 
                 HStack {
+                    if let handle = model.currentHandle {
+                        Text(handle)
+                            .font(.caption2.monospaced())
+                            .foregroundStyle(.tertiary)
+                    }
                     Spacer()
                     Button {
                         withAnimation(.snappy) {
@@ -82,7 +78,7 @@ struct ContentListView: View {
                     .accessibilityLabel(editMode.isEditing ? "Exit selection mode" : "Enter selection mode")
                 }
                 .padding(.horizontal)
-                .padding(.top, 4)
+                .padding(.top, 2)
                 .padding(.bottom, 4)
 
                 ActiveFilterChips(filters: $filters)
@@ -123,6 +119,11 @@ struct ContentListView: View {
                     } else {
                         ForEach(filteredItems) { item in
                             ContentRow(item: item)
+                                .listRowBackground(
+                                    selection.contains(item.uri)
+                                    ? Color.accentColor.opacity(0.08)
+                                    : Color(.systemBackground)
+                                )
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     Button(role: .destructive) {
                                         pendingDeletion = [item.uri]
@@ -139,7 +140,7 @@ struct ContentListView: View {
                     model.startLoad(forceRefresh: true)
                 }
             }
-            .navigationTitle(model.currentHandle ?? "Skymarshal")
+            .navigationTitle("My Content")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
