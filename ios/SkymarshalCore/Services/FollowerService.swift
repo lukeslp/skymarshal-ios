@@ -45,7 +45,9 @@ public actor FollowerService {
 
         loaded = []
 
-        // Phase 1 — paginated getFollows
+        // Phase 1 — paginated getFollows. Result list isn't yet visible to
+        // the UI — we don't surface accounts until phase 2 starts giving us
+        // hydrated profiles (otherwise every score would be zero).
         var follows: [BskyProfile] = []
         var cursor: String? = nil
         var page = 0
@@ -59,74 +61,82 @@ public actor FollowerService {
                 phase: .fetching,
                 current: follows.count,
                 total: follows.count + (cursor != nil ? 100 : 0),
-                message: "Pulling follows… \(follows.count)"
+                message: "Pulling follow list… \(follows.count)"
             ))
         } while cursor != nil && page < maxFollowPages
 
-        // Phase 2 — hydrate counts via getProfiles in batches of 25.
-        // getFollows returns ProfileView which lacks count fields —
-        // getProfiles returns ProfileViewDetailed which always has them.
-        var hydrated = follows
+        // Phase 2 — hydrate counts via getProfiles AND analyze + append
+        // per batch so the UI list grows in real time. Each batch of 25
+        // arrives, gets scored with the *real* counts, and is appended
+        // to `loaded` — the AppModel snapshot pulls between batches and
+        // the BluescreenView list populates row-by-row.
         let batchSize = 25
-        for index in stride(from: 0, to: hydrated.count, by: batchSize) {
+        for index in stride(from: 0, to: follows.count, by: batchSize) {
             try Task.checkCancellation()
-            let end = min(index + batchSize, hydrated.count)
-            let dids = hydrated[index..<end].map { $0.did }
+            let end = min(index + batchSize, follows.count)
+            let dids = follows[index..<end].map { $0.did }
             let detail = try await client.getProfiles(actors: dids)
             let detailMap = Dictionary(uniqueKeysWithValues: detail.profiles.map { ($0.did, $0) })
+
+            var batchAnalyzed: [AnalyzedAccount] = []
+            batchAnalyzed.reserveCapacity(end - index)
             for i in index..<end {
-                if let d = detailMap[hydrated[i].did] {
-                    hydrated[i] = mergeCounts(into: hydrated[i], from: d)
+                var profile = follows[i]
+                if let d = detailMap[profile.did] {
+                    profile = mergeCounts(into: profile, from: d)
                 }
+                batchAnalyzed.append(BluescreenAnalyzer.analyze(
+                    profile: profile,
+                    inactivityDays: inactivityDays
+                ))
             }
+            loaded.append(contentsOf: batchAnalyzed)
+
             await progress?(ScanProgress(
                 phase: .hydrating,
                 current: end,
-                total: hydrated.count,
-                message: "Detail pass… \(end) of \(hydrated.count)"
+                total: follows.count,
+                message: "Analyzing… \(end) of \(follows.count)"
             ))
         }
 
-        // Phase 3 — optional last-post date per account.
-        var lastPostDates: [String: Date] = [:]
+        // Phase 3 — optional last-post date per account. Updates loaded[i]
+        // in place by re-running BluescreenAnalyzer with the lastPostDate
+        // — picks up the inactive flag for accounts that haven't posted
+        // recently. Each callback tick re-snapshots so the UI's badges
+        // refresh as activity data arrives.
         if checkLastPost {
-            for (i, profile) in hydrated.enumerated() {
+            for index in 0..<loaded.count {
                 try Task.checkCancellation()
-                lastPostDates[profile.did] = try? await fetchLastPostDate(actor: profile.did)
-                if i % 25 == 0 || i == hydrated.count - 1 {
+                let did = loaded[index].did
+                let lastPost = try? await fetchLastPostDate(actor: did)
+                if lastPost != nil {
+                    loaded[index] = BluescreenAnalyzer.analyze(
+                        profile: loaded[index].profile,
+                        lastPostDate: lastPost,
+                        engagementScore: loaded[index].engagementScore,
+                        interactedRecently: loaded[index].interactedRecently,
+                        inactivityDays: inactivityDays
+                    )
+                }
+                if index % 25 == 0 || index == loaded.count - 1 {
                     await progress?(ScanProgress(
                         phase: .lastPosts,
-                        current: i + 1,
-                        total: hydrated.count,
-                        message: "Activity check… \(i + 1) of \(hydrated.count)"
+                        current: index + 1,
+                        total: loaded.count,
+                        message: "Activity check… \(index + 1) of \(loaded.count)"
                     ))
                 }
             }
         }
 
-        // Phase 4 — analyze in one pass
-        let analyzed = hydrated.map { profile in
-            BluescreenAnalyzer.analyze(
-                profile: profile,
-                lastPostDate: lastPostDates[profile.did],
-                inactivityDays: inactivityDays
-            )
-        }
-        await progress?(ScanProgress(
-            phase: .analyzing,
-            current: analyzed.count,
-            total: analyzed.count,
-            message: "Scoring \(analyzed.count) accounts"
-        ))
-
-        loaded = analyzed
         await progress?(ScanProgress(
             phase: .complete,
-            current: analyzed.count,
-            total: analyzed.count,
-            message: "Done. \(analyzed.count) analyzed."
+            current: loaded.count,
+            total: loaded.count,
+            message: "Done. \(loaded.count) analyzed."
         ))
-        return analyzed
+        return loaded
     }
 
     public func applyFilters(_ filters: FollowerFilters) -> [AnalyzedAccount] {
