@@ -17,9 +17,21 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
     public var likeCount: Int
     public var repostCount: Int
     public var replyCount: Int
-    public var hasMedia: Bool
+    public var media: [MediaPreview]
 
     public var id: String { uri }
+
+    /// True when the post has any image or video attachment. External
+    /// link cards do NOT count as media for filter purposes — that
+    /// matches user mental model ("photos and videos").
+    public var hasMedia: Bool { !media.isEmpty }
+
+    /// Concatenation of all alt-text strings on the post's media.
+    /// Empty when no media or all alts are blank. Used as a search
+    /// haystack when ``SearchRequest/includeAltTextInKeyword`` is on.
+    public var altText: String {
+        media.compactMap { $0.alt }.joined(separator: " ")
+    }
 
     public init(
         uri: String,
@@ -30,7 +42,7 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
         likeCount: Int = 0,
         repostCount: Int = 0,
         replyCount: Int = 0,
-        hasMedia: Bool = false
+        media: [MediaPreview] = []
     ) {
         self.uri = uri
         self.cid = cid
@@ -40,7 +52,7 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
         self.likeCount = likeCount
         self.repostCount = repostCount
         self.replyCount = replyCount
-        self.hasMedia = hasMedia
+        self.media = media
     }
 
     /// Engagement score — the same `1L + 2R + 2.5Reply` formula as the
@@ -61,5 +73,24 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
 public enum EngagementScore {
     public static func compute(likes: Int, reposts: Int, replies: Int) -> Double {
         Double(likes) + 2.0 * Double(reposts) + 2.5 * Double(replies)
+    }
+}
+
+/// One image or video attached to a post. We carry the thumbnail URL
+/// for inline rendering and the alt text for accessibility + search.
+public struct MediaPreview: Hashable, Sendable, Codable {
+    public let kind: Kind
+    public let thumbnailURL: URL?
+    public let alt: String?
+
+    public enum Kind: String, Sendable, Codable {
+        case image
+        case video
+    }
+
+    public init(kind: Kind, thumbnailURL: URL? = nil, alt: String? = nil) {
+        self.kind = kind
+        self.thumbnailURL = thumbnailURL
+        self.alt = alt?.isEmpty == false ? alt : nil
     }
 }

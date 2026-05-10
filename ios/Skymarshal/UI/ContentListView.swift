@@ -45,12 +45,32 @@ struct ContentListView: View {
         @Bindable var model = model
         NavigationStack {
             VStack(spacing: 0) {
-                Picker("Type", selection: $scope) {
-                    ForEach(ContentType.allCases) { type in
-                        Text(type.label).tag(type)
+                HStack(spacing: 10) {
+                    Picker("Type", selection: $scope) {
+                        ForEach(ContentType.allCases) { type in
+                            Text(type.label).tag(type)
+                        }
                     }
+                    .pickerStyle(.segmented)
+                    .layoutPriority(1)
+
+                    // The Select / Done toggle lives HERE — always
+                    // visible. The toolbar EditButton is dead during
+                    // search (iOS hides the nav bar on .searchable
+                    // focus), so this is the only reachable surface.
+                    Button {
+                        withAnimation(.snappy) {
+                            editMode = editMode.isEditing ? .inactive : .active
+                            if !editMode.isEditing { selection.removeAll() }
+                        }
+                    } label: {
+                        Text(editMode.isEditing ? "Done" : "Select")
+                            .font(.subheadline.weight(.medium))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.tint)
+                    .accessibilityLabel(editMode.isEditing ? "Exit selection mode" : "Enter selection mode")
                 }
-                .pickerStyle(.segmented)
                 .padding(.horizontal)
                 .padding(.vertical, 6)
 
@@ -79,12 +99,16 @@ struct ContentListView: View {
                 List(selection: $selection) {
                     if model.items.isEmpty && !model.isLoading {
                         ContentUnavailableView(
-                            "No content loaded yet",
-                            systemImage: "tray",
-                            description: Text("Pull to refresh or tap the refresh button.")
+                            "Nothing on the radar yet",
+                            systemImage: "scope",
+                            description: Text("Pull down to scan your Bluesky archive.")
                         )
                     } else if filteredItems.isEmpty {
-                        ContentUnavailableView.search(text: keyword)
+                        ContentUnavailableView(
+                            "No matches in range",
+                            systemImage: "binoculars",
+                            description: Text("Try a wider net — clear a filter or change the type tab.")
+                        )
                     } else {
                         ForEach(filteredItems) { item in
                             ContentRow(item: item)
@@ -128,18 +152,12 @@ struct ContentListView: View {
                               : "line.3.horizontal.decrease.circle")
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    EditButton()
-                }
-                if editMode.isEditing && !selection.isEmpty {
-                    ToolbarItem(placement: .bottomBar) {
-                        Button(role: .destructive) {
-                            pendingDeletion = Array(selection)
-                        } label: {
-                            Label("Delete \(selection.count)", systemImage: "trash")
-                        }
-                    }
-                }
+                // EditButton intentionally removed — the inline Select
+                // toggle in the picker row handles entering/exiting
+                // EditMode and remains reachable while .searchable is
+                // focused. Bulk delete lives in the inline EditActionBar
+                // above the List, not the bottom toolbar (keyboard
+                // occlusion).
             }
             .environment(\.editMode, $editMode)
             .searchable(text: $keyword, placement: .navigationBarDrawer(displayMode: .always))
@@ -180,11 +198,11 @@ struct ContentListView: View {
                 }
                 Button("Cancel", role: .cancel) { pendingDeletion = nil }
             } message: { batch in
-                Text("This permanently removes \(batch.count) item\(batch.count == 1 ? "" : "s") from your Bluesky account. This cannot be undone.")
+                Text("\(batch.count) item\(batch.count == 1 ? "" : "s") leaves the building. There's no carry-on for this — deletion is permanent.")
             }
             .overlay {
                 if model.isLoading && model.items.isEmpty && model.loadProgress == nil {
-                    ProgressView("Connecting to Bluesky…")
+                    ProgressView("Boarding…")
                         .padding()
                         .background(.ultraThinMaterial, in: .rect(cornerRadius: 12))
                 }
@@ -246,6 +264,10 @@ struct ContentRow: View {
                     Text(text)
                         .font(.callout)
                         .lineLimit(3)
+                }
+
+                if !item.media.isEmpty {
+                    MediaThumbnailRow(media: item.media)
                 }
 
                 HStack(spacing: 14) {

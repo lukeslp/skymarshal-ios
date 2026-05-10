@@ -21,6 +21,8 @@ public struct SearchRequest: Hashable, Sendable, Codable {
     public var maxEngagement: Int?
     public var authorDid: String?
     public var excludedUris: Set<String>?
+    public var mediaFilter: MediaFilter?
+    public var includeAltTextInKeyword: Bool
     public var limit: Int
 
     public init(
@@ -35,6 +37,8 @@ public struct SearchRequest: Hashable, Sendable, Codable {
         maxEngagement: Int? = nil,
         authorDid: String? = nil,
         excludedUris: Set<String>? = nil,
+        mediaFilter: MediaFilter? = nil,
+        includeAltTextInKeyword: Bool = true,
         limit: Int = 250
     ) {
         self.keyword = keyword
@@ -48,7 +52,22 @@ public struct SearchRequest: Hashable, Sendable, Codable {
         self.maxEngagement = maxEngagement
         self.authorDid = authorDid
         self.excludedUris = excludedUris
+        self.mediaFilter = mediaFilter
+        self.includeAltTextInKeyword = includeAltTextInKeyword
         self.limit = limit
+    }
+
+    public enum MediaFilter: String, Hashable, Sendable, Codable, CaseIterable, Identifiable {
+        case onlyMedia
+        case noMedia
+
+        public var id: String { rawValue }
+        public var label: String {
+            switch self {
+            case .onlyMedia: return "With media"
+            case .noMedia:   return "No media"
+            }
+        }
     }
 
     /// True when at least one filter is set to a non-default value.
@@ -64,6 +83,7 @@ public struct SearchRequest: Hashable, Sendable, Codable {
             || maxEngagement != nil
             || authorDid != nil
             || (excludedUris?.isEmpty == false)
+            || mediaFilter != nil
     }
 
     /// Apply the request as a synchronous filter against an in-memory list.
@@ -77,8 +97,10 @@ public struct SearchRequest: Hashable, Sendable, Codable {
         if let types = contentTypes, !types.contains(.all),
            !types.contains(item.contentType) { return false }
         if let needle = keyword, !needle.isEmpty {
-            guard let haystack = item.text?.lowercased(),
-                  haystack.contains(needle.lowercased()) else { return false }
+            let lowered = needle.lowercased()
+            let textHit = item.text?.lowercased().contains(lowered) ?? false
+            let altHit = includeAltTextInKeyword && item.altText.lowercased().contains(lowered)
+            guard textHit || altHit else { return false }
         }
         if let start = startDate, let created = item.createdAt, created < start { return false }
         if let end = endDate, let created = item.createdAt, created > end { return false }
@@ -89,6 +111,11 @@ public struct SearchRequest: Hashable, Sendable, Codable {
         if let lo = minEngagement, score < lo { return false }
         if let hi = maxEngagement, score > hi { return false }
         if let excluded = excludedUris, excluded.contains(item.uri) { return false }
+        switch mediaFilter {
+        case .onlyMedia: if !item.hasMedia { return false }
+        case .noMedia:   if item.hasMedia { return false }
+        case .none:      break
+        }
         return true
     }
 }

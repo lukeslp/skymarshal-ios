@@ -63,6 +63,9 @@ struct ActiveFilterChips: View {
         if let r = filters.replies {
             chips.append(Chip(id: "replies", label: "replies \(rangeLabel(r))") { $0.replies = nil })
         }
+        if let m = filters.mediaFilter {
+            chips.append(Chip(id: "media", label: m.label.lowercased()) { $0.mediaFilter = nil })
+        }
         return chips
     }
 

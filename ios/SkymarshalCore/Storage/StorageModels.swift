@@ -50,6 +50,10 @@ public final class ContentItemRecord {
     }
 
     public func toContentItem() -> ContentItem {
+        // SwiftData store doesn't yet persist the full media list — when
+        // the cache layer lands, decode `mediaJSON` here. For now the
+        // round-trip preserves only `hasMedia` as a single flag, which
+        // is good enough to power the media filter on cached items.
         ContentItem(
             uri: uri,
             cid: cid,
@@ -59,7 +63,7 @@ public final class ContentItemRecord {
             likeCount: likeCount,
             repostCount: repostCount,
             replyCount: replyCount,
-            hasMedia: hasMedia
+            media: hasMedia ? [MediaPreview(kind: .image)] : []
         )
     }
 }

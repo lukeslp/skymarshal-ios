@@ -138,7 +138,7 @@ public actor ContentService {
                     uri: base.uri, cid: base.cid, contentType: .likes,
                     text: base.text, createdAt: base.createdAt,
                     likeCount: base.likeCount, repostCount: base.repostCount,
-                    replyCount: base.replyCount, hasMedia: base.hasMedia
+                    replyCount: base.replyCount, media: base.media
                 )
             }
             return (items, response.cursor)
@@ -256,7 +256,49 @@ public actor ContentService {
             likeCount: post.likeCount ?? 0,
             repostCount: post.repostCount ?? 0,
             replyCount: post.replyCount ?? 0,
-            hasMedia: post.embed != nil
+            media: extractMediaPreviews(post.embed)
         )
+    }
+
+    /// Walk an `app.bsky.embed.*#view` and pull out image / video previews
+    /// with their alt text. External link cards are intentionally skipped
+    /// — "media" filter means photos and videos, matching the user's
+    /// mental model.
+    private static func extractMediaPreviews(_ embed: PostEmbedView?) -> [MediaPreview] {
+        guard let embed else { return [] }
+        var previews: [MediaPreview] = []
+
+        for image in embed.images ?? [] {
+            previews.append(MediaPreview(
+                kind: .image,
+                thumbnailURL: image.thumb.flatMap(URL.init(string:)),
+                alt: image.alt
+            ))
+        }
+        if let video = embed.video {
+            previews.append(MediaPreview(
+                kind: .video,
+                thumbnailURL: video.playlist.flatMap(URL.init(string:)),
+                alt: video.alt
+            ))
+        }
+        // recordWithMedia → recurse one level
+        if let inner = embed.media {
+            for image in inner.images ?? [] {
+                previews.append(MediaPreview(
+                    kind: .image,
+                    thumbnailURL: image.thumb.flatMap(URL.init(string:)),
+                    alt: image.alt
+                ))
+            }
+            if let video = inner.video {
+                previews.append(MediaPreview(
+                    kind: .video,
+                    thumbnailURL: video.playlist.flatMap(URL.init(string:)),
+                    alt: video.alt
+                ))
+            }
+        }
+        return previews
     }
 }

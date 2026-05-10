@@ -38,7 +38,52 @@ public struct PostView: Decodable, Sendable {
     public let repostCount: Int?
     public let replyCount: Int?
     public let indexedAt: String?
-    public let embed: AnyDecodable?
+    public let embed: PostEmbedView?
+}
+
+/// Decoded view of an `app.bsky.embed.*` view object. Each embed type
+/// is a different `$type` and carries different fields. We only need
+/// the bits relevant to "is there media?" and "what's the alt text?" —
+/// every field here is optional so unknown embed shapes decode cleanly
+/// to a mostly-nil struct rather than failing the whole post.
+public struct PostEmbedView: Decodable, Sendable {
+    public let type: String?
+    public let images: [EmbedImage]?
+    public let video: EmbedVideo?
+    public let media: PostEmbedMedia?       // recordWithMedia → media → {images, video}
+    public let external: EmbedExternal?
+
+    enum CodingKeys: String, CodingKey {
+        case type = "$type"
+        case images, video, media, external
+    }
+}
+
+/// Inner `media` object on `app.bsky.embed.recordWithMedia#view`.
+public struct PostEmbedMedia: Decodable, Sendable {
+    public let images: [EmbedImage]?
+    public let video: EmbedVideo?
+}
+
+public struct EmbedImage: Decodable, Sendable {
+    public let alt: String?
+    public let thumb: String?
+}
+
+public struct EmbedVideo: Decodable, Sendable {
+    public let alt: String?
+    public let playlist: String?
+}
+
+public struct EmbedExternal: Decodable, Sendable {
+    public let external: ExternalLink?
+}
+
+public struct ExternalLink: Decodable, Sendable {
+    public let uri: String?
+    public let title: String?
+    public let description: String?
+    public let thumb: String?
 }
 
 public struct ProfileViewBasic: Decodable, Sendable {

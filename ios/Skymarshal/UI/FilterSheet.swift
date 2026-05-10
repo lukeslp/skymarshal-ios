@@ -26,6 +26,20 @@ struct FilterSheet: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    Picker("Media", selection: $draft.mediaFilter) {
+                        Text("Any").tag(SearchRequest.MediaFilter?.none)
+                        ForEach(SearchRequest.MediaFilter.allCases) { filter in
+                            Text(filter.label).tag(SearchRequest.MediaFilter?.some(filter))
+                        }
+                    }
+                    Toggle("Search alt text too", isOn: $draft.includeAltTextInKeyword)
+                } header: {
+                    Text("Photos & video")
+                } footer: {
+                    Text("Alt-text search lets you find that capybara post even when you didn't write the word \"capybara.\"")
+                }
+
                 Section("Dates") {
                     Toggle("After…", isOn: $enableStartDate)
                     if enableStartDate {

@@ -27,6 +27,73 @@ final class SearchAndScoreTests: XCTestCase {
         XCTAssertEqual(item.engagementScore, 10 + 8 + 5)
     }
 
+    // MARK: - Media filter + alt text search
+
+    func test_search_byMediaFilter_onlyMedia() {
+        let withMedia = ContentItem(
+            uri: "a", cid: "1", contentType: .posts,
+            media: [MediaPreview(kind: .image, alt: "a cat")]
+        )
+        let noMedia = ContentItem(uri: "b", cid: "2", contentType: .posts)
+        var req = SearchRequest()
+        req.mediaFilter = .onlyMedia
+        let out = req.apply(to: [withMedia, noMedia])
+        XCTAssertEqual(out.map(\.uri), ["a"])
+    }
+
+    func test_search_byMediaFilter_noMedia() {
+        let withMedia = ContentItem(
+            uri: "a", cid: "1", contentType: .posts,
+            media: [MediaPreview(kind: .image, alt: "a cat")]
+        )
+        let noMedia = ContentItem(uri: "b", cid: "2", contentType: .posts)
+        var req = SearchRequest()
+        req.mediaFilter = .noMedia
+        let out = req.apply(to: [withMedia, noMedia])
+        XCTAssertEqual(out.map(\.uri), ["b"])
+    }
+
+    func test_search_keyword_hitsAltText_whenIncludeAltTextOn() {
+        let item = ContentItem(
+            uri: "a", cid: "1", contentType: .posts,
+            text: "look at this",
+            media: [MediaPreview(kind: .image, alt: "a sleepy capybara in a hot spring")]
+        )
+        var req = SearchRequest(keyword: "capybara", includeAltTextInKeyword: true)
+        XCTAssertEqual(req.apply(to: [item]).count, 1)
+    }
+
+    func test_search_keyword_skipsAltText_whenIncludeAltTextOff() {
+        let item = ContentItem(
+            uri: "a", cid: "1", contentType: .posts,
+            text: "look at this",
+            media: [MediaPreview(kind: .image, alt: "a sleepy capybara")]
+        )
+        var req = SearchRequest(keyword: "capybara", includeAltTextInKeyword: false)
+        XCTAssertEqual(req.apply(to: [item]).count, 0)
+    }
+
+    func test_altText_concatenatesAcrossMultipleImages() {
+        let item = ContentItem(
+            uri: "a", cid: "1", contentType: .posts,
+            media: [
+                MediaPreview(kind: .image, alt: "first photo"),
+                MediaPreview(kind: .image, alt: "second photo"),
+                MediaPreview(kind: .image, alt: nil),
+            ]
+        )
+        XCTAssertTrue(item.altText.contains("first photo"))
+        XCTAssertTrue(item.altText.contains("second photo"))
+    }
+
+    func test_hasMedia_isDerivedFromMediaList() {
+        XCTAssertFalse(ContentItem(uri: "a", cid: "1", contentType: .posts).hasMedia)
+        XCTAssertTrue(ContentItem(
+            uri: "a", cid: "1", contentType: .posts,
+            media: [MediaPreview(kind: .image)]
+        ).hasMedia)
+    }
+
     // MARK: - SearchRequest filtering
 
     private func sampleItems() -> [ContentItem] {

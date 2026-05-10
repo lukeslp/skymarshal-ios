@@ -31,12 +31,12 @@ struct LoginView: View {
                         SecureField("app password", text: $appPassword)
                             .textContentType(.password)
                     } header: {
-                        Text("Sign in")
+                        Text("Climb aboard")
                             .font(.subheadline.weight(.semibold))
                             .tracking(0.3)
                     } footer: {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Use an **app password**, not your main account password. Generate one at bsky.app under Settings → App Passwords.")
+                            Text("Use an **app password**, not your main one. Skymarshal never sees your real password — generate a disposable app password at bsky.app under Settings → App Passwords and bring that.")
                             Link("Open Bluesky settings", destination: URL(string: "https://bsky.app/settings/app-passwords")!)
                                 .font(.footnote)
                         }
@@ -104,12 +104,13 @@ private struct ScopeHeader: View {
             }
             .frame(height: 100)
 
-            VStack(spacing: 2) {
+            VStack(spacing: 4) {
                 Text("Skymarshal")
                     .font(.system(.largeTitle, design: .default).weight(.semibold))
-                Text("Manage your Bluesky presence.")
+                Text("Air-traffic control for your Bluesky.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                    .italic()
             }
         }
         .onAppear { animateRings = true }
