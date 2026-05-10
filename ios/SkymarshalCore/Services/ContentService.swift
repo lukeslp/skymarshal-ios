@@ -55,14 +55,51 @@ public actor ContentService {
 
     // MARK: - Content loading
 
-    /// Fetch the user's posts, replies, reposts, and likes from the PDS,
-    /// converting AT Protocol records to ``ContentItem`` and caching them
-    /// in memory. The MVP loads up to `limit` items per category — full
-    /// pagination follow-on for later.
+    /// Reported after each page of either endpoint completes. UI binds to
+    /// this so the user sees "Loaded 1,247… still scanning" instead of a
+    /// frozen spinner. The end of a load fires with `isComplete: true`.
+    public struct LoadProgress: Sendable, Equatable {
+        public let phase: Phase
+        public let itemsLoaded: Int
+        public let pagesFetched: Int
+        public let isComplete: Bool
+
+        public init(phase: Phase, itemsLoaded: Int, pagesFetched: Int, isComplete: Bool) {
+            self.phase = phase
+            self.itemsLoaded = itemsLoaded
+            self.pagesFetched = pagesFetched
+            self.isComplete = isComplete
+        }
+
+        public enum Phase: String, Sendable, Equatable {
+            case posts = "Posts and replies"
+            case likes = "Likes"
+            case done  = "Done"
+        }
+    }
+
+    /// Maximum pages we'll fetch per endpoint before giving up. 200 pages
+    /// × 100 items = 20k records — defensive ceiling for runaway accounts,
+    /// generous for the median power user. Tunable.
+    public static let maxPagesPerEndpoint = 200
+
+    /// Snapshot of the in-memory cache. The UI pulls this between progress
+    /// ticks so items appear as pages arrive instead of all-at-once.
+    public var loadedSnapshot: [ContentItem] { loadedContent }
+
+    /// Fetch the user's complete posts/replies/reposts/likes set from the
+    /// PDS via cursor pagination. Both endpoints are looped to exhaustion
+    /// (or the page cap), with `progress` called after every page so the
+    /// caller can incrementally update its UI.
+    ///
+    /// `Task.checkCancellation` is honored between pages — calling
+    /// `task.cancel()` from a parent stops the load and leaves the
+    /// already-collected items intact. The same cancellation is what
+    /// powers the user-visible "Stop" button.
     @discardableResult
     public func ensureContentLoaded(
-        limit: Int = 250,
-        forceRefresh: Bool = false
+        forceRefresh: Bool = false,
+        progress: (@Sendable (LoadProgress) async -> Void)? = nil
     ) async throws -> [ContentItem] {
         if !forceRefresh, !loadedContent.isEmpty {
             return loadedContent
@@ -71,34 +108,74 @@ public actor ContentService {
             throw ATProtoError(status: 401, message: "Not authenticated")
         }
 
-        var collected: [ContentItem] = []
+        if forceRefresh { loadedContent = [] }
 
-        // Posts + replies + reposts come from getAuthorFeed
-        let feed = try await client.getAuthorFeed(actor: did, limit: min(limit, 100))
-        for view in feed.feed {
-            collected.append(Self.toContentItem(view))
-        }
-
-        // Likes come from a separate endpoint
-        let likes = try await client.getActorLikes(actor: did, limit: min(limit, 100))
-        for view in likes.feed {
-            var item = Self.toContentItem(view)
-            item = ContentItem(
-                uri: item.uri,
-                cid: item.cid,
-                contentType: .likes,
-                text: item.text,
-                createdAt: item.createdAt,
-                likeCount: item.likeCount,
-                repostCount: item.repostCount,
-                replyCount: item.replyCount,
-                hasMedia: item.hasMedia
+        try await loopEndpoint(
+            phase: .posts,
+            progress: progress
+        ) { cursor in
+            let response = try await self.client.getAuthorFeed(
+                actor: did, limit: 100, cursor: cursor
             )
-            collected.append(item)
+            return (response.feed.map(Self.toContentItem), response.cursor)
         }
 
-        loadedContent = collected
+        try await loopEndpoint(
+            phase: .likes,
+            progress: progress
+        ) { cursor in
+            let response = try await self.client.getActorLikes(
+                actor: did, limit: 100, cursor: cursor
+            )
+            // getActorLikes returns the *liked* posts in the feed; the
+            // user's Like record is what we'd actually delete, so we
+            // re-tag the contentType. Same URI as the post, but the
+            // delete will hit app.bsky.feed.like via the user's repo
+            // when we build the like-record URI in a follow-on.
+            let items = response.feed.map { view -> ContentItem in
+                let base = Self.toContentItem(view)
+                return ContentItem(
+                    uri: base.uri, cid: base.cid, contentType: .likes,
+                    text: base.text, createdAt: base.createdAt,
+                    likeCount: base.likeCount, repostCount: base.repostCount,
+                    replyCount: base.replyCount, hasMedia: base.hasMedia
+                )
+            }
+            return (items, response.cursor)
+        }
+
+        await progress?(LoadProgress(
+            phase: .done,
+            itemsLoaded: loadedContent.count,
+            pagesFetched: 0,
+            isComplete: true
+        ))
         return loadedContent
+    }
+
+    /// Loop one paginated endpoint until cursor is nil or the page cap
+    /// trips. Appends each page's items to `loadedContent` so the UI can
+    /// render incrementally.
+    private func loopEndpoint(
+        phase: LoadProgress.Phase,
+        progress: (@Sendable (LoadProgress) async -> Void)?,
+        fetch: (String?) async throws -> ([ContentItem], String?)
+    ) async throws {
+        var cursor: String? = nil
+        var pages = 0
+        repeat {
+            try Task.checkCancellation()
+            let (items, nextCursor) = try await fetch(cursor)
+            loadedContent.append(contentsOf: items)
+            pages += 1
+            cursor = nextCursor
+            await progress?(LoadProgress(
+                phase: phase,
+                itemsLoaded: loadedContent.count,
+                pagesFetched: pages,
+                isComplete: false
+            ))
+        } while cursor != nil && pages < Self.maxPagesPerEndpoint
     }
 
     /// Inject a content list directly. Useful for previews, tests, and

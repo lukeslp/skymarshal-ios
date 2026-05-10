@@ -35,7 +35,23 @@ struct ContentListView: View {
         @Bindable var model = model
         NavigationStack {
             VStack(spacing: 0) {
+                Picker("Type", selection: $scope) {
+                    ForEach(ContentType.allCases) { type in
+                        Text(type.label).tag(type)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .padding(.vertical, 6)
+
                 ActiveFilterChips(filters: $filters)
+
+                if let progress = model.loadProgress, !progress.isComplete {
+                    LoadProgressBanner(progress: progress) {
+                        model.cancelLoad()
+                    }
+                }
+
                 List(selection: $selection) {
                     if model.items.isEmpty && !model.isLoading {
                         ContentUnavailableView(
@@ -61,7 +77,7 @@ struct ContentListView: View {
                 }
                 .listStyle(.plain)
                 .refreshable {
-                    await model.loadContent(forceRefresh: true)
+                    model.startLoad(forceRefresh: true)
                 }
             }
             .navigationTitle(model.currentHandle ?? "Skymarshal")
@@ -69,7 +85,7 @@ struct ContentListView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Menu {
                         Button("Refresh") {
-                            Task { await model.loadContent(forceRefresh: true) }
+                            model.startLoad(forceRefresh: true)
                         }
                         Button("Sign out", role: .destructive) {
                             Task { await model.logout() }
@@ -103,11 +119,6 @@ struct ContentListView: View {
             }
             .environment(\.editMode, $editMode)
             .searchable(text: $keyword, placement: .navigationBarDrawer(displayMode: .always))
-            .searchScopes($scope, activation: .onSearchPresentation) {
-                ForEach(ContentType.allCases) { type in
-                    Text(type.label).tag(type)
-                }
-            }
             .sheet(isPresented: $showFilterSheet) {
                 FilterSheet(draft: $draftFilters)
                     .onDisappear {
@@ -138,8 +149,8 @@ struct ContentListView: View {
                 Text("This permanently removes \(batch.count) item\(batch.count == 1 ? "" : "s") from your Bluesky account. This cannot be undone.")
             }
             .overlay {
-                if model.isLoading && model.items.isEmpty {
-                    ProgressView("Loading your content…")
+                if model.isLoading && model.items.isEmpty && model.loadProgress == nil {
+                    ProgressView("Connecting to Bluesky…")
                         .padding()
                         .background(.ultraThinMaterial, in: .rect(cornerRadius: 12))
                 }
