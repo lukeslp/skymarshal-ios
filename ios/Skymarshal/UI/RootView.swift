@@ -8,7 +8,12 @@ struct RootView: View {
     var body: some View {
         Group {
             if model.isAuthenticated {
-                ContentListView()
+                TabView {
+                    ContentListView()
+                        .tabItem { Label("Content", systemImage: "tray.full") }
+                    BluescreenView()
+                        .tabItem { Label("Followers", systemImage: "person.2") }
+                }
             } else {
                 LoginView()
             }

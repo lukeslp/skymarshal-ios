@@ -2,45 +2,78 @@ import SwiftUI
 import SwiftData
 import SkymarshalCore
 
-/// View-model glue between SwiftUI views and the ``ContentService`` actor.
-/// Holds the auth state, content snapshot, and load progress the UI binds
-/// to. `@MainActor` so view code can read its observable properties
-/// without hopping.
+/// View-model glue between SwiftUI views and the actor-isolated services.
+/// Holds auth state, the loaded content + summary, the loaded follower
+/// scan, and progress for both load surfaces. Marked `@MainActor` so
+/// view code reads its observable properties without hopping.
 @available(iOS 17, *)
 @MainActor
 @Observable
 final class AppModel {
 
-    private(set) var service: ContentService
+    // ----- Services -----
+    private(set) var content: ContentService
+    private(set) var followers: FollowerService
+    private let client: ATProtoClient
+
+    // ----- Auth state -----
     private(set) var isAuthenticated: Bool = false
     private(set) var currentHandle: String?
+
+    // ----- Content tab state -----
     private(set) var items: [ContentItem] = []
     private(set) var summary: [ContentType: Int] = [:]
     private(set) var loadProgress: ContentService.LoadProgress?
+
+    // ----- Followers tab state -----
+    private(set) var accounts: [AnalyzedAccount] = []
+    private(set) var scanSummary: ScanSummary = ScanSummary()
+    private(set) var scanProgress: ScanProgress?
+
+    // ----- Shared -----
     var isLoading: Bool = false
+    var isScanning: Bool = false
     var errorMessage: String?
 
     private var loadTask: Task<Void, Never>?
+    private var scanTask: Task<Void, Never>?
 
-    init(service: ContentService) {
-        self.service = service
+    init(client: ATProtoClient, content: ContentService, followers: FollowerService) {
+        self.client = client
+        self.content = content
+        self.followers = followers
     }
 
     static func liveDefault() -> AppModel {
-        let container = (try? SkymarshalSchema.makeContainer()) ?? {
-            try! SkymarshalSchema.makeContainer(inMemory: true)
+        // Disk container first; fall back to in-memory; preconditionFailure
+        // only if even in-memory schema fails to instantiate.
+        let container: ModelContainer = {
+            if let onDisk = try? SkymarshalSchema.makeContainer() { return onDisk }
+            do { return try SkymarshalSchema.makeContainer(inMemory: true) }
+            catch {
+                preconditionFailure(
+                    "SwiftData container failed to initialize even in memory — schema is malformed. \(error)"
+                )
+            }
         }()
-        return AppModel(service: ContentService(container: container))
+        let client = ATProtoClient()
+        return AppModel(
+            client: client,
+            content: ContentService(client: client, container: container),
+            followers: FollowerService(client: client)
+        )
     }
+
+    // MARK: - Auth
 
     func login(handle: String, password: String) async {
         errorMessage = nil
         isLoading = true
         defer { isLoading = false }
         do {
-            _ = try await service.login(handle: handle, password: password)
-            isAuthenticated = await service.isAuthenticated
-            currentHandle = await service.currentHandle
+            _ = try await content.login(handle: handle, password: password)
+            isAuthenticated = await content.isAuthenticated
+            currentHandle = await content.currentHandle
             startLoad(forceRefresh: false)
         } catch {
             errorMessage = error.localizedDescription
@@ -49,16 +82,16 @@ final class AppModel {
 
     func logout() async {
         cancelLoad()
-        await service.logout()
+        cancelScan()
+        await content.logout()
         isAuthenticated = false
         currentHandle = nil
-        items = []
-        summary = [:]
-        loadProgress = nil
+        items = []; summary = [:]; loadProgress = nil
+        accounts = []; scanSummary = ScanSummary(); scanProgress = nil
     }
 
-    /// Kick off a paginated load. Cancels any in-flight load first so a
-    /// pull-to-refresh while a load is running can't double-fetch.
+    // MARK: - Content tab
+
     func startLoad(forceRefresh: Bool) {
         loadTask?.cancel()
         loadTask = Task { [weak self] in
@@ -67,22 +100,14 @@ final class AppModel {
         }
     }
 
-    /// Stop the current load. Items already collected stay in `items`.
-    func cancelLoad() {
-        loadTask?.cancel()
-    }
+    func cancelLoad() { loadTask?.cancel() }
 
     private func runLoad(forceRefresh: Bool) async {
         errorMessage = nil
         isLoading = true
-        defer {
-            isLoading = false
-            // Drop progress only if the load completed cleanly. On
-            // cancellation, leave it visible briefly so the user can see
-            // where they stopped before it fades.
-        }
+        defer { isLoading = false }
         do {
-            let svc = service
+            let svc = content
             _ = try await svc.ensureContentLoaded(forceRefresh: forceRefresh) { [weak self] progress in
                 guard let self else { return }
                 let snapshot = await svc.loadedSnapshot
@@ -93,12 +118,11 @@ final class AppModel {
                     self.summary = summary
                 }
             }
-            // Final snapshot in case the last page didn't fire a progress callback.
             self.items = await svc.loadedSnapshot
             self.summary = await svc.summarize()
             self.loadProgress = nil
         } catch is CancellationError {
-            // Keep items + summary; user knows they stopped.
+            // partial state is fine — user knows they stopped
         } catch {
             errorMessage = error.localizedDescription
             self.loadProgress = nil
@@ -106,15 +130,66 @@ final class AppModel {
     }
 
     func search(_ request: SearchRequest) async -> [SearchResult] {
-        let (results, _) = await service.search(request)
+        let (results, _) = await content.search(request)
         return results
     }
 
     func delete(uris: [String]) async -> (deleted: Int, errors: [String]) {
-        let result = await service.delete(uris: uris)
+        let result = await content.delete(uris: uris)
         if !uris.isEmpty {
             self.items.removeAll { uris.contains($0.uri) }
-            self.summary = await service.summarize()
+            self.summary = await content.summarize()
+        }
+        return result
+    }
+
+    // MARK: - Followers tab
+
+    func startScan(checkLastPost: Bool = true, inactivityDays: Int = 90) {
+        scanTask?.cancel()
+        scanTask = Task { [weak self] in
+            guard let self else { return }
+            await self.runScan(checkLastPost: checkLastPost, inactivityDays: inactivityDays)
+        }
+    }
+
+    func cancelScan() { scanTask?.cancel() }
+
+    private func runScan(checkLastPost: Bool, inactivityDays: Int) async {
+        errorMessage = nil
+        isScanning = true
+        defer { isScanning = false }
+        do {
+            let svc = followers
+            _ = try await svc.scan(
+                checkLastPost: checkLastPost,
+                inactivityDays: inactivityDays
+            ) { [weak self] progress in
+                guard let self else { return }
+                let snapshot = await svc.loadedSnapshot
+                let summary = await svc.summary
+                await MainActor.run {
+                    self.scanProgress = progress
+                    self.accounts = snapshot
+                    self.scanSummary = summary
+                }
+            }
+            self.accounts = await svc.loadedSnapshot
+            self.scanSummary = await svc.summary
+            // Keep the .complete progress around briefly; UI fades it.
+        } catch is CancellationError {
+            // partial state — user knows they stopped
+        } catch {
+            errorMessage = error.localizedDescription
+            self.scanProgress = nil
+        }
+    }
+
+    func unfollow(dids: [String]) async -> (done: Int, errors: [String]) {
+        let result = await followers.unfollow(dids: dids)
+        if !dids.isEmpty {
+            self.accounts.removeAll { dids.contains($0.did) }
+            self.scanSummary = await followers.summary
         }
         return result
     }

@@ -120,6 +120,29 @@ public struct ReasonRepost: Decodable, Sendable {
 /// `app.bsky.feed.getActorLikes` response — same shape as feed.
 public typealias LikesResponse = AuthorFeedResponse
 
+/// `app.bsky.graph.getFollows` response — list of profiles the user follows.
+public struct GetFollowsResponse: Decodable, Sendable {
+    public let follows: [BskyProfile]
+    public let cursor: String?
+}
+
+/// `app.bsky.actor.getProfiles` response — batch of detailed profiles.
+public struct GetProfilesResponse: Decodable, Sendable {
+    public let profiles: [BskyProfile]
+}
+
+/// `app.bsky.feed.getLikes` response — who liked a specific post.
+public struct GetLikesResponse: Decodable, Sendable {
+    public let likes: [LikeRecord]
+    public let cursor: String?
+
+    public struct LikeRecord: Decodable, Sendable {
+        public let actor: BskyProfile
+        public let createdAt: String?
+        public let indexedAt: String?
+    }
+}
+
 /// Type-erased decode of arbitrary fields we don't model.
 /// Lets us decode `embed` without committing to its full shape.
 public struct AnyDecodable: Decodable, Sendable {

@@ -71,7 +71,7 @@ struct LoginView: View {
                 .scrollContentBackground(.hidden)
             }
             .background(LoginBackground())
-            .navigationBarHidden(true)
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 }

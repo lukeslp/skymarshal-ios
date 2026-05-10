@@ -13,14 +13,20 @@ import Foundation
 public actor ATProtoClient {
 
     private let baseURL: URL
+    /// Public read-only XRPC endpoint. Unauthenticated. Use for
+    /// getProfiles / getLikes / getAuthorFeed-of-other-actors —
+    /// avoids burning your access-jwt rate budget on read sweeps.
+    private let publicURL: URL
     private let session: URLSession
     private var currentSession: Session?
 
     public init(
         baseURL: URL = URL(string: "https://bsky.social")!,
+        publicURL: URL = URL(string: "https://public.api.bsky.app")!,
         session: URLSession? = nil
     ) {
         self.baseURL = baseURL
+        self.publicURL = publicURL
         if let session {
             self.session = session
         } else {
@@ -97,6 +103,66 @@ public actor ATProtoClient {
         }
     }
 
+    // MARK: - Reads (graph)
+
+    /// `app.bsky.graph.getFollows` — accounts the user follows.
+    /// Authenticated (user's own follow list). Pagination via cursor.
+    public func getFollows(
+        actor: String,
+        limit: Int = 100,
+        cursor: String? = nil
+    ) async throws -> GetFollowsResponse {
+        var params: [URLQueryItem] = [
+            .init(name: "actor", value: actor),
+            .init(name: "limit", value: "\(min(max(limit, 1), 100))"),
+        ]
+        if let cursor { params.append(.init(name: "cursor", value: cursor)) }
+        return try await withTimeout(seconds: 30) {
+            try await self.get(lexicon: "app.bsky.graph.getFollows", queryItems: params)
+        }
+    }
+
+    /// `app.bsky.actor.getProfiles` — batch fetch detailed profiles.
+    /// Hits the **public read endpoint** (no auth needed) so a 1k-follow
+    /// scan doesn't burn the user's authenticated rate budget.
+    /// Batch size is capped at 25 by the lexicon.
+    public func getProfiles(actors: [String]) async throws -> GetProfilesResponse {
+        guard !actors.isEmpty else { return GetProfilesResponse(profiles: []) }
+        let capped = Array(actors.prefix(25))
+        let params = capped.map { URLQueryItem(name: "actors", value: $0) }
+        return try await withTimeout(seconds: 30) {
+            try await self.get(
+                lexicon: "app.bsky.actor.getProfiles",
+                queryItems: params,
+                base: self.publicURL,
+                requireAuth: false
+            )
+        }
+    }
+
+    /// `app.bsky.feed.getLikes` — who liked a specific post URI. Used to
+    /// check whether each followed account has interacted with the user.
+    /// Public endpoint, no auth.
+    public func getLikes(
+        uri: String,
+        limit: Int = 100,
+        cursor: String? = nil
+    ) async throws -> GetLikesResponse {
+        var params: [URLQueryItem] = [
+            .init(name: "uri", value: uri),
+            .init(name: "limit", value: "\(min(max(limit, 1), 100))"),
+        ]
+        if let cursor { params.append(.init(name: "cursor", value: cursor)) }
+        return try await withTimeout(seconds: 30) {
+            try await self.get(
+                lexicon: "app.bsky.feed.getLikes",
+                queryItems: params,
+                base: self.publicURL,
+                requireAuth: false
+            )
+        }
+    }
+
     // MARK: - Writes
 
     /// `com.atproto.repo.deleteRecord`. **Wrapped in `RateLimit.withBackoff`** —
@@ -134,15 +200,20 @@ public actor ATProtoClient {
 
     // MARK: - Internals
 
-    private func get<T: Decodable>(lexicon: String, queryItems: [URLQueryItem]) async throws -> T {
+    private func get<T: Decodable>(
+        lexicon: String,
+        queryItems: [URLQueryItem],
+        base: URL? = nil,
+        requireAuth: Bool = true
+    ) async throws -> T {
         var components = URLComponents(
-            url: baseURL.appendingPathComponent("xrpc/\(lexicon)"),
+            url: (base ?? baseURL).appendingPathComponent("xrpc/\(lexicon)"),
             resolvingAgainstBaseURL: false
         )!
         components.queryItems = queryItems
         var request = URLRequest(url: components.url!)
         request.httpMethod = "GET"
-        if let token = currentSession?.accessJwt {
+        if requireAuth, let token = currentSession?.accessJwt {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
         return try await perform(request)
@@ -164,22 +235,35 @@ public actor ATProtoClient {
     }
 
     private func perform<T: Decodable>(_ request: URLRequest) async throws -> T {
+        let (data, response) = try await performRaw(request)
+        if T.self == EmptyResponse.self {
+            // Endpoints that return no body still need to satisfy the
+            // generic. Decode empty JSON object — works because the
+            // marker has no fields. Avoids the unsafe `as! T` cast that
+            // crashed if a caller ever asked for a non-EmptyResponse
+            // type from an empty endpoint.
+            return try JSONDecoder().decode(T.self, from: Data("{}".utf8))
+        }
+        _ = response
+        return try JSONDecoder().decode(T.self, from: data)
+    }
+
+    /// Returns raw `(Data, HTTPURLResponse)` after status-code validation.
+    /// Centralizes the HTTP-level error mapping so the typed `perform`
+    /// can stay focused on decoding.
+    private func performRaw(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else {
             throw ATProtoError(status: 0, message: "Non-HTTP response")
         }
         guard 200..<300 ~= http.statusCode else {
-            let body = String(data: data, encoding: .utf8)
             throw ATProtoError(
                 status: http.statusCode,
                 message: HTTPURLResponse.localizedString(forStatusCode: http.statusCode),
-                body: body
+                body: String(data: data, encoding: .utf8)
             )
         }
-        if T.self == EmptyResponse.self {
-            return EmptyResponse() as! T
-        }
-        return try JSONDecoder().decode(T.self, from: data)
+        return (data, http)
     }
 
     private func parseATURI(_ uri: String) -> (did: String?, collection: String?, rkey: String?) {
