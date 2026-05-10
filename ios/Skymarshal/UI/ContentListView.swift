@@ -31,6 +31,16 @@ struct ContentListView: View {
         effectiveRequest.apply(to: model.items)
     }
 
+    private var allFilteredSelected: Bool {
+        !filteredItems.isEmpty && selection == Set(filteredItems.map(\.uri))
+    }
+
+    private func pruneSelectionToVisible() {
+        guard editMode.isEditing, !selection.isEmpty else { return }
+        let visible = Set(filteredItems.map(\.uri))
+        selection.formIntersection(visible)
+    }
+
     var body: some View {
         @Bindable var model = model
         NavigationStack {
@@ -83,15 +93,27 @@ struct ContentListView: View {
             .navigationTitle(model.currentHandle ?? "Skymarshal")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Menu {
-                        Button("Refresh") {
-                            model.startLoad(forceRefresh: true)
+                    if editMode.isEditing {
+                        // Far from the search-bar clear-X (which sits in
+                        // the navigationBarDrawer below). Toggling
+                        // against `filteredItems` makes the search-then-
+                        // bulk-act flow one tap. Per technical-committee
+                        // architect verdict.
+                        Button(allFilteredSelected ? "Deselect All" : "Select All") {
+                            let all = Set(filteredItems.map(\.uri))
+                            selection = allFilteredSelected ? [] : all
                         }
-                        Button("Sign out", role: .destructive) {
-                            Task { await model.logout() }
+                    } else {
+                        Menu {
+                            Button("Refresh") {
+                                model.startLoad(forceRefresh: true)
+                            }
+                            Button("Sign out", role: .destructive) {
+                                Task { await model.logout() }
+                            }
+                        } label: {
+                            Image(systemName: "person.circle")
                         }
-                    } label: {
-                        Image(systemName: "person.circle")
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -119,6 +141,16 @@ struct ContentListView: View {
             }
             .environment(\.editMode, $editMode)
             .searchable(text: $keyword, placement: .navigationBarDrawer(displayMode: .always))
+            // Safety pin per technical-committee Greybeard/Safety verdict:
+            // if the user types "Trump" → 47 results → Edit → Select All →
+            // then mis-taps the search clear-X, keyword resets to "" and
+            // the visible list jumps to thousands. Without this guard,
+            // `selection` still holds the 47 URIs but the user can't
+            // see them — they could bulk-delete content they didn't
+            // intend. Drop any selected URI that's no longer visible
+            // under the new filter.
+            .onChange(of: keyword) { pruneSelectionToVisible() }
+            .onChange(of: scope) { pruneSelectionToVisible() }
             .sheet(isPresented: $showFilterSheet) {
                 FilterSheet(draft: $draftFilters)
                     .onDisappear {

@@ -28,8 +28,14 @@ struct ActiveFilterChips: View {
                             }
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
-                            .background(.tint.opacity(0.18), in: .capsule)
-                            .foregroundStyle(.tint)
+                            // .primary foreground + a slightly heavier
+                            // tint background — adapts cleanly across
+                            // light/dark modes regardless of accent
+                            // saturation. Per technical-committee tester
+                            // verdict: the previous `.tint`-on-`.tint`
+                            // chip was illegible in light mode.
+                            .background(.tint.opacity(0.25), in: .capsule)
+                            .foregroundStyle(.primary)
                         }
                         .buttonStyle(.plain)
                     }
