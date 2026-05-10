@@ -177,6 +177,12 @@ public struct GetLikesResponse: Decodable, Sendable {
     }
 }
 
+/// `app.bsky.feed.getRepostedBy` response — who reposted a post.
+public struct GetRepostedByResponse: Decodable, Sendable {
+    public let repostedBy: [BskyProfile]
+    public let cursor: String?
+}
+
 /// Type-erased decode of arbitrary fields we don't model.
 /// Lets us decode `embed` without committing to its full shape.
 public struct AnyDecodable: Decodable, Sendable {

@@ -20,6 +20,12 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
     public var media: [MediaPreview]
     public var linkCard: LinkCard?
     public var textLinks: [TextLink]
+    /// at:// URI of the parent post for replies. Used to build
+    /// interaction-history filters ("show me everything I've sent
+    /// toward @alice" walks `parentReplyURI` across cached items).
+    /// Nil for non-replies; for likes and reposts, `uri` itself IS
+    /// the subject URI so no extra field is needed.
+    public var parentReplyURI: String?
 
     public var id: String { uri }
 
@@ -66,7 +72,8 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
         replyCount: Int = 0,
         media: [MediaPreview] = [],
         linkCard: LinkCard? = nil,
-        textLinks: [TextLink] = []
+        textLinks: [TextLink] = [],
+        parentReplyURI: String? = nil
     ) {
         self.uri = uri
         self.cid = cid
@@ -79,6 +86,7 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
         self.media = media
         self.linkCard = linkCard
         self.textLinks = textLinks
+        self.parentReplyURI = parentReplyURI
     }
 
     /// Engagement score — the same `1L + 2R + 2.5Reply` formula as the

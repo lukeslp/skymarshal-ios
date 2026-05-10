@@ -15,6 +15,7 @@ struct AccountDetailView: View {
     @Environment(\.openURL) private var openURL
 
     @State private var showUnfollowConfirm: Bool = false
+    @State private var showInteractions: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -59,6 +60,9 @@ struct AccountDetailView: View {
                 Button("Cancel", role: .cancel) {}
             } message: {
                 Text("Removes you as a follower. They keep their content; you keep yours. Unfollows go through the same rate-limit safety net as deletes.")
+            }
+            .sheet(isPresented: $showInteractions) {
+                InteractionHistoryView(target: account)
             }
         }
     }
@@ -300,6 +304,15 @@ struct AccountDetailView: View {
     @ViewBuilder
     private var actions: some View {
         VStack(spacing: 8) {
+            Button {
+                showInteractions = true
+            } label: {
+                Label("Interactions with you", systemImage: "arrow.left.arrow.right")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+
             Button {
                 openURL(URL(string: "https://bsky.app/profile/\(account.did)")!)
             } label: {

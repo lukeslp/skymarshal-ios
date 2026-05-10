@@ -14,6 +14,7 @@ final class AppModel {
     // ----- Services -----
     private(set) var content: ContentService
     private(set) var followers: FollowerService
+    private(set) var interactions: InteractionService
     private let client: ATProtoClient
 
     // ----- Auth state -----
@@ -55,11 +56,13 @@ final class AppModel {
         client: ATProtoClient,
         content: ContentService,
         followers: FollowerService,
+        interactions: InteractionService,
         container: ModelContainer? = nil
     ) {
         self.client = client
         self.content = content
         self.followers = followers
+        self.interactions = interactions
         self.container = container
     }
 
@@ -80,6 +83,7 @@ final class AppModel {
             client: client,
             content: ContentService(client: client, container: container),
             followers: FollowerService(client: client, container: container),
+            interactions: InteractionService(client: client),
             container: container
         )
     }

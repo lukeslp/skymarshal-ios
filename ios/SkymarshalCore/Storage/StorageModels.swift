@@ -25,6 +25,11 @@ public final class ContentItemRecord {
     /// for the lightweight migration so existing-but-empty stores
     /// don't blow up on a missing-attribute decode.
     public var scannedAt: Date
+    /// at:// URI of the parent post, set only for replies. Powers
+    /// the InteractionHistoryView "outgoing replies" filter without
+    /// extra fetches. Lightweight migration — nil-default for any
+    /// existing rows; gets populated on next forceRefresh.
+    public var parentReplyURI: String?
 
     public init(
         uri: String,
@@ -37,7 +42,8 @@ public final class ContentItemRecord {
         replyCount: Int = 0,
         hasMedia: Bool = false,
         ownerHandle: String,
-        scannedAt: Date = Date()
+        scannedAt: Date = Date(),
+        parentReplyURI: String? = nil
     ) {
         self.uri = uri
         self.cid = cid
@@ -50,6 +56,7 @@ public final class ContentItemRecord {
         self.hasMedia = hasMedia
         self.ownerHandle = ownerHandle
         self.scannedAt = scannedAt
+        self.parentReplyURI = parentReplyURI
     }
 
     public var contentType: ContentType {
@@ -70,7 +77,8 @@ public final class ContentItemRecord {
             likeCount: likeCount,
             repostCount: repostCount,
             replyCount: replyCount,
-            media: hasMedia ? [MediaPreview(kind: .image)] : []
+            media: hasMedia ? [MediaPreview(kind: .image)] : [],
+            parentReplyURI: parentReplyURI
         )
     }
 }

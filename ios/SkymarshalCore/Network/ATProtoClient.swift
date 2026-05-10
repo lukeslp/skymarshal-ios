@@ -165,6 +165,46 @@ public actor ATProtoClient {
         }
     }
 
+    /// `app.bsky.feed.getRepostedBy` — who reposted a post URI. Public
+    /// endpoint, no auth. Used by interaction history to find their
+    /// reposts of your content.
+    public func getRepostedBy(
+        uri: String,
+        limit: Int = 100,
+        cursor: String? = nil
+    ) async throws -> GetRepostedByResponse {
+        var params: [URLQueryItem] = [
+            .init(name: "uri", value: uri),
+            .init(name: "limit", value: "\(min(max(limit, 1), 100))"),
+        ]
+        if let cursor { params.append(.init(name: "cursor", value: cursor)) }
+        let publicURL = self.publicURL
+        return try await withTimeout(seconds: 30) { [params] in
+            try await self.get(
+                lexicon: "app.bsky.feed.getRepostedBy",
+                queryItems: params,
+                base: publicURL,
+                requireAuth: false
+            )
+        }
+    }
+
+    /// `app.bsky.actor.getProfile` — single detailed profile. Public
+    /// endpoint, no auth. Useful when you have a handle/DID but no
+    /// scan-cached AnalyzedAccount yet (e.g. mutual follows traversal,
+    /// or a future "refresh this profile" affordance on AccountDetailView).
+    public func getProfile(actor: String) async throws -> BskyProfile {
+        let publicURL = self.publicURL
+        return try await withTimeout(seconds: 30) {
+            try await self.get(
+                lexicon: "app.bsky.actor.getProfile",
+                queryItems: [.init(name: "actor", value: actor)],
+                base: publicURL,
+                requireAuth: false
+            )
+        }
+    }
+
     // MARK: - Writes
 
     /// `com.atproto.repo.deleteRecord`. **Wrapped in `RateLimit.withBackoff`** —

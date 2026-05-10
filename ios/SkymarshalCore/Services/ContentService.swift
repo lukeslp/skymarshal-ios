@@ -53,6 +53,10 @@ public actor ContentService {
         get async { await client.currentHandle }
     }
 
+    public var currentDID: String? {
+        get async { await client.currentDid }
+    }
+
     // MARK: - Content loading
 
     /// Reported after each page of either endpoint completes. UI binds to
@@ -272,7 +276,13 @@ public actor ContentService {
             replyCount: post.replyCount ?? 0,
             media: extractMediaPreviews(post.embed),
             linkCard: extractLinkCard(post.embed),
-            textLinks: extractTextLinks(post.record?.facets)
+            textLinks: extractTextLinks(post.record?.facets),
+            // Capture the parent URI for replies. Used by
+            // InteractionService.loadInteractions to filter "your
+            // replies to @alice" without extra network calls.
+            // FeedViewPost.reply.parent.uri is more reliable than
+            // record.reply.parent.uri because the relay enriches it.
+            parentReplyURI: view.reply?.parent?.uri ?? post.record?.reply?.parent?.uri
         )
     }
 
@@ -375,6 +385,7 @@ public actor ContentService {
                 existing.repostCount = item.repostCount
                 existing.replyCount = item.replyCount
                 existing.hasMedia = item.hasMedia
+                existing.parentReplyURI = item.parentReplyURI
                 existing.scannedAt = now
             } else {
                 context.insert(ContentItemRecord(
@@ -388,7 +399,8 @@ public actor ContentService {
                     replyCount: item.replyCount,
                     hasMedia: item.hasMedia,
                     ownerHandle: owner,
-                    scannedAt: now
+                    scannedAt: now,
+                    parentReplyURI: item.parentReplyURI
                 ))
             }
         }
