@@ -25,6 +25,14 @@ struct BluescreenView: View {
         return f.apply(to: model.accounts)
     }
 
+    private func makeFollowersJSON() -> ExportPayload {
+        do {
+            return try Exporter.followersJSON(model.accounts, handle: model.currentHandle)
+        } catch {
+            return Exporter.followersCSV([])
+        }
+    }
+
     var body: some View {
         @Bindable var model = model
         NavigationStack {
@@ -181,6 +189,28 @@ struct BluescreenView: View {
                             .disabled(model.isScanning)
                         if model.isScanning {
                             Button("Stop scan", role: .destructive) { model.cancelScan() }
+                        }
+                        if !model.accounts.isEmpty {
+                            Section("Export") {
+                                ShareLink(
+                                    item: ExportItem(payload: makeFollowersJSON()),
+                                    preview: SharePreview(
+                                        "Skymarshal — followers (JSON)",
+                                        image: Image(systemName: "doc.text")
+                                    )
+                                ) {
+                                    Label("As JSON", systemImage: "curlybraces")
+                                }
+                                ShareLink(
+                                    item: ExportItem(payload: Exporter.followersCSV(model.accounts)),
+                                    preview: SharePreview(
+                                        "Skymarshal — followers (CSV)",
+                                        image: Image(systemName: "tablecells")
+                                    )
+                                ) {
+                                    Label("As CSV", systemImage: "tablecells")
+                                }
+                            }
                         }
                     } label: {
                         Image(systemName: "scope")

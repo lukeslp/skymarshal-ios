@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		009C56365F68DCDC11505DD4 /* ExportShare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8570A561C56AAFA1E1282944 /* ExportShare.swift */; };
 		01804EFE9494B0A0017495BB /* SkymarshalCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0F041B18B2706EE31852A54 /* SkymarshalCore.swift */; };
 		07AEC3916E73202457B28033 /* RateLimitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B782349CA1305BCCC0AE2EE9 /* RateLimitTests.swift */; };
 		0C6E6C938EB222706AD8E8C2 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A72EBFD4D9593869B7E87AF6 /* LoginView.swift */; };
@@ -16,6 +17,7 @@
 		1D9B712CF38FB7D812B65058 /* ContentType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491804997851E0480E3B7194 /* ContentType.swift */; };
 		1E17874CFF06F47B8EC2FC59 /* SearchAndScoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC1C886B8184F15CA15F3F32 /* SearchAndScoreTests.swift */; };
 		202EDDF5E9903C511FADD83D /* MediaThumbnailRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D3BE832B28566F7FA58947 /* MediaThumbnailRow.swift */; };
+		24EF00B3E079F4D08D3A6E21 /* Exporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B68A86B4F78B52A2B431BD19 /* Exporter.swift */; };
 		28BC6B8AF031B179A865B72B /* EditActionBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = F62385E352BFF3314B1AEBB3 /* EditActionBar.swift */; };
 		2DFD40C2E394DEF1243D7F6A /* FilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F7AD85271DEF881463E58C2 /* FilterSheet.swift */; };
 		336A90028344612C57587F46 /* HydrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9793630CD39119B8A0A7A3AA /* HydrationTests.swift */; };
@@ -35,6 +37,7 @@
 		61FAC6C736986FA6DCF8368C /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C63DDD72BCB5341FA0A17C6 /* SmokeTests.swift */; };
 		61FD72860953A89D7C881813 /* AnalyzedAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D4EEC451591396E7926C96C /* AnalyzedAccount.swift */; };
 		687EB6955E7495BC3305D639 /* MediaLightboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F055AF0A6E0320E7AD43705 /* MediaLightboxView.swift */; };
+		78CD18D426387960001ED4AC /* ExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79485208079763B89F328C49 /* ExporterTests.swift */; };
 		7C428FCAD76857EC460DBB92 /* SkymarshalCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 822EC83D35348BBCCDA83D23 /* SkymarshalCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		7F4EFD5F9A3E507B27191B16 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B614BA930FB2C911FC531324 /* Assets.xcassets */; };
 		8582B6876545585EB849CFC5 /* PostDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BCF557820B8A037D8BC173A /* PostDetailView.swift */; };
@@ -113,12 +116,12 @@
 
 /* Begin PBXFileReference section */
 		0FEAFFB7DCD5B92072BFB691 /* StorageRoundTripTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageRoundTripTests.swift; sourceTree = "<group>"; };
-		14B50B641FB406502CA6835B /* Skymarshal.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Skymarshal.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		14B50B641FB406502CA6835B /* Skymarshal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Skymarshal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1BDFE71499511839E0BFE29C /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		1F055AF0A6E0320E7AD43705 /* MediaLightboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaLightboxView.swift; sourceTree = "<group>"; };
 		21806754F97B224507EE90DA /* TypeChipsRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeChipsRow.swift; sourceTree = "<group>"; };
 		2640395C3927D53D3C9B375A /* LastScannedBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastScannedBanner.swift; sourceTree = "<group>"; };
-		2A68109DA988C288562EC79A /* SkymarshalTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SkymarshalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2A68109DA988C288562EC79A /* SkymarshalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SkymarshalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C63DDD72BCB5341FA0A17C6 /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
 		2F256F22E3C66AFA83B34CC3 /* ATProtoClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ATProtoClient.swift; sourceTree = "<group>"; };
 		3786F0727744BDFB53F1DD6C /* FollowerFiltersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowerFiltersTests.swift; sourceTree = "<group>"; };
@@ -135,9 +138,11 @@
 		6E2A563F59D0EAACF6B93C1D /* ScanInFlightView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanInFlightView.swift; sourceTree = "<group>"; };
 		6E3E7AB5E618B4270B2AE779 /* LoadProgressBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadProgressBanner.swift; sourceTree = "<group>"; };
 		6F7AD85271DEF881463E58C2 /* FilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterSheet.swift; sourceTree = "<group>"; };
+		79485208079763B89F328C49 /* ExporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExporterTests.swift; sourceTree = "<group>"; };
 		7DA92FE9C953C159FD63460E /* RateLimit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RateLimit.swift; sourceTree = "<group>"; };
 		7E2CDB04D72BD83F6387C6A3 /* BluescreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluescreenView.swift; sourceTree = "<group>"; };
 		822EC83D35348BBCCDA83D23 /* SkymarshalCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SkymarshalCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		8570A561C56AAFA1E1282944 /* ExportShare.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportShare.swift; sourceTree = "<group>"; };
 		916FD0F19FC4F52773CE1628 /* StatusBanners.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBanners.swift; sourceTree = "<group>"; };
 		95B7701520804115EB93F81E /* BotFlagSeverityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BotFlagSeverityTests.swift; sourceTree = "<group>"; };
 		9793630CD39119B8A0A7A3AA /* HydrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HydrationTests.swift; sourceTree = "<group>"; };
@@ -149,6 +154,7 @@
 		B0F041B18B2706EE31852A54 /* SkymarshalCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkymarshalCore.swift; sourceTree = "<group>"; };
 		B3C69F277B3E01241BBC1AF4 /* ContentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentService.swift; sourceTree = "<group>"; };
 		B614BA930FB2C911FC531324 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B68A86B4F78B52A2B431BD19 /* Exporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Exporter.swift; sourceTree = "<group>"; };
 		B6D3BE832B28566F7FA58947 /* MediaThumbnailRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaThumbnailRow.swift; sourceTree = "<group>"; };
 		B74AACF37FEDE7F8B59D9D64 /* AccountDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDetailView.swift; sourceTree = "<group>"; };
 		B782349CA1305BCCC0AE2EE9 /* RateLimitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RateLimitTests.swift; sourceTree = "<group>"; };
@@ -158,7 +164,7 @@
 		C33CEEA494ABBF59FFC62725 /* EngagementCacheTTL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngagementCacheTTL.swift; sourceTree = "<group>"; };
 		CC5F0231741B1BC2B90885C8 /* BluescreenAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluescreenAnalyzer.swift; sourceTree = "<group>"; };
 		CCEF4AB6F390008D3FB71D87 /* LinkCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkCardView.swift; sourceTree = "<group>"; };
-		D3FBECFCC0C54AC18EFD4B94 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		D3FBECFCC0C54AC18EFD4B94 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		D8A27D872B1C9A8E2FA1A409 /* BskyProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BskyProfile.swift; sourceTree = "<group>"; };
 		E5473889BD7929C3288FF1B2 /* Skymarshal.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Skymarshal.entitlements; sourceTree = "<group>"; };
 		E617CED88B3942F17AB3AC3D /* Timeout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Timeout.swift; sourceTree = "<group>"; };
@@ -217,6 +223,7 @@
 				BADD57E99019D70492F0107E /* ContentListView.swift */,
 				3BADB0EE3694F892FAFE6D5C /* ContentTypeStyling.swift */,
 				F62385E352BFF3314B1AEBB3 /* EditActionBar.swift */,
+				8570A561C56AAFA1E1282944 /* ExportShare.swift */,
 				6F7AD85271DEF881463E58C2 /* FilterSheet.swift */,
 				2640395C3927D53D3C9B375A /* LastScannedBanner.swift */,
 				CCEF4AB6F390008D3FB71D87 /* LinkCardView.swift */,
@@ -315,6 +322,7 @@
 			children = (
 				CC5F0231741B1BC2B90885C8 /* BluescreenAnalyzer.swift */,
 				C33CEEA494ABBF59FFC62725 /* EngagementCacheTTL.swift */,
+				B68A86B4F78B52A2B431BD19 /* Exporter.swift */,
 				7DA92FE9C953C159FD63460E /* RateLimit.swift */,
 				E617CED88B3942F17AB3AC3D /* Timeout.swift */,
 			);
@@ -326,6 +334,7 @@
 			children = (
 				A3D884AC9F343474B2875C22 /* BluescreenAnalyzerTests.swift */,
 				95B7701520804115EB93F81E /* BotFlagSeverityTests.swift */,
+				79485208079763B89F328C49 /* ExporterTests.swift */,
 				3786F0727744BDFB53F1DD6C /* FollowerFiltersTests.swift */,
 				9793630CD39119B8A0A7A3AA /* HydrationTests.swift */,
 				B782349CA1305BCCC0AE2EE9 /* RateLimitTests.swift */,
@@ -405,7 +414,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 2640;
 				TargetAttributes = {
 					A6A353D5E054B4298ADE0C13 = {
 						DevelopmentTeam = 596T7J7FB6;
@@ -468,6 +477,7 @@
 				14398C12F5BA9D191FF15514 /* ContentService.swift in Sources */,
 				1D9B712CF38FB7D812B65058 /* ContentType.swift in Sources */,
 				B2BE03AF8B77BD2712A8A946 /* EngagementCacheTTL.swift in Sources */,
+				24EF00B3E079F4D08D3A6E21 /* Exporter.swift in Sources */,
 				57BF2760C6EEEE9AC74A54B7 /* FollowerFilters.swift in Sources */,
 				46A0D768745013077B3556B8 /* FollowerService.swift in Sources */,
 				5FE0F3BFFA81995435DAB30E /* RateLimit.swift in Sources */,
@@ -484,6 +494,7 @@
 			files = (
 				48037B237AE29F0675B1547A /* BluescreenAnalyzerTests.swift in Sources */,
 				C4489477052539873B9BF20B /* BotFlagSeverityTests.swift in Sources */,
+				78CD18D426387960001ED4AC /* ExporterTests.swift in Sources */,
 				C7C0BF6AFF715DB2189F5EEC /* FollowerFiltersTests.swift in Sources */,
 				336A90028344612C57587F46 /* HydrationTests.swift in Sources */,
 				07AEC3916E73202457B28033 /* RateLimitTests.swift in Sources */,
@@ -506,6 +517,7 @@
 				9FAB9CA28A83BD93C7F82E7A /* ContentListView.swift in Sources */,
 				CA1948B8790D31FC6B8CA17F /* ContentTypeStyling.swift in Sources */,
 				28BC6B8AF031B179A865B72B /* EditActionBar.swift in Sources */,
+				009C56365F68DCDC11505DD4 /* ExportShare.swift in Sources */,
 				2DFD40C2E394DEF1243D7F6A /* FilterSheet.swift in Sources */,
 				1C5170BD1CE332775063D1A3 /* LastScannedBanner.swift in Sources */,
 				B2FC3293128DA0A039ADA88B /* LinkCardView.swift in Sources */,
@@ -562,6 +574,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = blue.skymarshal.ios.core;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -662,6 +675,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = blue.skymarshal.ios.core;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -674,6 +688,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -724,6 +739,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -738,6 +754,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -795,6 +812,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;

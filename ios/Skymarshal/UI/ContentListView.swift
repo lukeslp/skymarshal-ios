@@ -36,6 +36,18 @@ struct ContentListView: View {
         !filteredItems.isEmpty && selection == Set(filteredItems.map(\.uri))
     }
 
+    /// Build a JSON ExportPayload synchronously for the share menu.
+    /// Throws are unlikely (Encodable on plain structs) — fall back to
+    /// an empty CSV-shaped payload if encoding fails so the share sheet
+    /// never appears with a stale file.
+    private func makeContentJSON() -> ExportPayload {
+        do {
+            return try Exporter.contentJSON(model.items, handle: model.currentHandle)
+        } catch {
+            return Exporter.contentCSV([])
+        }
+    }
+
     private func pruneSelectionToVisible() {
         guard editMode.isEditing, !selection.isEmpty else { return }
         let visible = Set(filteredItems.map(\.uri))
@@ -164,6 +176,26 @@ struct ContentListView: View {
                     Menu {
                         Button("Refresh") {
                             model.startLoad(forceRefresh: true)
+                        }
+                        Section("Export") {
+                            ShareLink(
+                                item: ExportItem(payload: makeContentJSON()),
+                                preview: SharePreview(
+                                    "Skymarshal — content (JSON)",
+                                    image: Image(systemName: "doc.text")
+                                )
+                            ) {
+                                Label("As JSON", systemImage: "curlybraces")
+                            }
+                            ShareLink(
+                                item: ExportItem(payload: Exporter.contentCSV(model.items)),
+                                preview: SharePreview(
+                                    "Skymarshal — content (CSV)",
+                                    image: Image(systemName: "tablecells")
+                                )
+                            ) {
+                                Label("As CSV", systemImage: "tablecells")
+                            }
                         }
                         Button("Sign out", role: .destructive) {
                             Task { await model.logout() }
