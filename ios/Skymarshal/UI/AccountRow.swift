@@ -3,8 +3,8 @@ import SkymarshalCore
 
 /// Sibling of `ContentRow` for the followers/bluescreen list. Same
 /// rhythm: leading color stripe + inline metadata + body + metric row.
-/// The leading stripe color encodes botScore tier (green/yellow/red);
-/// the row's badges show the score, mutual status, and influence tier.
+/// The leading stripe color encodes status tier (red bot/deleted,
+/// orange suspect, yellow inactive, accent mutual, gray default).
 @available(iOS 17, *)
 struct AccountRow: View {
     let account: AnalyzedAccount
@@ -16,8 +16,12 @@ struct AccountRow: View {
                 .frame(width: 3)
                 .frame(maxHeight: .infinity)
 
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: 5) {
+                // Header: avatar + name + handle on the left, status
+                // pills on the right (mutual / inactive / deleted /
+                // bot score). Pills are the smallest possible — the
+                // metric line below is for numbers only.
+                HStack(spacing: 8) {
                     AccountAvatar(url: account.profile.avatar, handle: account.handle)
                         .frame(width: 28, height: 28)
 
@@ -31,17 +35,9 @@ struct AccountRow: View {
                             .lineLimit(1)
                     }
 
-                    Spacer()
+                    Spacer(minLength: 4)
 
-                    if account.isMutual {
-                        Image(systemName: "person.2.fill")
-                            .font(.caption2)
-                            .foregroundStyle(.tint)
-                            .accessibilityLabel("Mutual")
-                    }
-                    if account.botScore > 0 {
-                        BotScoreBadge(score: account.botScore)
-                    }
+                    StatusPills(account: account)
                 }
 
                 if let bio = account.profile.description, !bio.isEmpty {
@@ -51,27 +47,21 @@ struct AccountRow: View {
                         .lineLimit(2)
                 }
 
-                HStack(spacing: 12) {
-                    metric("\(account.profile.followersCount.formatted())", "person.fill")
-                    metric("\(account.profile.followsCount.formatted())", "person.crop.circle.badge.plus")
+                // Metric row: numbers only, all on one line. Single
+                // overflow rule (truncate at the right). Influence
+                // tier sits at the trailing edge in muted text.
+                HStack(spacing: 14) {
+                    metric("\(short(account.profile.followersCount))", "person.fill")
+                    metric("\(short(account.profile.followsCount))", "person.crop.circle.badge.plus")
                     metric(ratioLabel, "arrow.left.arrow.right")
-                    if account.isInactive {
-                        Label("inactive", systemImage: "moon.zzz")
-                            .font(.caption2)
-                            .foregroundStyle(.orange)
-                    }
-                    if account.isDeleted {
-                        Label("deleted", systemImage: "xmark.octagon")
-                            .font(.caption2)
-                            .foregroundStyle(.red)
-                    }
-                    Spacer()
+                    Spacer(minLength: 4)
                     Text(account.influenceTier.label.lowercased())
                         .font(.caption2.monospaced())
                         .foregroundStyle(.tertiary)
                 }
                 .font(.caption2)
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
             }
         }
         .padding(.vertical, 6)
@@ -93,11 +83,72 @@ struct AccountRow: View {
             : String(format: "%.0f", account.ratio)
     }
 
+    /// Compact number formatter so 15,195 → "15.2K" and the metric row
+    /// stays on a single line. Avoids overlap with status pills above
+    /// 1,000-follower influencers.
+    private func short(_ n: Int) -> String {
+        if n < 1_000 { return n.formatted() }
+        if n < 1_000_000 {
+            let v = Double(n) / 1_000
+            return v >= 100 ? "\(Int(v))K" : String(format: "%.1fK", v)
+        }
+        let v = Double(n) / 1_000_000
+        return v >= 100 ? "\(Int(v))M" : String(format: "%.1fM", v)
+    }
+
     @ViewBuilder
     private func metric(_ text: String, _ symbol: String) -> some View {
         Label(text, systemImage: symbol)
             .labelStyle(.titleAndIcon)
             .symbolRenderingMode(.hierarchical)
+    }
+}
+
+/// Header status pills: mutual icon + bot/inactive/deleted badges.
+/// Each is small and only appears when relevant; collectively they
+/// fit on one line inside the AccountRow header without wrapping.
+@available(iOS 17, *)
+private struct StatusPills: View {
+    let account: AnalyzedAccount
+
+    var body: some View {
+        HStack(spacing: 4) {
+            if account.isMutual {
+                Image(systemName: "person.2.fill")
+                    .font(.caption2)
+                    .foregroundStyle(.tint)
+                    .accessibilityLabel("Mutual")
+            }
+            if account.isDeleted {
+                Pill(systemImage: "xmark.octagon.fill", text: "del", color: .red)
+                    .accessibilityLabel("Deleted account")
+            } else if account.isInactive {
+                Pill(systemImage: "moon.zzz.fill", text: "idle", color: .orange)
+                    .accessibilityLabel("Inactive account")
+            }
+            if account.botScore > 0 {
+                BotScoreBadge(score: account.botScore)
+            }
+        }
+    }
+
+    private struct Pill: View {
+        let systemImage: String
+        let text: String
+        let color: Color
+
+        var body: some View {
+            HStack(spacing: 2) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 9))
+                Text(text)
+                    .font(.caption2.weight(.semibold))
+            }
+            .foregroundStyle(color)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(color.opacity(0.15), in: .capsule)
+        }
     }
 }
 

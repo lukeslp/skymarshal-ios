@@ -100,6 +100,33 @@ final class BluescreenAnalyzerTests: XCTestCase {
         XCTAssertEqual(BluescreenAnalyzer.botScore(for: p).score, 0)
     }
 
+    func test_botScore_unknownAge_doesNotFireNewAccountFactor() {
+        // REGRESSION: when getFollows returns ProfileView without a
+        // createdAt field, BskyProfile.createdAt defaults to "" and
+        // createdDate returns nil. Earlier versions treated that as
+        // ageDays=0 and falsely fired "New account, aggressive following"
+        // for every account with > 100 follows. With ~1300 follows a
+        // user might have, that gave a 95+% false-positive bot rate.
+        // Fix: skip age-based factors entirely when age is unknown.
+        let p = BskyProfile(
+            did: "did:plc:x",
+            handle: "real-user.bsky.social",
+            displayName: "Real User",
+            description: "real bio",
+            avatar: "https://x/y",
+            banner: "https://x/b",
+            followersCount: 15_195,    // nicky-woolf-shaped real account
+            followsCount: 3_122,
+            postsCount: 1_000,
+            createdAt: ""              // ← the bug case: missing date
+        )
+        let result = BluescreenAnalyzer.botScore(for: p)
+        XCTAssertEqual(result.score, 0,
+                       "Real-shaped accounts with unknown age must not score as bots")
+        XCTAssertFalse(result.flags.contains { $0.contains("New account") })
+        XCTAssertFalse(result.flags.contains { $0.contains("Young account") })
+    }
+
     // MARK: - influence
 
     func test_influenceScore_largerFollower_higherScore() {

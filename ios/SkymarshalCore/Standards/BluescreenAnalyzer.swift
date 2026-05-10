@@ -84,17 +84,22 @@ public enum BluescreenAnalyzer {
             flags.append("Suspiciously high follower ratio")
         }
 
-        // 6. Very new account with high activity — medium weight
-        let ageDays: Double = {
-            guard let date = profile.createdDate else { return 0 }
-            return Date().timeIntervalSince(date) / 86_400
-        }()
-        if ageDays < 7 && profile.followsCount > 100 {
-            factors.append((2, 0.7))
-            flags.append("New account, aggressive following")
-        } else if ageDays < 30 && profile.followsCount > 500 {
-            factors.append((1.5, 0.5))
-            flags.append("Young account, high following")
+        // 6. Very new account with high activity — medium weight.
+        // CRITICAL: only check this when we KNOW the account age. The basic
+        // ProfileView from getFollows often lacks createdAt; if we treated
+        // unknown-age as 0, every account with >100 follows would falsely
+        // fire "new account" and the entire follow list would score as
+        // bot. Matches the TS source: `new Date("").getTime()` is NaN
+        // there, NaN < 7 is false, factor naturally skipped.
+        if let date = profile.createdDate {
+            let ageDays = Date().timeIntervalSince(date) / 86_400
+            if ageDays < 7 && profile.followsCount > 100 {
+                factors.append((2, 0.7))
+                flags.append("New account, aggressive following")
+            } else if ageDays < 30 && profile.followsCount > 500 {
+                factors.append((1.5, 0.5))
+                flags.append("Young account, high following")
+            }
         }
 
         guard !factors.isEmpty else { return (0, flags) }

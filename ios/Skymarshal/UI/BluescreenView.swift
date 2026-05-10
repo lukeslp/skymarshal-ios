@@ -13,10 +13,14 @@ struct BluescreenView: View {
     @State private var pendingUnfollow: [String]? = nil
     @State private var selection: Set<String> = []
     @State private var editMode: EditMode = .inactive
+    @State private var sortField: FollowerFilters.SortField = .botScore
+    @State private var sortDirection: FollowerFilters.SortDirection = .desc
 
     private var filtered: [AnalyzedAccount] {
         var f = FollowerFilters()
         f.search = keyword
+        f.sortField = sortField
+        f.sortDirection = sortDirection
         return f.apply(to: model.accounts)
     }
 
@@ -43,6 +47,63 @@ struct BluescreenView: View {
                         model.errorMessage = nil
                     }
                 }
+
+                // Inline Sort + Select row — sits below the summary
+                // strip and is always visible regardless of search-bar
+                // focus state (the toolbar is dead during .searchable
+                // activation; same trap as ContentListView).
+                if !model.accounts.isEmpty {
+                    HStack(spacing: 12) {
+                        Menu {
+                            Picker("Sort by", selection: $sortField) {
+                                ForEach(FollowerFilters.SortField.allCases) { field in
+                                    Text(field.label).tag(field)
+                                }
+                            }
+                            Divider()
+                            Picker("Order", selection: $sortDirection) {
+                                Label("Descending", systemImage: "arrow.down")
+                                    .tag(FollowerFilters.SortDirection.desc)
+                                Label("Ascending", systemImage: "arrow.up")
+                                    .tag(FollowerFilters.SortDirection.asc)
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: sortDirection == .desc ? "arrow.down" : "arrow.up")
+                                    .font(.caption2)
+                                Text("Sort: \(sortField.label)")
+                                    .font(.footnote.weight(.medium))
+                                    .lineLimit(1)
+                                Image(systemName: "chevron.down")
+                                    .font(.caption2)
+                            }
+                            .foregroundStyle(.tint)
+                        }
+
+                        Spacer(minLength: 8)
+
+                        Button {
+                            withAnimation(.snappy) {
+                                editMode = editMode.isEditing ? .inactive : .active
+                                if !editMode.isEditing { selection.removeAll() }
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: editMode.isEditing
+                                      ? "checkmark.circle.fill"
+                                      : "checkmark.circle")
+                                    .font(.footnote)
+                                Text(editMode.isEditing ? "Done" : "Select")
+                                    .font(.footnote.weight(.medium))
+                            }
+                            .foregroundStyle(.tint)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 6)
+                }
+
                 if editMode.isEditing {
                     EditActionBar(
                         selectionCount: selection.count,
@@ -107,18 +168,9 @@ struct BluescreenView: View {
                         Image(systemName: "scope")
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        withAnimation(.snappy) {
-                            editMode = editMode.isEditing ? .inactive : .active
-                            if !editMode.isEditing { selection.removeAll() }
-                        }
-                    } label: {
-                        Text(editMode.isEditing ? "Done" : "Select")
-                            .font(.subheadline.weight(.medium))
-                    }
-                    .disabled(model.accounts.isEmpty)
-                }
+                // Select toggle moved inline above the list — toolbar
+                // items are hidden when .searchable is focused, which
+                // would block the search-then-select flow entirely.
             }
             .environment(\.editMode, $editMode)
             .searchable(text: $keyword, prompt: "Search handle or name")
