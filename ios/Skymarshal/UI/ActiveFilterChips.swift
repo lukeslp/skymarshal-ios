@@ -1,0 +1,78 @@
+import SwiftUI
+import SkymarshalCore
+
+/// Horizontally-scrolling chips above the result list, one per active
+/// non-default filter. Each is tappable to clear that one filter — solves
+/// "why are my results empty" without extra documentation.
+@available(iOS 17, *)
+struct ActiveFilterChips: View {
+
+    @Binding var filters: SearchRequest
+
+    var body: some View {
+        let chips = describeChips()
+        if chips.isEmpty {
+            EmptyView()
+        } else {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(chips, id: \.id) { chip in
+                        Button {
+                            chip.clear(&filters)
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text(chip.label)
+                                    .font(.caption)
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.caption2)
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(.tint.opacity(0.18), in: .capsule)
+                            .foregroundStyle(.tint)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 6)
+            }
+        }
+    }
+
+    private func describeChips() -> [Chip] {
+        var chips: [Chip] = []
+        if let start = filters.startDate {
+            chips.append(Chip(id: "start", label: "after \(short(start))") { $0.startDate = nil })
+        }
+        if let end = filters.endDate {
+            chips.append(Chip(id: "end", label: "before \(short(end))") { $0.endDate = nil })
+        }
+        if let r = filters.likes {
+            chips.append(Chip(id: "likes", label: "likes \(rangeLabel(r))") { $0.likes = nil })
+        }
+        if let r = filters.reposts {
+            chips.append(Chip(id: "reposts", label: "reposts \(rangeLabel(r))") { $0.reposts = nil })
+        }
+        if let r = filters.replies {
+            chips.append(Chip(id: "replies", label: "replies \(rangeLabel(r))") { $0.replies = nil })
+        }
+        return chips
+    }
+
+    private func short(_ date: Date) -> String {
+        date.formatted(.dateTime.month(.abbreviated).day())
+    }
+
+    private func rangeLabel(_ r: ClosedRange<Int>) -> String {
+        if r.upperBound >= Int.max { return "\(r.lowerBound)+" }
+        if r.lowerBound == 0 { return "≤\(r.upperBound)" }
+        return "\(r.lowerBound)–\(r.upperBound)"
+    }
+
+    private struct Chip {
+        let id: String
+        let label: String
+        let clear: (inout SearchRequest) -> Void
+    }
+}

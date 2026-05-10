@@ -1,24 +1,23 @@
 import SwiftUI
 import SkymarshalCore
 
+@available(iOS 17, *)
 struct RootView: View {
+    @State private var model = AppModel.liveDefault()
+
     var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "scope")
-                .font(.system(size: 64, weight: .light))
-                .foregroundStyle(.tint)
-            Text("Skymarshal")
-                .font(.largeTitle.weight(.semibold))
-            Text("v\(SkymarshalCoreInfo.version) — content management for Bluesky")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
+        Group {
+            if model.isAuthenticated {
+                ContentListView()
+            } else {
+                LoginView()
+            }
         }
-        .padding()
+        .environment(model)
     }
 }
 
-#Preview {
+@available(iOS 17, *)
+#Preview("Logged out") {
     RootView()
 }
