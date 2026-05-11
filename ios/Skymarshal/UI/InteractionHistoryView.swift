@@ -17,6 +17,11 @@ struct InteractionHistoryView: View {
     @State private var errorMessage: String?
     @State private var hasStarted: Bool = false
 
+    /// Power-user toggle: walks ~2000 items per direction instead of
+    /// the default 200. Persisted across sessions so a user who wants
+    /// the long sweep doesn't have to re-enable on every visit.
+    @AppStorage("sm.interactionDeepSweep") private var deepSweep: Bool = false
+
     var body: some View {
         NavigationStack {
             List {
@@ -48,7 +53,11 @@ struct InteractionHistoryView: View {
 
                 if let bundle {
                     outgoingSections(bundle.outgoing)
-                    incomingSections(bundle.incoming, complete: bundle.incomingComplete)
+                    incomingSections(
+                        bundle.incoming,
+                        complete: bundle.incomingComplete,
+                        examined: bundle.examinedPerDirection
+                    )
 
                     if bundle.outgoing.isEmpty && bundle.incoming.isEmpty
                        && progress?.phase == .complete {
@@ -79,8 +88,31 @@ struct InteractionHistoryView: View {
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Toggle(isOn: $deepSweep) {
+                            Label("Deep sweep", systemImage: "magnifyingglass.circle")
+                        }
+                        Text("Walks ~2 000 items per direction instead of the default 200. Takes longer; shows more.")
+                            .font(.caption2)
+                    } label: {
+                        Image(systemName: deepSweep
+                              ? "magnifyingglass.circle.fill"
+                              : "ellipsis.circle")
+                    }
+                    .accessibilityLabel(deepSweep ? "Sweep options (Deep sweep on)" : "Sweep options")
+                }
+                ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
                 }
+            }
+            .onChange(of: deepSweep) { _, _ in
+                // Re-run with the new cap. Cancel any in-flight sweep
+                // and start fresh; the partial bundle becomes stale
+                // the moment the user changes the depth they want.
+                bundle = nil
+                progress = nil
+                errorMessage = nil
+                Task { await runLoad() }
             }
             .task {
                 guard !hasStarted else { return }
@@ -120,11 +152,11 @@ struct InteractionHistoryView: View {
     }
 
     @ViewBuilder
-    private func incomingSections(_ incoming: [Interaction], complete: Bool) -> some View {
+    private func incomingSections(_ incoming: [Interaction], complete: Bool, examined: Int) -> some View {
         let groups = group(incoming)
         Section {
             if incoming.isEmpty && progress?.phase == .complete {
-                Text("Nothing from them yet — at least not in their last \(InteractionService.recentItemsExamined) items.")
+                Text("Nothing from them yet — at least not in their last \(examined) items.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             } else {
@@ -134,7 +166,7 @@ struct InteractionHistoryView: View {
                     }
                 }
                 if !complete && progress?.phase == .complete {
-                    Text("Showing the most recent \(InteractionService.recentItemsExamined) items per category.")
+                    Text("Showing the most recent \(examined) items per category. Toggle Deep sweep above to widen.")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                 }
@@ -175,6 +207,9 @@ struct InteractionHistoryView: View {
         let targetDID = target.did
         let targetHandle = target.handle
         let modelAccounts = model.accounts
+        let cap = deepSweep
+            ? InteractionService.deepSweepPageCap
+            : InteractionService.defaultPageCap
         loadTask = Task {
             do {
                 let userDID = (await model.content.currentDID) ?? ""
@@ -183,6 +218,7 @@ struct InteractionHistoryView: View {
                     userItems: userItems,
                     targetDID: targetDID,
                     targetHandle: targetHandle,
+                    cap: cap,
                     progress: { p in
                         await MainActor.run {
                             self.progress = p
@@ -199,7 +235,8 @@ struct InteractionHistoryView: View {
                                 self.bundle = InteractionBundle(
                                     target: placeholderProfile,
                                     outgoing: outgoing,
-                                    incoming: []
+                                    incoming: [],
+                                    examinedPerDirection: cap
                                 )
                             }
                         }
@@ -225,11 +262,7 @@ struct InteractionHistoryView: View {
     }
 }
 
-@available(iOS 17, *)
-extension InteractionService {
-    /// Page cap exposed for UI copy ("Showing the most recent N…").
-    /// Kept in sync with the private `pageCap` constant by convention.
-    static var recentItemsExamined: Int { 200 }
-}
-
+// Page-cap constants now live on InteractionService directly
+// (defaultPageCap / deepSweepPageCap) and the actual cap used for a
+// given bundle rides along on InteractionBundle.examinedPerDirection.
 // (ContentService.currentDID lives in ContentService.swift now.)

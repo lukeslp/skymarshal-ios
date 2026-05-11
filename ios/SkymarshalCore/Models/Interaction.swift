@@ -70,19 +70,26 @@ public struct InteractionBundle: Sendable {
     /// the end of the target's recent archive — surface a hint in
     /// the UI ("showing the most recent N items").
     public let incomingComplete: Bool
+    /// Per-pass cap that was used. The UI reads this to render the
+    /// "Showing the most recent N items" hint at whatever number the
+    /// service actually walked, so a "Deep sweep" toggle from
+    /// InteractionHistoryView and the hint stay in sync.
+    public let examinedPerDirection: Int
 
     public init(
         target: BskyProfile,
         outgoing: [Interaction],
         incoming: [Interaction],
         outgoingComplete: Bool = true,
-        incomingComplete: Bool = true
+        incomingComplete: Bool = true,
+        examinedPerDirection: Int = 200
     ) {
         self.target = target
         self.outgoing = outgoing
         self.incoming = incoming
         self.outgoingComplete = outgoingComplete
         self.incomingComplete = incomingComplete
+        self.examinedPerDirection = examinedPerDirection
     }
 }
 

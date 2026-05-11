@@ -9,10 +9,14 @@ import Foundation
 public actor InteractionService {
 
     private let client: ATProtoClient
-    /// Per-pass page cap. 200 items × 3 passes = 600 calls examined
-    /// max per `loadInteractions`. Realistic upper bound: 30s of
-    /// network on a heavy account.
-    private static let pageCap = 200
+    /// Per-pass page cap that the UI passes in via the `cap` param on
+    /// `loadInteractions`. Default 200 → ~10s wall-clock on each
+    /// incoming pass. Power-user "Deep sweep" raises this to 2000 →
+    /// ~30s. Read endpoint isn't rate-limited the way write is, so the
+    /// only cost of raising the cap is wall-clock and a few hundred KB
+    /// of `Interaction` structs in memory.
+    public static let defaultPageCap = 200
+    public static let deepSweepPageCap = 2000
 
     public init(client: ATProtoClient) {
         self.client = client
@@ -23,6 +27,7 @@ public actor InteractionService {
         userItems: [ContentItem],
         targetDID: String,
         targetHandle: String,
+        cap: Int = InteractionService.defaultPageCap,
         progress: (@Sendable (InteractionProgress) async -> Void)? = nil
     ) async throws -> InteractionBundle {
         // Resolve target profile up front so the sheet has a header
@@ -48,6 +53,7 @@ public actor InteractionService {
             let (replies, reposts, complete) = try await sweepIncomingFeed(
                 targetDID: targetDID,
                 userPrefix: userPrefix,
+                cap: cap,
                 progress: progress
             )
             incoming.append(contentsOf: replies)
@@ -65,6 +71,7 @@ public actor InteractionService {
             let (likes, complete) = try await sweepIncomingLikes(
                 targetDID: targetDID,
                 userPrefix: userPrefix,
+                cap: cap,
                 progressBaseCount: incoming.count,
                 progress: progress
             )
@@ -85,7 +92,8 @@ public actor InteractionService {
             outgoing: outgoing,
             incoming: incoming,
             outgoingComplete: true,
-            incomingComplete: feedComplete && likesComplete
+            incomingComplete: feedComplete && likesComplete,
+            examinedPerDirection: cap
         )
     }
 
@@ -145,6 +153,7 @@ public actor InteractionService {
     private func sweepIncomingFeed(
         targetDID: String,
         userPrefix: String,
+        cap: Int,
         progress: (@Sendable (InteractionProgress) async -> Void)?
     ) async throws -> ([Interaction], [Interaction], Bool) {
         var replies: [Interaction] = []
@@ -152,7 +161,7 @@ public actor InteractionService {
         var cursor: String? = nil
         var examined = 0
 
-        while examined < Self.pageCap {
+        while examined < cap {
             try Task.checkCancellation()
             let response = try await client.getAuthorFeed(
                 actor: targetDID,
@@ -211,6 +220,7 @@ public actor InteractionService {
     private func sweepIncomingLikes(
         targetDID: String,
         userPrefix: String,
+        cap: Int,
         progressBaseCount: Int,
         progress: (@Sendable (InteractionProgress) async -> Void)?
     ) async throws -> ([Interaction], Bool) {
@@ -218,7 +228,7 @@ public actor InteractionService {
         var cursor: String? = nil
         var examined = 0
 
-        while examined < Self.pageCap {
+        while examined < cap {
             try Task.checkCancellation()
             let response = try await client.getActorLikes(
                 actor: targetDID,
