@@ -16,14 +16,15 @@ struct LoadProgressBannerLite: View {
     let title: String
     let onCancel: () -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pulse = false
 
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: "scope")
-                .font(.system(size: 12, weight: .semibold))
+                .font(.caption.weight(.semibold))
                 .foregroundStyle(.tint)
-                .symbolEffect(.pulse, options: .repeating, value: pulse)
+                .symbolEffect(.pulse, options: reduceMotion ? .nonRepeating : .repeating, value: pulse)
             Text(title)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
@@ -39,7 +40,7 @@ struct LoadProgressBannerLite: View {
         .padding(.vertical, 8)
         .background(.thinMaterial)
         .overlay(alignment: .bottom) { Divider().opacity(0.5) }
-        .onAppear { pulse.toggle() }
+        .onAppear { if !reduceMotion { pulse.toggle() } }
     }
 }
 

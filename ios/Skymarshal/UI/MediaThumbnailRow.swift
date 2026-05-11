@@ -43,11 +43,12 @@ private struct ThumbCell: View {
 
             if item.kind == .video {
                 Image(systemName: "play.fill")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(.white)
                     .padding(4)
                     .background(.black.opacity(0.55), in: .circle)
                     .padding(4)
+                    .accessibilityLabel("Video")
             }
 
             if let n = overflowBadge {
@@ -88,7 +89,7 @@ private struct ThumbCell: View {
             .overlay {
                 Image(systemName: item.kind == .video ? "video" : "photo")
                     .foregroundStyle(.tint.opacity(0.6))
-                    .font(.system(size: 18))
+                    .font(.title3)
             }
     }
 

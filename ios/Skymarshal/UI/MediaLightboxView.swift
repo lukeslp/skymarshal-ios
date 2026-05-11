@@ -64,6 +64,7 @@ struct MediaLightboxView: View {
 private struct MediaPage: View {
     let item: MediaPreview
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var scale: CGFloat = 1.0
     @State private var lastScale: CGFloat = 1.0
 
@@ -86,13 +87,21 @@ private struct MediaPage: View {
                                         }
                                         .onEnded { _ in
                                             lastScale = scale
-                                            if scale < 1.05 { withAnimation { scale = 1.0; lastScale = 1.0 } }
+                                            if scale < 1.05 {
+                                                if reduceMotion { scale = 1.0; lastScale = 1.0 }
+                                                else { withAnimation { scale = 1.0; lastScale = 1.0 } }
+                                            }
                                         }
                                 )
                                 .onTapGesture(count: 2) {
-                                    withAnimation(.spring) {
-                                        scale = scale > 1.0 ? 1.0 : 2.0
-                                        lastScale = scale
+                                    let target: CGFloat = scale > 1.0 ? 1.0 : 2.0
+                                    if reduceMotion {
+                                        scale = target; lastScale = target
+                                    } else {
+                                        withAnimation(.spring) {
+                                            scale = target
+                                            lastScale = target
+                                        }
                                     }
                                 }
                         case .failure:
@@ -111,9 +120,10 @@ private struct MediaPage: View {
 
                 if item.kind == .video {
                     Image(systemName: "play.fill")
-                        .font(.system(size: 64, weight: .semibold))
+                        .font(.system(.largeTitle, design: .default).weight(.semibold))
                         .foregroundStyle(.white.opacity(0.85))
                         .background(Circle().fill(.black.opacity(0.45)).frame(width: 110, height: 110))
+                        .accessibilityLabel("Play video")
                 }
             }
         }
@@ -122,7 +132,7 @@ private struct MediaPage: View {
     private var failedState: some View {
         VStack(spacing: 8) {
             Image(systemName: "photo.badge.exclamationmark")
-                .font(.system(size: 48))
+                .font(.largeTitle)
             Text("Couldn't load this image")
                 .font(.callout)
         }

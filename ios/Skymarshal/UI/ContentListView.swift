@@ -9,6 +9,7 @@ import SkymarshalCore
 struct ContentListView: View {
 
     @Environment(AppModel.self) private var model
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var keyword: String = ""
     @State private var scope: ContentType = .all
@@ -77,10 +78,12 @@ struct ContentListView: View {
                     }
                     Spacer()
                     Button {
-                        withAnimation(.snappy) {
+                        let mutate = {
                             editMode = editMode.isEditing ? .inactive : .active
                             if !editMode.isEditing { selection.removeAll() }
                         }
+                        if reduceMotion { mutate() }
+                        else { withAnimation(.snappy) { mutate() } }
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: editMode.isEditing
@@ -385,6 +388,7 @@ struct ContentRow: View {
             }
         }
         .padding(.vertical, 6)
+        .frame(minHeight: 44)
     }
 
     @ViewBuilder
@@ -405,7 +409,8 @@ struct EngagementBadge: View {
     var body: some View {
         HStack(spacing: 2) {
             Image(systemName: "flame.fill")
-                .font(.system(size: 9))
+                .font(.caption2.weight(.semibold))
+                .accessibilityHidden(true)
             Text("\(score)")
                 .font(.caption2.weight(.semibold).monospacedDigit())
         }
@@ -413,5 +418,6 @@ struct EngagementBadge: View {
         .padding(.horizontal, 6)
         .padding(.vertical, 2)
         .background(.tint.opacity(0.12), in: .capsule)
+        .accessibilityLabel("Engagement score \(score)")
     }
 }

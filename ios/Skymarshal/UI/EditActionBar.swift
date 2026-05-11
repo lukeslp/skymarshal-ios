@@ -17,6 +17,8 @@ struct EditActionBar: View {
     let onToggleAll: () -> Void
     let onDelete: () -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         HStack(spacing: 12) {
             Button(action: onToggleAll) {
@@ -62,8 +64,8 @@ struct EditActionBar: View {
         .overlay(alignment: .bottom) {
             Divider().opacity(0.5)
         }
-        .animation(.snappy, value: selectionCount)
-        .animation(.snappy, value: allSelected)
+        .animation(reduceMotion ? nil : .snappy, value: selectionCount)
+        .animation(reduceMotion ? nil : .snappy, value: allSelected)
     }
 }
 

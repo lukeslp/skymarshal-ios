@@ -11,6 +11,8 @@ struct AccountRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
+            // Min 44pt outer height — S1 fix so AX text sizes can't
+            // collapse the row below Apple HIG.
             Capsule()
                 .fill(stripeColor)
                 .frame(width: 3)
@@ -65,6 +67,7 @@ struct AccountRow: View {
             }
         }
         .padding(.vertical, 6)
+        .frame(minHeight: 44)
     }
 
     private var stripeColor: Color {
@@ -149,7 +152,7 @@ private struct StatusPills: View {
         var body: some View {
             HStack(spacing: 2) {
                 Image(systemName: systemImage)
-                    .font(.system(size: 9))
+                    .font(.caption2.weight(.semibold))
                 Text(text)
                     .font(.caption2.weight(.semibold))
             }
@@ -168,7 +171,7 @@ struct BotScoreBadge: View {
     var body: some View {
         HStack(spacing: 2) {
             Image(systemName: "ant.fill")
-                .font(.system(size: 9))
+                .font(.caption2.weight(.semibold))
             Text("\(Int(score * 100))")
                 .font(.caption2.weight(.semibold).monospacedDigit())
         }

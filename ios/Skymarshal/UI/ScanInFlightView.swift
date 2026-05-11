@@ -9,6 +9,7 @@ struct ScanInFlightView: View {
     let progress: ScanProgress?
     let onStop: () -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pulse = false
 
     var body: some View {
@@ -22,12 +23,12 @@ struct ScanInFlightView: View {
                         .opacity(pulse ? 1.0 : 0.7)
                 }
                 Image(systemName: "scope")
-                    .font(.system(size: 30, weight: .light))
+                    .font(.system(.largeTitle, design: .default).weight(.light))
                     .foregroundStyle(.tint)
-                    .symbolEffect(.pulse, options: .repeating, value: pulse)
+                    .symbolEffect(.pulse, options: reduceMotion ? .nonRepeating : .repeating, value: pulse)
             }
             .frame(height: 110)
-            .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: pulse)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: pulse)
 
             VStack(spacing: 6) {
                 Text(headlineText)
@@ -56,7 +57,7 @@ struct ScanInFlightView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding()
-        .onAppear { pulse = true }
+        .onAppear { if !reduceMotion { pulse = true } }
     }
 
     private var headlineText: String {

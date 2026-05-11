@@ -81,10 +81,15 @@ private struct Pill: View {
     let isActive: Bool
     let onTap: (() -> Void)?
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         Group {
             if let onTap {
-                Button(action: { withAnimation(.snappy) { onTap() } }) {
+                Button(action: {
+                    if reduceMotion { onTap() }
+                    else { withAnimation(.snappy) { onTap() } }
+                }) {
                     content
                 }
                 .buttonStyle(.plain)

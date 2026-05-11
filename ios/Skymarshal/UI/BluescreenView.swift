@@ -8,6 +8,7 @@ import SkymarshalCore
 @available(iOS 17, *)
 struct BluescreenView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var keyword: String = ""
     @State private var pendingUnfollow: [String]? = nil
@@ -129,10 +130,12 @@ struct BluescreenView: View {
                         Spacer(minLength: 8)
 
                         Button {
-                            withAnimation(.snappy) {
+                            let mutate = {
                                 editMode = editMode.isEditing ? .inactive : .active
                                 if !editMode.isEditing { selection.removeAll() }
                             }
+                            if reduceMotion { mutate() }
+                            else { withAnimation(.snappy) { mutate() } }
                         } label: {
                             HStack(spacing: 4) {
                                 Image(systemName: editMode.isEditing

@@ -166,11 +166,12 @@ private struct MediaGallery: View {
                             .overlay(alignment: .topTrailing) {
                                 if item.kind == .video {
                                     Image(systemName: "play.fill")
-                                        .font(.system(size: 12, weight: .semibold))
+                                        .font(.caption.weight(.semibold))
                                         .foregroundStyle(.white)
                                         .padding(5)
                                         .background(.black.opacity(0.55), in: .circle)
                                         .padding(6)
+                                        .accessibilityLabel("Play video")
                                 }
                             }
                             .overlay(alignment: .bottomLeading) {
@@ -216,7 +217,7 @@ private struct MediaGallery: View {
             .overlay {
                 Image(systemName: kind == .video ? "video" : "photo")
                     .foregroundStyle(.tint.opacity(0.6))
-                    .font(.system(size: 22))
+                    .font(.title2)
             }
     }
 }

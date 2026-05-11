@@ -73,7 +73,7 @@ struct LinkCardView: View {
             .overlay {
                 Image(systemName: "link")
                     .foregroundStyle(.tint.opacity(0.6))
-                    .font(.system(size: 18))
+                    .font(.title3)
             }
     }
 }

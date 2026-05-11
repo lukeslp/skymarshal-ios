@@ -16,6 +16,8 @@ struct TypeChipsRow: View {
     @Binding var scope: ContentType
     let counts: [ContentType: Int]
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
@@ -25,7 +27,11 @@ struct TypeChipsRow: View {
                         count: count(for: type),
                         isActive: scope == type,
                         action: {
-                            withAnimation(.snappy) { scope = type }
+                            if reduceMotion {
+                                scope = type
+                            } else {
+                                withAnimation(.snappy) { scope = type }
+                            }
                         }
                     )
                 }

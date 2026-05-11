@@ -11,6 +11,7 @@ struct LoadProgressBanner: View {
     let progress: ContentService.LoadProgress
     let onCancel: () -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pulse: Bool = false
 
     var body: some View {
@@ -24,9 +25,9 @@ struct LoadProgressBanner: View {
                     .scaleEffect(pulse ? 1.25 : 1.0)
                     .opacity(pulse ? 0.0 : 1.0)
                 Image(systemName: "scope")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.tint)
-                    .symbolEffect(.pulse, options: .repeating, value: pulse)
+                    .symbolEffect(.pulse, options: reduceMotion ? .nonRepeating : .repeating, value: pulse)
             }
             .frame(width: 28, height: 28)
 
@@ -74,6 +75,7 @@ struct LoadProgressBanner: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Loading content. \(progress.itemsLoaded.formatted()) items loaded so far.")
         .onAppear {
+            guard !reduceMotion else { return }
             withAnimation(.easeOut(duration: 1.6).repeatForever(autoreverses: false)) {
                 pulse.toggle()
             }
