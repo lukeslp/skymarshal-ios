@@ -90,18 +90,35 @@ Python 3.9+. Install with `pip install -e ".[dev]"`. The `egonet` UI is a separa
 - **`Console` is initialized with `force_terminal=False` when stdout isn't a tty** so Rich doesn't crash inside Flask. Use `safe_progress()` from `models.py` (not `Progress` directly) when code paths might run under the web backend.
 - **Session pool eviction is FIFO not LRU** — fine in practice but don't be surprised by it.
 
-## iOS port guidance
+## iOS port — shipped and live in TestFlight
 
-When work shifts to actually building the iOS app:
+The iOS app at `ios/` is built and pre-TestFlight as of v1.0.0 (build 2). Architecture:
 
-- Create the Xcode project under `ios/` via xcodegen (`project.yml`), mirroring `/Users/luke/workspace/whatcolor/ios/project.yml`.
-- Target iOS 17+; iOS 26+ enhancements (Foundation Models, Liquid Glass) are bonuses, not requirements.
-- Use the AT Protocol over plain `URLSession` calls to `bsky.social/xrpc/...` — `com.atproto.server.createSession`, `app.bsky.feed.getAuthorFeed`, `app.bsky.feed.getActorLikes`, `com.atproto.repo.deleteRecord`, etc. There's no first-party Swift SDK; don't pull in a heavyweight third-party one for the MVP.
-- Mirror `SearchRequest` (in `services/content_service.py:53`) as a Swift struct. Keep the same fields: keyword, content_types, date range, min/max for likes/reposts/replies, limit. The "highly dynamic search" the user asked for is exactly this struct, exposed as filter UI.
-- Preserve the **429 backoff schedule** from `deletion.py:35`. This is the most important behavior to carry over verbatim.
-- Use Keychain for session tokens; never persist passwords (matches Python `auth.py` posture). App passwords (not main passwords) are the auth recommendation — surface that in the login screen copy.
-- Skip CAR decoding on iOS — paginated API is fine for the MVP and avoids the libipld dependency mess.
-- Out of scope unless asked: firehose, network graphs, bot detection, follower cleanup, sentiment scoring, analytics dashboards, content sharing.
+- **xcodegen-driven** — `ios/project.yml` is canonical; `Skymarshal.xcodeproj` regenerates from it. Never edit the xcodeproj directly.
+- **Two-target framework split** — `SkymarshalCore` (framework, all models / services / standards / network / storage, no SwiftUI), `Skymarshal` (app, SwiftUI views + AppModel observer).
+- **iOS 17+ floor** — `@Observable`, SwiftData, modern `.searchable`, `.contentMargins` all required. iOS 26 Liquid Glass is intentional system rendering (TabView floats as a pill) — lean in, don't override.
+- **AT Protocol over plain `URLSession`** — `ATProtoClient` wraps `bsky.social/xrpc/...` + `public.api.bsky.app/xrpc/...`. No third-party Swift SDK. Zero SPM dependencies.
+- **Per-handle SwiftData isolation** — `AnalyzedAccountRecord.compositeKey = "<owner>|<did>"` for unique constraints. `ModelContext`-per-call pattern (actor-safe).
+- **429 backoff `[1, 2, 4, 8, 15, 30, 60, 120]`** lives in `RateLimit.withBackoff` and is sacred. Never simplify.
+- **Engagement weights `1×L + 2×R + 2.5×Reply`** — Python-derived, NOT the TS web's `1/2/3`. Match Python.
+- **Bot scoring** — `BluescreenAnalyzer` produces a 0–1 score plus an array of human-readable `botFlags`. The user-facing surface says "automation signals" / "Patterns we noticed" (dignity rename); internals keep "bot". `AnalyzedAccount.userWhitelisted` is the per-account override that exempts the account from the `showBots` filter regardless of score.
+- **Keychain for session tokens**; never persist passwords. App passwords (not main) are surfaced in the LoginView copy.
+- **CAR decoding skipped on iOS** — paginated API is fine for the MVP, avoids libipld.
+
+## Visual standards (iOS port)
+
+These are load-bearing across every SwiftUI view and easy to break by accident. Audit any new view against this list.
+
+- **`Theme` tokens are the single source of status colors.** `Theme.danger / .caution / .warn / .scope / .success / .info / .like` (defined in `SkymarshalCore/Standards/Theme.swift`) via `UIColor(dynamicProvider:)` so light/dark variants clear WCAG 1.4.11 ≥3:1 against `systemBackground`. Never write `.red` / `.orange` / `.yellow` / raw RGB literals — they fail contrast in one mode or the other.
+- **`ReduceMotion.shouldReduce(systemReduceMotion:)` is the single helper** every animation site routes through. ORs the system `accessibilityReduceMotion` env value with the user's `@AppStorage("sm.reduceMotionOverride")` toggle. Pattern: `private var reduceMotion: Bool { ReduceMotion.shouldReduce(systemReduceMotion: systemReduceMotion) }`.
+- **Menu trigger labels are icon + short word only.** Verbose dynamic text ("Sort: Followers", "Bots: Balanced") wraps inside iOS 26's circular Menu shape on real device. Current state goes in the Picker dropdown's checkmark, not the trigger label. `.accessibilityLabel` on the Menu carries the full meaning for VoiceOver.
+- **SF Symbols on tinted chip backgrounds get `.symbolRenderingMode(.monochrome)`** — iOS 26's dynamic color system auto-selects fallbacks that render mid-size symbols as emoji-like glyphs without an explicit rendering mode.
+- **Horizontal ScrollView overflow indicator: `.contentMargins(.trailing, 24, for: .scrollContent)`** — gives the last item a deliberate ~24pt gutter so it rests with a visible "more on the right" affordance instead of being cut mid-character. Mirrors Apple Mail's category-row treatment. Incompatible with `.scrollClipDisabled()` — pick one.
+- **iOS 26 Liquid Glass is intentional on TabView.** The floating pill tab bar at the bottom is system rendering when running on iOS 26 even with iOS 17 deployment target. Do NOT apply `.glassEffect()` to list rows / count pills — Liquid Glass is exclusively for the navigation layer.
+- **Row min-height ≥ 44pt** on ContentRow + AccountRow (Apple HIG floor). Bio + bot badge dense rows justify 56–60pt; this is a v1.0.1 polish item.
+- **Destructive actions ≥ 100 items go through `TypedConfirmSheet`** (`Skymarshal/UI/TypedConfirmSheet.swift`) — explicit "DELETE" typed-confirm gate. Smaller batches use the standard `confirmationDialog`. The metaphor-heavy delete message ("leaves the building") was retired in favor of literal copy.
+- **Brand voice**: "Air-traffic control for your Bluesky" — spy-bird AppIcon + dot-matrix LoginView header + scope motif. Never replace.
+- **Out of scope unless asked**: firehose, network graphs, bot detection beyond Bluescreen's existing scoring, follower cleanup beyond the existing surface, sentiment scoring, analytics dashboards, content sharing.
 
 ## Marketing copy rules (apply to App Store listing too)
 
