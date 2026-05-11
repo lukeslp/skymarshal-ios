@@ -25,6 +25,10 @@ struct BluescreenView: View {
     @AppStorage("sm.botSensitivity") private var botSensitivityRaw: Double = 0.6
     @State private var showLooseUnfollowConfirm: Bool = false
 
+    /// Remember-last-choice for the Export submenu (shared with the
+    /// Content tab via the same UserDefaults key).
+    @AppStorage("sm.lastExportFormat") private var lastExportFormat: String = "json"
+
     /// Single source of truth for the trim-fakes filter UI: the pill
     /// taps in ScanSummaryStrip AND the full BluescreenFilterSheet
     /// both write into this struct. Search keyword is layered on per
@@ -275,7 +279,7 @@ struct BluescreenView: View {
                         }
                         if !model.accounts.isEmpty {
                             Section("Export") {
-                                ShareLink(
+                                let jsonLink = ShareLink(
                                     item: ExportItem(payload: makeFollowersJSON()),
                                     preview: SharePreview(
                                         "Skymarshal — followers (JSON)",
@@ -284,7 +288,11 @@ struct BluescreenView: View {
                                 ) {
                                     Label("As JSON", systemImage: "curlybraces")
                                 }
-                                ShareLink(
+                                .simultaneousGesture(TapGesture().onEnded {
+                                    lastExportFormat = "json"
+                                })
+
+                                let csvLink = ShareLink(
                                     item: ExportItem(payload: Exporter.followersCSV(model.accounts)),
                                     preview: SharePreview(
                                         "Skymarshal — followers (CSV)",
@@ -292,6 +300,17 @@ struct BluescreenView: View {
                                     )
                                 ) {
                                     Label("As CSV", systemImage: "tablecells")
+                                }
+                                .simultaneousGesture(TapGesture().onEnded {
+                                    lastExportFormat = "csv"
+                                })
+
+                                if lastExportFormat == "csv" {
+                                    csvLink
+                                    jsonLink
+                                } else {
+                                    jsonLink
+                                    csvLink
                                 }
                             }
                         }

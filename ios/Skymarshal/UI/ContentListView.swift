@@ -24,6 +24,11 @@ struct ContentListView: View {
     @State private var detailItem: ContentItem? = nil
     @State private var showAbout: Bool = false
 
+    /// Remember-last-choice for the Export submenu. The format the
+    /// user picked previously shows first; the alternative shows
+    /// second. Both are always reachable — no setting is buried.
+    @AppStorage("sm.lastExportFormat") private var lastExportFormat: String = "json"
+
     /// Threshold for routing through TypedConfirmSheet instead of the
     /// standard confirmationDialog. Set high enough that single-post and
     /// small-batch deletes stay fast.
@@ -206,7 +211,12 @@ struct ContentListView: View {
                             model.startLoad(forceRefresh: true)
                         }
                         Section("Export") {
-                            ShareLink(
+                            // Last-chosen format shows first. Sheet
+                            // dismissal can't be observed cleanly from
+                            // ShareLink, so we write the choice on tap
+                            // via simultaneousGesture — fires whether
+                            // the share completes or is dismissed.
+                            let jsonLink = ShareLink(
                                 item: ExportItem(payload: makeContentJSON()),
                                 preview: SharePreview(
                                     "Skymarshal — content (JSON)",
@@ -215,7 +225,11 @@ struct ContentListView: View {
                             ) {
                                 Label("As JSON", systemImage: "curlybraces")
                             }
-                            ShareLink(
+                            .simultaneousGesture(TapGesture().onEnded {
+                                lastExportFormat = "json"
+                            })
+
+                            let csvLink = ShareLink(
                                 item: ExportItem(payload: Exporter.contentCSV(model.items)),
                                 preview: SharePreview(
                                     "Skymarshal — content (CSV)",
@@ -223,6 +237,17 @@ struct ContentListView: View {
                                 )
                             ) {
                                 Label("As CSV", systemImage: "tablecells")
+                            }
+                            .simultaneousGesture(TapGesture().onEnded {
+                                lastExportFormat = "csv"
+                            })
+
+                            if lastExportFormat == "csv" {
+                                csvLink
+                                jsonLink
+                            } else {
+                                jsonLink
+                                csvLink
                             }
                         }
                         Button {
