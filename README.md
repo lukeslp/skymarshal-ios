@@ -8,15 +8,17 @@ This is the iOS app. Native SwiftUI, iOS 17+. No third-party dependencies. App p
 
 ## Status
 
-Pre-TestFlight v1.0.0, build 3. 137 tests pass. Tagged `v1.0.1-pre-testflight` (most recent rollback anchor).
+Pre-TestFlight v1.0.0, build 3. 145 XCTest unit cases pass (`-only-testing:SkymarshalTests`). Tagged `v1.0.1-pre-testflight` (most recent rollback anchor).
 
 TestFlight Public Link goes here once the current build clears Beta App Review.
 
 ## What it does
 
-**Content tab.** Search every post, reply, repost, and like in your archive. Filter by keyword, content type, date range, engagement count, alt-text, presence of media. Swipe-delete one at a time or Select All from a search result and delete a hundred at once. Bulk delete ≥ 100 items goes through a typed-confirm sheet so the intent is unambiguous.
+**Content tab.** Search every post, reply, repost, and like in your archive. Filter by keyword, content type, date range, engagement count, alt-text, presence of media. Sort results (newest/oldest/highest or lowest engagement). Save named filter presets per account. Open **Insights** for on-device analytics (engagement distribution, posting hours/days, top words) — no analytics SDKs. Swipe-delete one at a time or Select All from a search result and delete a hundred at once. Bulk delete ≥ 100 items goes through a typed-confirm sheet so the intent is unambiguous.
 
-**Followers tab.** Pull your full follow list and score every account against six bot signals plus inactivity and follower asymmetry. Sort, filter, segmented bot-sensitivity preset (Strict / Balanced / Loose). Bulk unfollow with the same rate-limit safety net the bulk delete uses. Per-account "this isn't an automated account" whitelist for false positives.
+**Followers tab.** Pull your full follow list and score every account against six bot signals plus inactivity and follower asymmetry. Sort, filter, segmented bot-sensitivity preset (Strict / Balanced / Loose). One-tap **cleanup presets** (inactive, automation signals, disengaged, follower skew). Optional **dry-run unfollow** previews bulk unfollow without calling the API. Bulk unfollow with the same rate-limit safety net the bulk delete uses. Per-account "this isn't an automated account" whitelist for false positives.
+
+**Profile explorer.** From an account sheet, open read-only **followers** and **following** lists (paginated XRPC) — not a full Bluesky client timeline.
 
 **Interactions history.** Tap any account to see every interaction between you and them in either direction. Default cap 200 items per direction; toggle Deep Sweep in the sheet to widen to 2,000.
 
@@ -47,22 +49,26 @@ Content rows distinguish between the subject URI being displayed and the record 
 
 ## Repo layout
 
+Architecture overview (iOS layers, services, reference provenance): [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Upstream vs iOS feature scope (checklist): [`docs/UPSTREAM_FEATURE_GAP.md`](docs/UPSTREAM_FEATURE_GAP.md). Migration notes and Python-vs-TS drift rules: [`MIGRATION.md`](MIGRATION.md). Frozen upstream snapshot for parity: [`reference/README.md`](reference/README.md).
+
 ```
 ios/
   SkymarshalCore/          # Framework — models, services, network, storage
     Models/                # AnalyzedAccount, ContentItem, Interaction, FollowerFilters
     Network/               # ATProtoClient, ATProtoTypes
-    Services/              # ContentService, FollowerService, InteractionService
-    Standards/             # Theme, ReduceMotion, BluescreenAnalyzer, Exporter, RateLimit
+    Services/              # ContentService, FollowerService, InteractionService, ProfileService, AnalyticsService
+    Standards/             # Theme, ReduceMotion, BluescreenAnalyzer, Exporter, RateLimit, FeatureFlags
     Storage/               # SwiftData models (ContentItemRecord, AnalyzedAccountRecord, …)
   Skymarshal/              # App — SwiftUI views, AppModel
     UI/                    # 30+ SwiftUI views (ContentListView, BluescreenView, …)
     Assets.xcassets/       # AppIcon, LaunchBird, DotBird, EasterAlf, ColorSets
     Info.plist
     PrivacyInfo.xcprivacy
-  SkymarshalTests/         # XCTest — 133 unit cases
+  SkymarshalTests/         # XCTest — 145 unit cases
   SkymarshalUITests/       # XCUITest — 2 AX5 regression cases
   project.yml              # xcodegen spec
+docs/                      # ARCHITECTURE.md, UPSTREAM_FEATURE_GAP.md
+reference/                 # frozen Python + TS lift — see reference/README.md
 app-store/                 # paste-ready submission docs
 ```
 

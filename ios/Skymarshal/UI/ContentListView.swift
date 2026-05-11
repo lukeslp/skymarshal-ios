@@ -23,6 +23,14 @@ struct ContentListView: View {
     @State private var editMode: EditMode = .inactive
     @State private var detailItem: ContentItem? = nil
     @State private var showAbout: Bool = false
+    @State private var showInsights: Bool = false
+    @State private var sortOrder: ContentSortOrder = .newestCreated
+    @State private var savedPresets: [SavedSearchPresetRecord] = []
+    @State private var showSavePresetAlert: Bool = false
+    @State private var newPresetName: String = ""
+
+    @AppStorage(FeatureFlags.analyticsInsightsKey) private var featureAnalytics: Bool = true
+    @AppStorage(FeatureFlags.savedSearchPresetsKey) private var featureSavedSearch: Bool = true
 
     /// Remember-last-choice for the Export submenu. The format the
     /// user picked previously shows first; the alternative shows
@@ -43,7 +51,15 @@ struct ContentListView: View {
     }
 
     private var filteredItems: [ContentItem] {
-        effectiveRequest.apply(to: model.items)
+        let base = effectiveRequest.apply(to: model.items)
+        return sortOrder.sort(Array(base))
+    }
+
+    /// Quick stats for the **filtered** result set.
+    private var filteredAverageEngagement: Double {
+        let xs = filteredItems
+        guard !xs.isEmpty else { return 0 }
+        return xs.map(\.engagementScore).reduce(0, +) / Double(xs.count)
     }
 
     private var allFilteredSelected: Bool {
@@ -122,6 +138,21 @@ struct ContentListView: View {
                 .padding(.bottom, 4)
 
                 ActiveFilterChips(filters: $filters)
+
+                if !filteredItems.isEmpty {
+                    HStack {
+                        Text("\(filteredItems.count) visible")
+                        Text("·")
+                            .foregroundStyle(.tertiary)
+                        Text(String(format: "avg engagement %.0f", filteredAverageEngagement))
+                    }
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("\(filteredItems.count) items visible, average engagement \(Int(filteredAverageEngagement))")
+                }
 
                 // "Last scanned 3h ago" — only when no live load is
                 // running and we have a hydrated snapshot to credit.
@@ -264,16 +295,62 @@ struct ContentListView: View {
                     .accessibilityLabel("Account menu")
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        draftFilters = filters
-                        showFilterSheet = true
+                    Menu {
+                        Button {
+                            draftFilters = filters
+                            showFilterSheet = true
+                        } label: {
+                            Label("Filters…", systemImage: filters.hasActiveFilters
+                                  ? "line.3.horizontal.decrease.circle.fill"
+                                  : "line.3.horizontal.decrease.circle")
+                        }
+
+                        Section("Sort") {
+                            Picker("Sort", selection: $sortOrder) {
+                                ForEach(ContentSortOrder.allCases) { order in
+                                    Text(order.label).tag(order)
+                                }
+                            }
+                            .pickerStyle(.inline)
+                        }
+
+                        if featureAnalytics {
+                            Button {
+                                showInsights = true
+                            } label: {
+                                Label("Insights…", systemImage: "chart.bar.xaxis")
+                            }
+                        }
+
+                        if featureSavedSearch {
+                            Section("Saved searches") {
+                                Button {
+                                    newPresetName = ""
+                                    showSavePresetAlert = true
+                                } label: {
+                                    Label("Save current search…", systemImage: "square.and.arrow.down")
+                                }
+                                if savedPresets.isEmpty {
+                                    Text("No saved searches yet")
+                                        .foregroundStyle(.secondary)
+                                } else {
+                                    ForEach(savedPresets, id: \.id) { preset in
+                                        Menu {
+                                            Button("Apply") { applyPreset(preset) }
+                                            Button("Delete", role: .destructive) {
+                                                deletePreset(id: preset.id)
+                                            }
+                                        } label: {
+                                            Text(preset.name)
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     } label: {
-                        Image(systemName: filters.hasActiveFilters
-                              ? "line.3.horizontal.decrease.circle.fill"
-                              : "line.3.horizontal.decrease.circle")
+                        Image(systemName: "ellipsis.circle")
                     }
-                    .accessibilityLabel(filters.hasActiveFilters ? "Filters (active)" : "Filters")
-                    .accessibilityHint("Opens the search filter sheet")
+                    .accessibilityLabel("View options — filters, sort, insights, saved searches")
                 }
                 // EditButton intentionally removed — the inline Select
                 // toggle in the picker row handles entering/exiting
@@ -294,6 +371,8 @@ struct ContentListView: View {
             // under the new filter.
             .onChange(of: keyword) { pruneSelectionToVisible() }
             .onChange(of: scope) { pruneSelectionToVisible() }
+            .onChange(of: filters) { _, _ in pruneSelectionToVisible() }
+            .onChange(of: sortOrder) { _, _ in pruneSelectionToVisible() }
             .sheet(isPresented: $showFilterSheet) {
                 FilterSheet(draft: $draftFilters)
                     .onDisappear {
@@ -311,6 +390,22 @@ struct ContentListView: View {
             }
             .sheet(isPresented: $showAbout) {
                 AboutView()
+            }
+            .sheet(isPresented: $showInsights) {
+                AnalyticsInsightsView(items: model.items)
+            }
+            .alert("Save search", isPresented: $showSavePresetAlert) {
+                TextField("Preset name", text: $newPresetName)
+                Button("Save") { saveCurrentPreset() }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Stores keyword, type tab, filters, and sort for this handle.")
+            }
+            .onAppear {
+                reloadSavedPresets()
+            }
+            .onChange(of: featureSavedSearch) { _, _ in
+                reloadSavedPresets()
             }
             // Small batches (< threshold) go through the standard
             // confirmationDialog. Large batches go through
@@ -377,6 +472,55 @@ struct ContentListView: View {
         _ = await model.delete(itemIDs: batch)
         selection.removeAll()
         pendingDeletion = nil
+    }
+
+    private func reloadSavedPresets() {
+        guard featureSavedSearch else {
+            savedPresets = []
+            return
+        }
+        savedPresets = (try? model.fetchSavedSearchPresets()) ?? []
+    }
+
+    private func saveCurrentPreset() {
+        let name = newPresetName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { return }
+        do {
+            try model.saveSearchPreset(
+                name: name,
+                request: effectiveRequest,
+                sort: sortOrder
+            )
+            reloadSavedPresets()
+        } catch {
+            // rare persistence failure — silent; power users can retry
+        }
+    }
+
+    private func applyPreset(_ preset: SavedSearchPresetRecord) {
+        do {
+            let req = try preset.decodedRequest()
+            filters = req
+            sortOrder = preset.contentSortOrder
+            keyword = req.keyword ?? ""
+            if let types = req.contentTypes {
+                if types.count == 1, let only = types.first, only != .all {
+                    scope = only
+                } else {
+                    scope = .all
+                }
+            } else {
+                scope = .all
+            }
+            pruneSelectionToVisible()
+        } catch {
+            // decode failure — ignore
+        }
+    }
+
+    private func deletePreset(id: UUID) {
+        try? model.deleteSavedSearchPreset(id: id)
+        reloadSavedPresets()
     }
 }
 

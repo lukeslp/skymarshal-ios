@@ -378,6 +378,47 @@ public final class AnalyzedAccountRecord {
     }
 }
 
+/// Saved search preset for the Content tab — keyword + structured filters + sort.
+@available(iOS 17, *)
+@Model
+public final class SavedSearchPresetRecord {
+    @Attribute(.unique) public var id: UUID
+    public var ownerHandle: String
+    public var name: String
+    /// JSON-encoded ``SearchRequest``.
+    public var searchRequestJSON: String
+    /// ``ContentSortOrder`` raw value.
+    public var sortOrderRaw: String
+    public var createdAt: Date
+
+    public init(
+        id: UUID = UUID(),
+        ownerHandle: String,
+        name: String,
+        searchRequestJSON: String,
+        sortOrderRaw: String,
+        createdAt: Date = Date()
+    ) {
+        self.id = id
+        self.ownerHandle = ownerHandle
+        self.name = name
+        self.searchRequestJSON = searchRequestJSON
+        self.sortOrderRaw = sortOrderRaw
+        self.createdAt = createdAt
+    }
+
+    public func decodedRequest() throws -> SearchRequest {
+        guard let data = searchRequestJSON.data(using: .utf8) else {
+            throw NSError(domain: "Skymarshal", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid saved search payload"])
+        }
+        return try JSONDecoder().decode(SearchRequest.self, from: data)
+    }
+
+    public var contentSortOrder: ContentSortOrder {
+        ContentSortOrder(rawValue: sortOrderRaw) ?? .newestCreated
+    }
+}
+
 /// SwiftData container factory for the app and tests.
 @available(iOS 17, *)
 public enum SkymarshalSchema {
@@ -386,6 +427,7 @@ public enum SkymarshalSchema {
         EngagementCacheRecord.self,
         UserSettingsRecord.self,
         AnalyzedAccountRecord.self,
+        SavedSearchPresetRecord.self,
     ]
 
     public static func makeContainer(

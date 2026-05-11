@@ -5,7 +5,7 @@ import Foundation
 /// `createSession`, `getAuthorFeed`, `getActorLikes`, `deleteRecord`.
 /// No third-party SDK; pure URLSession. The community ATProtoKit (pre-1.0,
 /// 121 releases in 14 months, "things will break" per the maintainer) was
-/// ruled out for the MVP — see `~/.swarm/reports/2026-05-09/enhance-skymarshal-ios.md`.
+/// ruled out for the MVP — keeps dependencies at zero and avoids pre-1.0 SDK churn.
 ///
 /// Two timeout layers: URLSession's `timeoutIntervalForRequest = 30` plus
 /// a `withTimeout` wrapper at every call site. Without both, a wedged PDS
@@ -119,6 +119,29 @@ public actor ATProtoClient {
         if let cursor { params.append(.init(name: "cursor", value: cursor)) }
         return try await withTimeout(seconds: 30) { [params] in
             try await self.get(lexicon: "app.bsky.graph.getFollows", queryItems: params)
+        }
+    }
+
+    /// `app.bsky.graph.getFollowers` — accounts following the actor (followers).
+    /// Public endpoint — readable without auth for most actors.
+    public func getFollowers(
+        actor: String,
+        limit: Int = 100,
+        cursor: String? = nil
+    ) async throws -> GetFollowersResponse {
+        var params: [URLQueryItem] = [
+            .init(name: "actor", value: actor),
+            .init(name: "limit", value: "\(min(max(limit, 1), 100))"),
+        ]
+        if let cursor { params.append(.init(name: "cursor", value: cursor)) }
+        let publicURL = self.publicURL
+        return try await withTimeout(seconds: 30) { [params] in
+            try await self.get(
+                lexicon: "app.bsky.graph.getFollowers",
+                queryItems: params,
+                base: publicURL,
+                requireAuth: false
+            )
         }
     }
 

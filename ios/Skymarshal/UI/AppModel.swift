@@ -15,6 +15,8 @@ final class AppModel {
     private(set) var content: ContentService
     private(set) var followers: FollowerService
     private(set) var interactions: InteractionService
+    /// Paginated profile graph reads (followers/following lists).
+    private(set) var profileGraph: ProfileService
     private let client: ATProtoClient
 
     // ----- Auth state -----
@@ -58,12 +60,14 @@ final class AppModel {
         content: ContentService,
         followers: FollowerService,
         interactions: InteractionService,
+        profileGraph: ProfileService,
         container: ModelContainer? = nil
     ) {
         self.client = client
         self.content = content
         self.followers = followers
         self.interactions = interactions
+        self.profileGraph = profileGraph
         self.container = container
     }
 
@@ -85,6 +89,7 @@ final class AppModel {
             content: ContentService(client: client, container: container),
             followers: FollowerService(client: client, container: container),
             interactions: InteractionService(client: client),
+            profileGraph: ProfileService(client: client),
             container: container
         )
     }
@@ -323,5 +328,61 @@ final class AppModel {
         guard let owner = currentHandle else { return }
         await followers.setWhitelist(did: did, to: newValue, owner: owner)
         self.accounts = await followers.loadedSnapshot
+    }
+
+    // MARK: - Saved search presets
+
+    func fetchSavedSearchPresets() throws -> [SavedSearchPresetRecord] {
+        guard let container, let owner = currentHandle else { return [] }
+        let context = ModelContext(container)
+        let ownerHandle = owner
+        let descriptor = FetchDescriptor<SavedSearchPresetRecord>(
+            predicate: #Predicate { $0.ownerHandle == ownerHandle },
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        )
+        return try context.fetch(descriptor)
+    }
+
+    func saveSearchPreset(name: String, request: SearchRequest, sort: ContentSortOrder) throws {
+        guard let container, let owner = currentHandle else { return }
+        let context = ModelContext(container)
+        let data = try JSONEncoder().encode(request)
+        guard let json = String(data: data, encoding: .utf8) else { return }
+        context.insert(
+            SavedSearchPresetRecord(
+                ownerHandle: owner,
+                name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+                searchRequestJSON: json,
+                sortOrderRaw: sort.rawValue
+            )
+        )
+        try context.save()
+    }
+
+    func deleteSavedSearchPreset(id: UUID) throws {
+        guard let container else { return }
+        let context = ModelContext(container)
+        let tid = id
+        let descriptor = FetchDescriptor<SavedSearchPresetRecord>(
+            predicate: #Predicate { $0.id == tid }
+        )
+        if let rec = try context.fetch(descriptor).first {
+            context.delete(rec)
+            try context.save()
+        }
+    }
+
+    // MARK: - Profile explorer
+
+    func loadExplorerFollowers(actor: String) async throws -> [BskyProfile] {
+        try await profileGraph.loadFollowers(actor: actor)
+    }
+
+    func loadExplorerFollows(actor: String) async throws -> [BskyProfile] {
+        try await profileGraph.loadFollows(actor: actor)
+    }
+
+    func fetchPublicProfile(actor: String) async throws -> BskyProfile {
+        try await profileGraph.fetchProfile(actor: actor)
     }
 }

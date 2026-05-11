@@ -166,6 +166,12 @@ public struct GetFollowsResponse: Decodable, Sendable {
     public let cursor: String?
 }
 
+/// `app.bsky.graph.getFollowers` response — accounts following / followers list edge.
+public struct GetFollowersResponse: Decodable, Sendable {
+    public let followers: [BskyProfile]
+    public let cursor: String?
+}
+
 /// `app.bsky.actor.getProfiles` response — batch of detailed profiles.
 public struct GetProfilesResponse: Decodable, Sendable {
     public let profiles: [BskyProfile]

@@ -42,6 +42,10 @@ struct BluescreenView: View {
     }()
     @State private var draftFilters: FollowerFilters = FollowerFilters()
     @State private var showFilterSheet: Bool = false
+    @State private var dryRunBannerMessage: String?
+
+    @AppStorage(FeatureFlags.cleanupPresetsKey) private var featureCleanupPresets: Bool = true
+    @AppStorage(FeatureFlags.unfollowDryRunKey) private var unfollowDryRun: Bool = false
 
     private var filtered: [AnalyzedAccount] {
         var f = filters
@@ -282,6 +286,18 @@ struct BluescreenView: View {
                         if model.isScanning {
                             Button("Stop scan", role: .destructive) { model.cancelScan() }
                         }
+                        if featureCleanupPresets {
+                            Section("Cleanup presets") {
+                                ForEach(CleanupPreset.allCases) { preset in
+                                    Button {
+                                        filters = preset.filters(botThreshold: botSensitivityRaw)
+                                    } label: {
+                                        Label(preset.title, systemImage: "sparkles")
+                                    }
+                                }
+                            }
+                        }
+                        Toggle("Dry-run unfollow (preview only)", isOn: $unfollowDryRun)
                         if !model.accounts.isEmpty {
                             Section("Export") {
                                 let jsonLink = ShareLink(
@@ -352,14 +368,25 @@ struct BluescreenView: View {
                 isPresented: unfollowBinding,
                 presenting: pendingUnfollow
             ) { batch in
-                Button("Unfollow \(batch.count)", role: .destructive) {
-                    Task {
-                        _ = await model.unfollow(dids: batch)
-                        selection.removeAll()
-                        pendingUnfollow = nil
+                if unfollowDryRun {
+                    Button("Simulate unfollow (\(batch.count))") {
+                        Task {
+                            dryRunBannerMessage = "Dry run — would unfollow \(batch.count) account(s). No changes sent to Bluesky."
+                            pendingUnfollow = nil
+                            selection.removeAll()
+                        }
                     }
+                    .accessibilityLabel("Simulate unfollow for \(batch.count) accounts")
+                } else {
+                    Button("Unfollow \(batch.count)", role: .destructive) {
+                        Task {
+                            _ = await model.unfollow(dids: batch)
+                            selection.removeAll()
+                            pendingUnfollow = nil
+                        }
+                    }
+                    .accessibilityLabel("Unfollow \(batch.count) accounts")
                 }
-                .accessibilityLabel("Unfollow \(batch.count) accounts")
                 Button("Cancel", role: .cancel) { pendingUnfollow = nil }
             } message: { batch in
                 if botSensitivityRaw < 0.5 && batch.count >= 5 {
@@ -367,6 +394,14 @@ struct BluescreenView: View {
                 } else {
                     Text("Removes you as a follower of \(batch.count) account\(batch.count == 1 ? "" : "s"). They keep their content; you keep yours. Unfollows go through the same rate-limit safety net as deletes — bulk runs may pause briefly.")
                 }
+            }
+            .alert("Dry run", isPresented: Binding(
+                get: { dryRunBannerMessage != nil },
+                set: { if !$0 { dryRunBannerMessage = nil } }
+            )) {
+                Button("OK", role: .cancel) { dryRunBannerMessage = nil }
+            } message: {
+                Text(dryRunBannerMessage ?? "")
             }
         }
     }

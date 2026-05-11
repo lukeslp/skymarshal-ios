@@ -19,6 +19,9 @@ struct AccountDetailView: View {
     @State private var showInteractions: Bool = false
     @State private var mutuals: MutualFollowResult?
     @State private var mutualsLoading: Bool = false
+    @State private var showProfileExplorer: Bool = false
+
+    @AppStorage(FeatureFlags.profileExplorerKey) private var featureProfileExplorer: Bool = true
 
     var body: some View {
         NavigationStack {
@@ -68,6 +71,9 @@ struct AccountDetailView: View {
             }
             .sheet(isPresented: $showInteractions) {
                 InteractionHistoryView(target: account)
+            }
+            .sheet(isPresented: $showProfileExplorer) {
+                ProfileExplorerView(actorHandle: account.handle)
             }
             .task(id: account.did) {
                 await loadMutuals()
@@ -423,6 +429,18 @@ struct AccountDetailView: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.large)
+
+            if featureProfileExplorer {
+                Button {
+                    showProfileExplorer = true
+                } label: {
+                    Label("Followers & following", systemImage: "person.3")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .accessibilityHint("Read-only lists — not a full Bluesky client timeline.")
+            }
 
             Button(role: .destructive) {
                 showUnfollowConfirm = true
