@@ -21,10 +21,72 @@ public struct AnalyzedAccount: Hashable, Sendable, Identifiable {
     public let isMutual: Bool
     public let engagementScore: Double
     public let interactedRecently: Bool?
+    /// User-applied "this isn't an automated account" override. When
+    /// true: the row badge hides regardless of botScore, the stripe
+    /// drops the danger/caution branch, and the account is excluded
+    /// from the `showBots` filter even at score ≥ 0.6. Persisted via
+    /// AnalyzedAccountRecord.whitelisted so the override survives
+    /// re-scans.
+    public let userWhitelisted: Bool
+
+    public init(
+        profile: BskyProfile,
+        ratio: Double,
+        botScore: Double,
+        botFlags: [String],
+        influenceScore: Double,
+        influenceTier: InfluenceTier,
+        accountAgeDays: Int,
+        postsPerDay: Double,
+        profileCompleteness: Double,
+        lastPostDate: Date?,
+        daysSinceLastPost: Int?,
+        isInactive: Bool,
+        isDeleted: Bool,
+        isMutual: Bool,
+        engagementScore: Double,
+        interactedRecently: Bool?,
+        userWhitelisted: Bool = false
+    ) {
+        self.profile = profile
+        self.ratio = ratio
+        self.botScore = botScore
+        self.botFlags = botFlags
+        self.influenceScore = influenceScore
+        self.influenceTier = influenceTier
+        self.accountAgeDays = accountAgeDays
+        self.postsPerDay = postsPerDay
+        self.profileCompleteness = profileCompleteness
+        self.lastPostDate = lastPostDate
+        self.daysSinceLastPost = daysSinceLastPost
+        self.isInactive = isInactive
+        self.isDeleted = isDeleted
+        self.isMutual = isMutual
+        self.engagementScore = engagementScore
+        self.interactedRecently = interactedRecently
+        self.userWhitelisted = userWhitelisted
+    }
 
     public var id: String { profile.did }
     public var did: String { profile.did }
     public var handle: String { profile.handle }
+
+    /// Returns a copy with `userWhitelisted` updated. Used by the
+    /// AccountDetailView toggle and the FollowerService whitelist
+    /// path — keeps the struct immutable while letting the in-memory
+    /// list swap a new value in.
+    public func withWhitelist(_ newValue: Bool) -> AnalyzedAccount {
+        AnalyzedAccount(
+            profile: profile, ratio: ratio, botScore: botScore,
+            botFlags: botFlags, influenceScore: influenceScore,
+            influenceTier: influenceTier, accountAgeDays: accountAgeDays,
+            postsPerDay: postsPerDay, profileCompleteness: profileCompleteness,
+            lastPostDate: lastPostDate, daysSinceLastPost: daysSinceLastPost,
+            isInactive: isInactive, isDeleted: isDeleted, isMutual: isMutual,
+            engagementScore: engagementScore, interactedRecently: interactedRecently,
+            userWhitelisted: newValue
+        )
+    }
 }
 
 public enum InfluenceTier: String, Sendable, Hashable, Codable, CaseIterable {

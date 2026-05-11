@@ -196,6 +196,12 @@ public final class AnalyzedAccountRecord {
     public var engagementScore: Double
     public var interactedRecentlyRaw: Int            // -1 = unknown, 0 = no, 1 = yes
 
+    /// User-applied "this isn't an automated account" override.
+    /// Survives re-scans because we upsert by compositeKey and only
+    /// the analyzer-derived fields get refreshed in `update(from:)`.
+    /// Lightweight migration: existing rows get `false` on read.
+    public var whitelisted: Bool = false
+
     public var scannedAt: Date
 
     public init(account: AnalyzedAccount, ownerHandle: String, scannedAt: Date = Date()) {
@@ -240,12 +246,15 @@ public final class AnalyzedAccountRecord {
         case .some(false): self.interactedRecentlyRaw = 0
         case .none:        self.interactedRecentlyRaw = -1
         }
+        self.whitelisted = account.userWhitelisted
 
         self.scannedAt = scannedAt
     }
 
     /// Mutate-in-place equivalent of the init — used by the upsert
-    /// path so we don't churn primary keys.
+    /// path so we don't churn primary keys. **Whitelist is preserved**
+    /// across re-scans: the user's override is sticky, not analyzer-
+    /// derived. If a future caller needs to clear it, do so explicitly.
     public func update(from account: AnalyzedAccount, scannedAt: Date) {
         let p = account.profile
         self.handle = account.handle
@@ -343,7 +352,8 @@ public final class AnalyzedAccountRecord {
             isDeleted: isDeleted,
             isMutual: isMutual,
             engagementScore: engagementScore,
-            interactedRecently: interacted
+            interactedRecently: interacted,
+            userWhitelisted: whitelisted
         )
     }
 }

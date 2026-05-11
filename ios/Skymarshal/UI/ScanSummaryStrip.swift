@@ -88,12 +88,27 @@ private struct Pill: View {
                     content
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("\(label), \(value)")
+                .accessibilityLabel(softLabel(for: label, value: value))
                 .accessibilityHint(isActive ? "Active filter, tap to clear" : "Tap to filter")
                 .accessibilityAddTraits(isActive ? [.isSelected] : [])
             } else {
                 content
             }
+        }
+    }
+
+    /// VoiceOver-facing label. The pill display label stays short for
+    /// scanning ("bots"); the spoken label expands to a softer, less
+    /// labeling phrase ("Likely automated accounts").
+    private func softLabel(for label: String, value: String) -> String {
+        switch label {
+        case "bots":     return "Likely automated accounts, \(value)"
+        case "deleted":  return "Deleted accounts, \(value)"
+        case "inactive": return "Inactive accounts, \(value)"
+        case "mutuals":  return "Mutual follows, \(value)"
+        case "bad ratio": return "Unusual follower ratio, \(value)"
+        case "analyzed": return "Total analyzed, \(value)"
+        default:         return "\(label), \(value)"
         }
     }
 

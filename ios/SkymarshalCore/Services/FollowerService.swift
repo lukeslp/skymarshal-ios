@@ -204,6 +204,35 @@ public actor FollowerService {
         self.loaded = accounts
     }
 
+    /// Mark an account as user-whitelisted ("not an automated account").
+    /// Swaps the matching struct in-place in `loaded` so SwiftUI rebuilds
+    /// the AccountRow without that account wearing a bot stripe, and
+    /// writes the override through to the SwiftData record so it
+    /// survives the next scan. No-op when the account isn't in the
+    /// current list.
+    public func setWhitelist(
+        did: String,
+        to newValue: Bool,
+        owner: String
+    ) async {
+        guard let idx = loaded.firstIndex(where: { $0.did == did }) else { return }
+        loaded[idx] = loaded[idx].withWhitelist(newValue)
+        await persistWhitelist(did: did, to: newValue, owner: owner)
+    }
+
+    private func persistWhitelist(did: String, to newValue: Bool, owner: String) async {
+        guard let container else { return }
+        let context = ModelContext(container)
+        let key = "\(owner)|\(did)"
+        let descriptor = FetchDescriptor<AnalyzedAccountRecord>(
+            predicate: #Predicate { $0.compositeKey == key }
+        )
+        if let existing = try? context.fetch(descriptor).first {
+            existing.whitelisted = newValue
+            try? context.save()
+        }
+    }
+
     /// Find accounts that BOTH the user and the target follow. One
     /// paginated `getFollows(actor: targetDID)` walk (capped at 5
     /// pages = 500 follows examined) intersected against the user's

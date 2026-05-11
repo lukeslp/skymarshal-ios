@@ -248,10 +248,12 @@ struct AccountDetailView: View {
     private var botFlagsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
-                Text("Why we flagged this account")
+                Text("Patterns we noticed about this account")
                     .font(.subheadline.weight(.semibold))
                 Spacer()
-                BotScoreBadge(score: account.botScore)
+                if account.botScore >= 0.6 && !account.userWhitelisted {
+                    BotScoreBadge(score: account.botScore)
+                }
             }
 
             VStack(alignment: .leading, spacing: 6) {
@@ -260,12 +262,29 @@ struct AccountDetailView: View {
                 }
             }
 
-            Text("Bot scoring weighs each factor differently. The score is a weighted average — not every flagged account is a bot.")
+            Text("These are signals the scanner noticed — low post volume, profile incompleteness, follower asymmetry. A real human can match every one of them. Flip the toggle below if this isn't an automated account.")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
+
+            Toggle(isOn: whitelistBinding) {
+                Label("This isn't an automated account", systemImage: "person.fill.checkmark")
+                    .font(.callout.weight(.medium))
+            }
+            .toggleStyle(.switch)
+            .padding(.top, 4)
+            .accessibilityHint("Removes this account from the bots filter even when the analyzer's score is high")
         }
         .padding(12)
         .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    private var whitelistBinding: Binding<Bool> {
+        Binding(
+            get: { account.userWhitelisted },
+            set: { newValue in
+                Task { await model.setWhitelist(did: account.did, to: newValue) }
+            }
+        )
     }
 
     // MARK: - Activity

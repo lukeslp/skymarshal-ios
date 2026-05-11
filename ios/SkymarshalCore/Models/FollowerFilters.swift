@@ -108,7 +108,10 @@ public struct FollowerFilters: Hashable, Sendable {
         if showBadRatio && !(a.ratio < 0.1 || a.ratio > 50) { return false }
         if showInactive && !a.isInactive { return false }
         if showDeleted && !a.isDeleted { return false }
-        if showBots && a.botScore < 0.6 { return false }
+        // User whitelist short-circuit: a manual "not an automated
+        // account" override pins this row out of the bots filter even
+        // when botScore ≥ 0.6.
+        if showBots && (a.botScore < 0.6 || a.userWhitelisted) { return false }
         if showDisengaged && a.interactedRecently != false { return false }
         if showMutualOnly && !a.isMutual { return false }
         if showNonMutualOnly && a.isMutual { return false }

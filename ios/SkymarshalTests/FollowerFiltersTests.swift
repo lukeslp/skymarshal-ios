@@ -206,4 +206,54 @@ final class FollowerFiltersTests: XCTestCase {
         f.influenceTier = .macro
         XCTAssertEqual(f.apply(to: sample).map(\.handle), ["frank.bsky.social"])
     }
+
+    // MARK: - User whitelist override
+
+    /// A high-bot-score account that the user has marked "not an
+    /// automated account" should NOT appear in the bots filter — that's
+    /// the whole point of the dignity affordance.
+    func test_whitelisted_account_excluded_from_bots_filter() {
+        var f = FollowerFilters()
+        f.showBots = true
+        let normal = account(did: "1", handle: "alice", botScore: 0.85)
+        let pardoned = account(did: "2", handle: "bob", botScore: 0.85)
+            .withWhitelist(true)
+        let result = f.apply(to: [normal, pardoned]).map(\.handle)
+        XCTAssertEqual(result, ["alice"])
+        XCTAssertFalse(result.contains("bob"))
+    }
+
+    /// Without the bots filter active, whitelist is invisible — both
+    /// accounts pass through. Whitelist gates the bots filter, not the
+    /// list at large.
+    func test_whitelisted_account_still_visible_without_bots_filter() {
+        let f = FollowerFilters()
+        let normal = account(did: "1", handle: "alice", botScore: 0.85)
+        let pardoned = account(did: "2", handle: "bob", botScore: 0.85)
+            .withWhitelist(true)
+        let result = f.apply(to: [normal, pardoned]).map(\.handle).sorted()
+        XCTAssertEqual(result, ["alice", "bob"])
+    }
+
+    /// Low-score whitelist is a no-op (the bots filter would have
+    /// excluded the row anyway). Sanity check that withWhitelist
+    /// doesn't accidentally INCLUDE low-score rows.
+    func test_lowScore_whitelisted_account_still_excluded_from_bots_filter() {
+        var f = FollowerFilters()
+        f.showBots = true
+        let row = account(did: "1", handle: "carol", botScore: 0.15)
+            .withWhitelist(true)
+        XCTAssertTrue(f.apply(to: [row]).isEmpty)
+    }
+
+    /// withWhitelist(_:) returns a NEW struct rather than mutating.
+    /// Confirms the immutable-struct convention holds.
+    func test_withWhitelist_returnsNewStruct_originalUnchanged() {
+        let original = account(did: "1", handle: "dan", botScore: 0.85)
+        XCTAssertFalse(original.userWhitelisted)
+        let pardoned = original.withWhitelist(true)
+        XCTAssertFalse(original.userWhitelisted, "original should not have mutated")
+        XCTAssertTrue(pardoned.userWhitelisted)
+        XCTAssertEqual(original.did, pardoned.did, "identity preserved")
+    }
 }

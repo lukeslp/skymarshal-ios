@@ -69,8 +69,12 @@ struct AccountRow: View {
 
     private var stripeColor: Color {
         if account.isDeleted { return Theme.danger }
-        if account.botScore >= 0.6 { return Theme.danger }
-        if account.botScore >= 0.3 { return Theme.caution }
+        // Whitelist override: a user-confirmed real human shouldn't
+        // wear a danger/caution stripe just because of low post volume.
+        if !account.userWhitelisted {
+            if account.botScore >= 0.6 { return Theme.danger }
+            if account.botScore >= 0.3 { return Theme.caution }
+        }
         if account.isInactive { return Theme.warn }
         if account.isMutual { return Theme.scope }
         return Color.gray.opacity(0.6)
@@ -126,7 +130,12 @@ private struct StatusPills: View {
                 Pill(systemImage: "moon.zzz.fill", text: "idle", color: Theme.caution)
                     .accessibilityLabel("Inactive account")
             }
-            if account.botScore > 0 {
+            // Show the badge only at high-confidence (≥0.6) and only
+            // when the user hasn't whitelisted the account. Below 0.6
+            // the leading stripe already carries the suspicion signal;
+            // a permanent number-badge on the row is dignity-costly
+            // when the analyzer is just speculating.
+            if account.botScore >= 0.6 && !account.userWhitelisted {
                 BotScoreBadge(score: account.botScore)
             }
         }
@@ -167,7 +176,7 @@ struct BotScoreBadge: View {
         .padding(.horizontal, 6)
         .padding(.vertical, 2)
         .background(Theme.chipTint(color), in: .capsule)
-        .accessibilityLabel("Bot score \(Int(score * 100)) of 100")
+        .accessibilityLabel("Automation signals: \(Int(score * 100)) of 100")
     }
 
     private var color: Color {

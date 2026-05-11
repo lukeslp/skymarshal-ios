@@ -288,4 +288,13 @@ final class AppModel {
         }
         return result
     }
+
+    /// Toggle the user-whitelist override on a scanned account. Pulls
+    /// the new snapshot through after the FollowerService write so the
+    /// AccountRow / AccountDetailView rebuild with the updated state.
+    func setWhitelist(did: String, to newValue: Bool) async {
+        guard let owner = currentHandle else { return }
+        await followers.setWhitelist(did: did, to: newValue, owner: owner)
+        self.accounts = await followers.loadedSnapshot
+    }
 }
