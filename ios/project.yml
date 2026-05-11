@@ -97,6 +97,19 @@ targets:
       - target: Skymarshal
       - target: SkymarshalCore
 
+  SkymarshalUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: SkymarshalUITests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: blue.skymarshal.ios.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Skymarshal
+    dependencies:
+      - target: Skymarshal
+
 schemes:
   Skymarshal:
     build:
@@ -106,6 +119,7 @@ schemes:
     test:
       targets:
         - SkymarshalTests
+        - SkymarshalUITests
     run:
       config: Debug
     archive:

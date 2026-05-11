@@ -27,6 +27,7 @@
 		3FEAC6025218D495E63963C8 /* SkymarshalCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 822EC83D35348BBCCDA83D23 /* SkymarshalCore.framework */; };
 		469E2684461D09A056D410E0 /* ContentItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8D9EC50546232514095F18E /* ContentItem.swift */; };
 		46A0D768745013077B3556B8 /* FollowerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 442C0D8F71C940230AC527A1 /* FollowerService.swift */; };
+		47DD674C590B9F2F6A768ACD /* AccessibilityRegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99AEB1577F5C9C15B96D2D2 /* AccessibilityRegressionTests.swift */; };
 		48037B237AE29F0675B1547A /* BluescreenAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3D884AC9F343474B2875C22 /* BluescreenAnalyzerTests.swift */; };
 		4E6ABABF39096FD2E54AB551 /* InteractionHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D4F4DCBE34D86617C44084 /* InteractionHistoryView.swift */; };
 		4ED0412C292B00C1F8D5DF08 /* TypeChipsRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21806754F97B224507EE90DA /* TypeChipsRow.swift */; };
@@ -89,6 +90,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = A6A353D5E054B4298ADE0C13;
 			remoteInfo = SkymarshalCore;
+		};
+		93A656247E38C6E5298C4DA7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 32C1FA2301ADCCE579C6EB9D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C1BE9C3F451A2C6856B01893;
+			remoteInfo = Skymarshal;
 		};
 		A32AE8321C6BB445F25F2A6F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -162,10 +170,12 @@
 		916FD0F19FC4F52773CE1628 /* StatusBanners.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBanners.swift; sourceTree = "<group>"; };
 		957F0B3FA214607A9F4D4013 /* MutualFollowsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MutualFollowsTests.swift; sourceTree = "<group>"; };
 		95B7701520804115EB93F81E /* BotFlagSeverityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BotFlagSeverityTests.swift; sourceTree = "<group>"; };
+		964936861603A389930428DC /* SkymarshalUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SkymarshalUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9793630CD39119B8A0A7A3AA /* HydrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HydrationTests.swift; sourceTree = "<group>"; };
 		9FAC32C76753E6DF41BB9650 /* FollowerFilters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowerFilters.swift; sourceTree = "<group>"; };
 		A3D884AC9F343474B2875C22 /* BluescreenAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluescreenAnalyzerTests.swift; sourceTree = "<group>"; };
 		A72EBFD4D9593869B7E87AF6 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		A99AEB1577F5C9C15B96D2D2 /* AccessibilityRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityRegressionTests.swift; sourceTree = "<group>"; };
 		AABB23B2F9DD406B2A2A17ED /* StorageModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageModels.swift; sourceTree = "<group>"; };
 		AC1C886B8184F15CA15F3F32 /* SearchAndScoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchAndScoreTests.swift; sourceTree = "<group>"; };
 		B0F041B18B2706EE31852A54 /* SkymarshalCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkymarshalCore.swift; sourceTree = "<group>"; };
@@ -293,6 +303,14 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
+		82F75C10A4C50DBA6061152F /* SkymarshalUITests */ = {
+			isa = PBXGroup;
+			children = (
+				A99AEB1577F5C9C15B96D2D2 /* AccessibilityRegressionTests.swift */,
+			);
+			path = SkymarshalUITests;
+			sourceTree = "<group>";
+		};
 		862B8F842ABCFA0495AD571B /* Skymarshal */ = {
 			isa = PBXGroup;
 			children = (
@@ -330,6 +348,7 @@
 				14B50B641FB406502CA6835B /* Skymarshal.app */,
 				822EC83D35348BBCCDA83D23 /* SkymarshalCore.framework */,
 				2A68109DA988C288562EC79A /* SkymarshalTests.xctest */,
+				964936861603A389930428DC /* SkymarshalUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -340,6 +359,7 @@
 				862B8F842ABCFA0495AD571B /* Skymarshal */,
 				48FEC0B7706BF32F4064CEFD /* SkymarshalCore */,
 				FCE7966212BB75311499EAF0 /* SkymarshalTests */,
+				82F75C10A4C50DBA6061152F /* SkymarshalUITests */,
 				D246A0AAF428E74AD7A99869 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -437,6 +457,24 @@
 			productReference = 2A68109DA988C288562EC79A /* SkymarshalTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		DC2C1B6DD0821B12F7B7D824 /* SkymarshalUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8972334363C19343F6737999 /* Build configuration list for PBXNativeTarget "SkymarshalUITests" */;
+			buildPhases = (
+				F3082BE9167AA9FA48565A36 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				01E6B411BE5ABC4BD01F61D1 /* PBXTargetDependency */,
+			);
+			name = SkymarshalUITests;
+			packageProductDependencies = (
+			);
+			productName = SkymarshalUITests;
+			productReference = 964936861603A389930428DC /* SkymarshalUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -458,6 +496,11 @@
 						DevelopmentTeam = 596T7J7FB6;
 						ProvisioningStyle = Automatic;
 					};
+					DC2C1B6DD0821B12F7B7D824 = {
+						DevelopmentTeam = 596T7J7FB6;
+						ProvisioningStyle = Automatic;
+						TestTargetID = C1BE9C3F451A2C6856B01893;
+					};
 				};
 			};
 			buildConfigurationList = 89AF42162D4A75E44A3F7715 /* Build configuration list for PBXProject "Skymarshal" */;
@@ -477,6 +520,7 @@
 				C1BE9C3F451A2C6856B01893 /* Skymarshal */,
 				A6A353D5E054B4298ADE0C13 /* SkymarshalCore */,
 				D45A95CC0A47421B60314C9C /* SkymarshalTests */,
+				DC2C1B6DD0821B12F7B7D824 /* SkymarshalUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -575,9 +619,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F3082BE9167AA9FA48565A36 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				47DD674C590B9F2F6A768ACD /* AccessibilityRegressionTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		01E6B411BE5ABC4BD01F61D1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C1BE9C3F451A2C6856B01893 /* Skymarshal */;
+			targetProxy = 93A656247E38C6E5298C4DA7 /* PBXContainerItemProxy */;
+		};
 		8C764EE1340543AB07AB70E4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = A6A353D5E054B4298ADE0C13 /* SkymarshalCore */;
@@ -596,6 +653,40 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		06A30C1F30196AAB9D98B183 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = blue.skymarshal.ios.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Skymarshal;
+			};
+			name = Release;
+		};
+		476C50D14026B09A23B23E35 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = blue.skymarshal.ios.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Skymarshal;
+			};
+			name = Debug;
+		};
 		56EA6051A128D0A641633239 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -860,6 +951,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		8972334363C19343F6737999 /* Build configuration list for PBXNativeTarget "SkymarshalUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				476C50D14026B09A23B23E35 /* Debug */,
+				06A30C1F30196AAB9D98B183 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		89AF42162D4A75E44A3F7715 /* Build configuration list for PBXProject "Skymarshal" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
