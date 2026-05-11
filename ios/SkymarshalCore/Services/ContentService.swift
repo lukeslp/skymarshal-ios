@@ -3,10 +3,9 @@ import SwiftData
 
 /// The orchestration boundary every UI layer should sit on top of.
 ///
-/// Mirrors `reference/python/services/content_service.py:69-…` — five
-/// public methods plus one read-only property. The "shadow function" rule
-/// from `~/.swarm/snippets/2026-05-09-skymarshal-content-service-api-shape.md`
-/// applies: view code calls into this surface, never around it.
+/// Mirrors `reference/python/services/content_service.py` — five public methods
+/// plus one read-only property. UI and `AppModel` call **only** this actor for
+/// orchestration (no parallel “shadow” load/delete paths around it).
 @available(iOS 17, *)
 public actor ContentService {
 

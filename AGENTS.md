@@ -4,6 +4,8 @@
 
 Skymarshal is a native SwiftUI iOS app targeting iOS 17+. The active app lives in `ios/`; `reference/` contains prior Python and web implementations, and `app-store/` contains submission copy.
 
+For what the upstream Python/web/npm stacks include versus this native surface (scope map, not a port backlog), see [`docs/UPSTREAM_FEATURE_GAP.md`](docs/UPSTREAM_FEATURE_GAP.md).
+
 Inside `ios/`, `project.yml` is the canonical XcodeGen spec. Do not hand-edit `Skymarshal.xcodeproj` when target settings can be changed in `project.yml`. `SkymarshalCore/` is the framework for models, networking, services, storage, and standards. `Skymarshal/` contains the SwiftUI app, assets, privacy manifest, entitlements, and UI state. Tests are split between `SkymarshalTests/` for XCTest unit coverage and `SkymarshalUITests/` for XCUITest accessibility regressions.
 
 ## Build, Test, and Development Commands

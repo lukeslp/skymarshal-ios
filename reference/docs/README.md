@@ -1,4 +1,17 @@
-# Skymarshal
+# Archived documentation — Python CLI (upstream)
+
+**Navigation:** This file was lifted from the upstream Python CLI product and preserved under `reference/docs/` for historical context. It does **not** describe the native iOS app in this repository.
+
+| Looking for | See |
+|-------------|-----|
+| iOS app overview & build | Root [`README.md`](../../README.md) |
+| Contributor conventions | [`AGENTS.md`](../../AGENTS.md) |
+| Why `reference/` exists / drift rules | [`MIGRATION.md`](../../MIGRATION.md) |
+| Reference tree layout | [`../README.md`](../README.md) |
+
+---
+
+# Skymarshal (upstream CLI)
 
 Manage, analyze, and clean up your Bluesky presence from the command line.
 

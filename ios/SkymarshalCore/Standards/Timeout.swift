@@ -4,8 +4,8 @@ import Foundation
 /// this wrapper bounds the call as the caller experiences it (including
 /// retries and downstream work URLSession can't see).
 ///
-/// Lifted from `~/.swarm/snippets/2026-05-09-two-layer-async-timeout-urlsession-task.md`.
-/// Both layers must exist — without the call-site wrapper, a wedged
+/// Complements URLSession’s per-request timeout (`ATProtoClient`). Both layers
+/// must exist — without the call-site wrapper, a wedged
 /// framework call below the URL layer leaves the UI in `isLoading=true`
 /// forever.
 public enum TimeoutError: Error, Sendable {

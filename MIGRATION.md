@@ -18,15 +18,15 @@ follower cleanup, analytics, Flask API, tRPC routers). Branching would carry
 that conceptual drag into every iOS pull request. A fresh init keeps the
 active codebase scoped, and the reference/ tree preserves the porting source.
 
-Branch-vs-fresh tradeoffs were independently validated by external models
-(Gemini and Codex). Both recommended fresh + reference for this scope. See
-`~/.swarm/reports/2026-05-09/begin-skymarshal-ios.md` and
-`~/.swarm/reports/2026-05-09/enhance-skymarshal-ios.md` for full analysis.
+Branch-vs-fresh tradeoffs were validated independently (e.g. Gemini and Codex
+against this repo’s goals). Consensus: a **fresh repository** plus a **`reference/` subtree**
+avoids dragging unrelated upstream subsystems into every iOS change while keeping
+porting sources inspectable in-tree.
 
 ## What was intentionally excluded
 
-For the full keep / drop inventory, see
-`~/.swarm/reports/2026-05-09/janitor-skymarshal-ios.md`.
+The keep/drop inventory lives in this section and in the lift map below — nothing
+out-of-scope was copied into `reference/`.
 
 Out of scope (not in `reference/`):
 - `loners/` — pre-skymarshal standalone scripts

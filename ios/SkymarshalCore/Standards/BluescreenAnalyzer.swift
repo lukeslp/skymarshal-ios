@@ -2,14 +2,11 @@ import Foundation
 
 /// Pure-function follower-cleanup scoring engine.
 ///
-/// Lifted from `reference/web/bluescreen/analyzer.ts` (250 lines,
-/// MIT). Multi-factor weighted bot detection + influence + activity
-/// + completeness scoring. Captured in
-/// `~/.swarm/snippets/2026-05-10-bluesky-bluescreen-bot-scoring.md`.
+/// Bluescreen-style weighted scoring (upstream web client lineage; see `MIGRATION.md`).
+/// Multi-factor weighted bot detection + influence + activity + completeness scoring.
 ///
-/// **Do not adjust thresholds without consulting the snippet.** The
-/// score weights and trigger conditions are calibrated to the user's
-/// sensitivity expectations from prior production use.
+/// **Do not adjust thresholds lightly.** Coordinate changes with
+/// `BluescreenAnalyzerTests` and parity notes in `MIGRATION.md`.
 public enum BluescreenAnalyzer {
 
     /// followers / following. Returns a sentinel 999 when following == 0
