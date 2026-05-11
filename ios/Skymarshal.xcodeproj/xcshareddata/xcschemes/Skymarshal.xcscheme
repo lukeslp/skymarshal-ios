@@ -64,6 +64,17 @@
                ReferencedContainer = "container:Skymarshal.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "DC2C1B6DD0821B12F7B7D824"
+               BuildableName = "SkymarshalUITests.xctest"
+               BlueprintName = "SkymarshalUITests"
+               ReferencedContainer = "container:Skymarshal.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <CommandLineArguments>
       </CommandLineArguments>
