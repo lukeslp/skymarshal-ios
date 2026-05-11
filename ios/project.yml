@@ -55,9 +55,9 @@ targets:
         CFBundleDisplayName: Skymarshal
         CFBundleIconName: AppIcon
         CFBundleShortVersionString: "1.0.0"
-        CFBundleVersion: "2"
+        CFBundleVersion: "3"
         UILaunchScreen:
-          UIImageName: LaunchBird
+          UIImageName: EasterAlf
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
           UISceneConfigurations: {}
