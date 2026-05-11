@@ -4,6 +4,9 @@ import SkymarshalCore
 @available(iOS 17, *)
 struct LoginView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverOn
+    @Environment(\.accessibilitySwitchControlEnabled) private var switchControlOn
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var handle: String = ""
     @State private var appPassword: String = ""
@@ -16,10 +19,22 @@ struct LoginView: View {
 
     @State private var showEasterEgg = false
 
+    /// Easter egg long-press gates on:
+    /// (1) AT off — VoiceOver / Switch Control users routinely hold
+    ///     focus on elements much longer than typical touch press.
+    /// (2) 6-second minimum — well past any incidental hold.
+    private var easterEggEnabled: Bool {
+        !voiceOverOn && !switchControlOn
+    }
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                DotBirdHeader(onSecretHold: { showEasterEgg = true })
+                DotBirdHeader(
+                    reduceMotion: reduceMotion,
+                    secretHoldEnabled: easterEggEnabled,
+                    onSecretHold: { showEasterEgg = true }
+                )
                     .padding(.top, 24)
                     .padding(.bottom, 8)
 
@@ -80,16 +95,19 @@ struct LoginView: View {
                         .transition(.opacity)
                 }
             }
-            .animation(.easeInOut(duration: 0.25), value: showEasterEgg)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: showEasterEgg)
         }
     }
 }
 
 /// Dot-matrix spy-bird hero + wordmark. The bird itself is the same
 /// silhouette as the AppIcon, rendered as cyan dots on the gradient with
-/// a single orange visor accent — matches the launch screen.
+/// a single orange visor accent — matches the launch screen. Hidden
+/// from VoiceOver as decorative; the wordmark below labels the section.
 @available(iOS 17, *)
 private struct DotBirdHeader: View {
+    let reduceMotion: Bool
+    let secretHoldEnabled: Bool
     let onSecretHold: () -> Void
 
     @State private var appear = false
@@ -102,7 +120,8 @@ private struct DotBirdHeader: View {
                 .frame(height: 120)
                 .opacity(appear ? 1.0 : 0.0)
                 .scaleEffect(appear ? 1.0 : 0.92)
-                .animation(.spring(duration: 0.6), value: appear)
+                .animation(reduceMotion ? nil : .spring(duration: 0.6), value: appear)
+                .accessibilityHidden(true)
 
             VStack(spacing: 4) {
                 Text("Skymarshal")
@@ -113,17 +132,25 @@ private struct DotBirdHeader: View {
                     .italic()
             }
             .contentShape(Rectangle())
-            .onLongPressGesture(minimumDuration: 3.0) {
-                onSecretHold()
-            }
+            // 6-second minimum and gated on assistive-tech off. Dwell /
+            // Switch Control / VoiceOver users routinely hold focus on
+            // elements for far longer than typical touch press; the
+            // gate prevents this from firing on every sign-in for them.
+            .gesture(
+                secretHoldEnabled
+                    ? LongPressGesture(minimumDuration: 6.0)
+                        .onEnded { _ in onSecretHold() }
+                    : nil
+            )
         }
         .onAppear { appear = true }
     }
 }
 
-/// Hidden visual easter egg revealed by 3-second hold on the wordmark.
-/// Not documented in user-facing copy. Dismisses automatically after 4s
-/// or on tap.
+/// Hidden visual overlay revealed by 6-second hold on the wordmark.
+/// Not documented in user-facing copy. No auto-dismiss timer — the
+/// WCAG 2.2.1 (Timing Adjustable) failure that was here is gone. User
+/// taps anywhere to close, or uses the explicit Close button.
 @available(iOS 17, *)
 private struct EasterEggOverlay: View {
     @Binding var isPresented: Bool
@@ -135,12 +162,29 @@ private struct EasterEggOverlay: View {
                 .resizable()
                 .scaledToFit()
                 .padding(32)
+                .accessibilityHidden(true)
+
+            VStack {
+                HStack {
+                    Spacer()
+                    Button {
+                        isPresented = false
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title)
+                            .symbolRenderingMode(.hierarchical)
+                            .foregroundStyle(.white.opacity(0.85))
+                            .frame(width: 44, height: 44)
+                    }
+                    .accessibilityLabel("Close")
+                    .accessibilityHint("Dismisses this overlay")
+                    .padding(.top, 12)
+                    .padding(.trailing, 12)
+                }
+                Spacer()
+            }
         }
         .onTapGesture { isPresented = false }
-        .task {
-            try? await Task.sleep(for: .seconds(4))
-            isPresented = false
-        }
     }
 }
 
