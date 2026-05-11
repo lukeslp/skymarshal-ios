@@ -66,8 +66,12 @@ struct ScanSummaryStrip: View {
             .padding(.horizontal)
             .padding(.vertical, 6)
         }
+        // Trailing content-margin gives the last pill a deliberate
+        // ~24pt gutter so it always rests with a visible "more" indicator
+        // (mirrors Apple Mail's partial-pill clipping affordance) rather
+        // than being cut at an arbitrary mid-character boundary.
+        .contentMargins(.trailing, 24, for: .scrollContent)
         .background(.thinMaterial)
-        .scrollClipDisabled()
     }
 }
 

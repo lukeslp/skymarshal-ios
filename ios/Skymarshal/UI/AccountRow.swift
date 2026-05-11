@@ -168,6 +168,7 @@ private struct StatusPills: View {
             HStack(spacing: 2) {
                 Image(systemName: systemImage)
                     .font(.caption2.weight(.semibold))
+                    .symbolRenderingMode(.monochrome)
                 Text(text)
                     .font(.caption2.weight(.semibold))
             }
@@ -185,8 +186,13 @@ struct BotScoreBadge: View {
 
     var body: some View {
         HStack(spacing: 2) {
+            // .monochrome locks the SF Symbol rendering — iOS 26's
+            // dynamic color system was auto-selecting a fallback that
+            // rendered ant.fill as an emoji-like glyph (real-device
+            // screenshot at v1.0.1).
             Image(systemName: "ant.fill")
                 .font(.caption2.weight(.semibold))
+                .symbolRenderingMode(.monochrome)
             Text("\(Int(score * 100))")
                 .font(.caption2.weight(.semibold).monospacedDigit())
         }

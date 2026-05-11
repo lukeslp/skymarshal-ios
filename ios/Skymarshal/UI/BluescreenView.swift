@@ -124,14 +124,15 @@ struct BluescreenView: View {
                             HStack(spacing: 4) {
                                 Image(systemName: filters.sortDirection == .desc ? "arrow.down" : "arrow.up")
                                     .font(.caption2)
-                                Text("Sort: \(filters.sortField.label)")
+                                Text("Sort")
                                     .font(.footnote.weight(.medium))
-                                    .lineLimit(1)
-                                Image(systemName: "chevron.down")
-                                    .font(.caption2)
                             }
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
                             .foregroundStyle(.tint)
                         }
+                        .accessibilityLabel("Sort: \(filters.sortField.label), \(filters.sortDirection == .desc ? "descending" : "ascending")")
+                        .accessibilityHint("Tap to change sort field or direction")
 
                         Button {
                             draftFilters = filters
@@ -151,6 +152,9 @@ struct BluescreenView: View {
 
                         // Bot-detection sensitivity preset. 3 discrete
                         // values; never a free slider (safety verdict).
+                        // Trigger is icon + short word only — verbose
+                        // labels in Menu triggers wrap inside iOS 26
+                        // Menu shapes (real-device bug seen at v1.0.1).
                         Menu {
                             Picker("Bot sensitivity", selection: $botSensitivityRaw) {
                                 Label("Strict (≥80%)", systemImage: "shield.fill")
@@ -170,14 +174,15 @@ struct BluescreenView: View {
                                         ? "scale.3d"
                                         : "shield.fill")
                                     .font(.footnote)
-                                Text("Bots: \(sensitivityLabel)")
+                                Text(sensitivityLabel)
                                     .font(.footnote.weight(.medium))
-                                Image(systemName: "chevron.down")
-                                    .font(.caption2)
                             }
-                            .foregroundStyle(botSensitivityRaw < 0.5 ? Color(Theme.caution) : Color.accentColor)
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
+                            .foregroundStyle(botSensitivityRaw < 0.5 ? Theme.caution : Color.accentColor)
                         }
                         .accessibilityLabel("Bot sensitivity, \(sensitivityLabel)")
+                        .accessibilityHint("Tap to change between Strict, Balanced, and Loose")
 
                         Spacer(minLength: 8)
 
