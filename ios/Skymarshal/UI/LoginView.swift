@@ -14,10 +14,12 @@ struct LoginView: View {
             && !model.isLoading
     }
 
+    @State private var showEasterEgg = false
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                ScopeHeader()
+                DotBirdHeader(onSecretHold: { showEasterEgg = true })
                     .padding(.top, 24)
                     .padding(.bottom, 8)
 
@@ -72,37 +74,35 @@ struct LoginView: View {
             }
             .background(LoginBackground())
             .toolbar(.hidden, for: .navigationBar)
+            .overlay {
+                if showEasterEgg {
+                    EasterEggOverlay(isPresented: $showEasterEgg)
+                        .transition(.opacity)
+                }
+            }
+            .animation(.easeInOut(duration: 0.25), value: showEasterEgg)
         }
     }
 }
 
-/// The visual signature: scope glyph + concentric rings + wordmark.
-/// Small, restrained, only on the auth screen. The same scope motif as
-/// the app icon and the LoadProgressBanner — a quiet through-line.
+/// Dot-matrix spy-bird hero + wordmark. The bird itself is the same
+/// silhouette as the AppIcon, rendered as cyan dots on the gradient with
+/// a single orange visor accent — matches the launch screen.
 @available(iOS 17, *)
-private struct ScopeHeader: View {
-    @State private var animateRings = false
+private struct DotBirdHeader: View {
+    let onSecretHold: () -> Void
+
+    @State private var appear = false
 
     var body: some View {
         VStack(spacing: 10) {
-            ZStack {
-                ForEach(0..<3) { i in
-                    Circle()
-                        .stroke(.tint.opacity(0.45 - Double(i) * 0.12), lineWidth: 1)
-                        .frame(width: 56 + CGFloat(i) * 18, height: 56 + CGFloat(i) * 18)
-                        .scaleEffect(animateRings ? 1.0 : 0.85)
-                        .opacity(animateRings ? 1.0 : 0.0)
-                        .animation(
-                            .spring(duration: 0.7).delay(Double(i) * 0.08),
-                            value: animateRings
-                        )
-                }
-                Image(systemName: "scope")
-                    .font(.system(size: 30, weight: .light))
-                    .foregroundStyle(.tint)
-                    .symbolRenderingMode(.hierarchical)
-            }
-            .frame(height: 100)
+            Image("DotBird")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 120)
+                .opacity(appear ? 1.0 : 0.0)
+                .scaleEffect(appear ? 1.0 : 0.92)
+                .animation(.spring(duration: 0.6), value: appear)
 
             VStack(spacing: 4) {
                 Text("Skymarshal")
@@ -112,8 +112,35 @@ private struct ScopeHeader: View {
                     .foregroundStyle(.secondary)
                     .italic()
             }
+            .contentShape(Rectangle())
+            .onLongPressGesture(minimumDuration: 3.0) {
+                onSecretHold()
+            }
         }
-        .onAppear { animateRings = true }
+        .onAppear { appear = true }
+    }
+}
+
+/// Hidden visual easter egg revealed by 3-second hold on the wordmark.
+/// Not documented in user-facing copy. Dismisses automatically after 4s
+/// or on tap.
+@available(iOS 17, *)
+private struct EasterEggOverlay: View {
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.92).ignoresSafeArea()
+            Image("EasterAlf")
+                .resizable()
+                .scaledToFit()
+                .padding(32)
+        }
+        .onTapGesture { isPresented = false }
+        .task {
+            try? await Task.sleep(for: .seconds(4))
+            isPresented = false
+        }
     }
 }
 
