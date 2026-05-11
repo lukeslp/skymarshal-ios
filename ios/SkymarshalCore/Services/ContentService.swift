@@ -302,7 +302,12 @@ public actor ContentService {
         )
     }
 
-    private static func deletionURI(for type: ContentType, post: PostView) -> String? {
+    /// Maps a content type + post view to the at:// URI of the record
+    /// to delete from the caller's own repo. For posts/replies this is
+    /// the subject URI; for likes/reposts it's the viewer's record URI
+    /// (a no-op against the subject if mis-targeted, hence
+    /// `DeleteURIMappingTests` guards this mapping directly).
+    internal static func deletionURI(for type: ContentType, post: PostView) -> String? {
         switch type {
         case .posts, .replies:
             return post.uri

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		009C56365F68DCDC11505DD4 /* ExportShare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8570A561C56AAFA1E1282944 /* ExportShare.swift */; };
+		00E78D483E5D877449E93B3D /* DeleteURIMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD14FDBAE5516851968240DC /* DeleteURIMappingTests.swift */; };
 		01804EFE9494B0A0017495BB /* SkymarshalCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0F041B18B2706EE31852A54 /* SkymarshalCore.swift */; };
 		07AEC3916E73202457B28033 /* RateLimitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B782349CA1305BCCC0AE2EE9 /* RateLimitTests.swift */; };
 		0C6E6C938EB222706AD8E8C2 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A72EBFD4D9593869B7E87AF6 /* LoginView.swift */; };
@@ -208,6 +209,7 @@
 		EF98F227B9CFB208A593B891 /* AttributedPostText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttributedPostText.swift; sourceTree = "<group>"; };
 		F13FF534F6122C655A075286 /* AccountRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountRow.swift; sourceTree = "<group>"; };
 		F62385E352BFF3314B1AEBB3 /* EditActionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditActionBar.swift; sourceTree = "<group>"; };
+		FD14FDBAE5516851968240DC /* DeleteURIMappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteURIMappingTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -390,6 +392,7 @@
 			children = (
 				A3D884AC9F343474B2875C22 /* BluescreenAnalyzerTests.swift */,
 				95B7701520804115EB93F81E /* BotFlagSeverityTests.swift */,
+				FD14FDBAE5516851968240DC /* DeleteURIMappingTests.swift */,
 				79485208079763B89F328C49 /* ExporterTests.swift */,
 				3786F0727744BDFB53F1DD6C /* FollowerFiltersTests.swift */,
 				9793630CD39119B8A0A7A3AA /* HydrationTests.swift */,
@@ -582,6 +585,7 @@
 			files = (
 				48037B237AE29F0675B1547A /* BluescreenAnalyzerTests.swift in Sources */,
 				C4489477052539873B9BF20B /* BotFlagSeverityTests.swift in Sources */,
+				00E78D483E5D877449E93B3D /* DeleteURIMappingTests.swift in Sources */,
 				78CD18D426387960001ED4AC /* ExporterTests.swift in Sources */,
 				C7C0BF6AFF715DB2189F5EEC /* FollowerFiltersTests.swift in Sources */,
 				336A90028344612C57587F46 /* HydrationTests.swift in Sources */,

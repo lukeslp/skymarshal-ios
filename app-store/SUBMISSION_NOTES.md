@@ -91,6 +91,14 @@ rejection trigger we've matched against current App Review behavior.
 - [x] Description leads with what the app does that Bluesky's own
       app doesn't (bulk operations, cross-archive search,
       bot scoring)
+- [x] Established category precedent on iOS: Graysky (October 2023,
+      established third-party Bluesky client), Skeets (native SwiftUI),
+      and Skyscraper (January 2026 launch) have all received App Store
+      approval as third-party Bluesky clients. Skymarshal differs in
+      scope — cleanup-focused rather than reading-focused — and is the
+      first native iOS entry in the cleanup-tool category (web-only
+      competitors: BskyDelete, Redact, Skeet Deleter, Bluesky Repo
+      Explorer)
 
 ### 4.2 — Minimum functionality
 

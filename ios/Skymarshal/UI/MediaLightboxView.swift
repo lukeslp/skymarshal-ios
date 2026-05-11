@@ -1,6 +1,11 @@
 import SwiftUI
 import SkymarshalCore
 
+/// Gates the play-badge overlay on video media. The badge is purely
+/// presentational until v1.0.1 wires AVPlayerViewController to the tap
+/// — showing it without a working tap reads as a broken affordance.
+private let videoPlaybackEnabled = false
+
 /// Full-screen pager for a post's media. Swipe between attachments,
 /// pinch-zoom on each image, and read the alt text caption — the
 /// alt-text surface that's been search-indexed since launch but
@@ -119,7 +124,7 @@ private struct MediaPage: View {
                     failedState
                 }
 
-                if item.kind == .video {
+                if item.kind == .video && videoPlaybackEnabled {
                     Image(systemName: "play.fill")
                         .font(.system(.largeTitle, design: .default).weight(.semibold))
                         .foregroundStyle(.white.opacity(0.85))
