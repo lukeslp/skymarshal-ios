@@ -44,6 +44,13 @@ public struct FollowerFilters: Hashable, Sendable {
     public var sortField: SortField = .botScore
     public var sortDirection: SortDirection = .desc
 
+    /// Score threshold that gates `showBots`. Default 0.6 matches the
+    /// historical hardcoded behavior; UI presets in BluescreenView
+    /// (Strict 0.8 / Balanced 0.6 / Loose 0.4) write through to this
+    /// field. Loose mode triggers an extra confirmation step before
+    /// destructive bulk actions — see BluescreenView.unfollowBinding.
+    public var botThreshold: Double = 0.6
+
     public init() {}
 
     public enum SortField: String, Sendable, Hashable, Codable, CaseIterable, Identifiable {
@@ -110,8 +117,8 @@ public struct FollowerFilters: Hashable, Sendable {
         if showDeleted && !a.isDeleted { return false }
         // User whitelist short-circuit: a manual "not an automated
         // account" override pins this row out of the bots filter even
-        // when botScore ≥ 0.6.
-        if showBots && (a.botScore < 0.6 || a.userWhitelisted) { return false }
+        // when the score is above threshold.
+        if showBots && (a.botScore < botThreshold || a.userWhitelisted) { return false }
         if showDisengaged && a.interactedRecently != false { return false }
         if showMutualOnly && !a.isMutual { return false }
         if showNonMutualOnly && a.isMutual { return false }

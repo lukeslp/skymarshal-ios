@@ -256,4 +256,59 @@ final class FollowerFiltersTests: XCTestCase {
         XCTAssertTrue(pardoned.userWhitelisted)
         XCTAssertEqual(original.did, pardoned.did, "identity preserved")
     }
+
+    // MARK: - Bot sensitivity presets
+
+    /// Default threshold (0.6 = Balanced) matches the historical
+    /// hardcoded behavior — the 0.85 account passes, the 0.55 doesn't.
+    func test_botThreshold_default_matchesHistoricalBehavior() {
+        var f = FollowerFilters()
+        f.showBots = true
+        let high = account(did: "1", handle: "high", botScore: 0.85)
+        let mid  = account(did: "2", handle: "mid",  botScore: 0.55)
+        let low  = account(did: "3", handle: "low",  botScore: 0.20)
+        let result = f.apply(to: [high, mid, low]).map(\.handle)
+        XCTAssertEqual(result, ["high"])
+    }
+
+    /// Strict (0.8) shows fewer accounts; the 0.65 mid-range account
+    /// passes Balanced but fails Strict.
+    func test_botThreshold_strict_excludesMidRange() {
+        var f = FollowerFilters()
+        f.showBots = true
+        f.botThreshold = 0.8
+        let high = account(did: "1", handle: "high", botScore: 0.85)
+        let mid  = account(did: "2", handle: "mid",  botScore: 0.65)
+        let result = f.apply(to: [high, mid]).map(\.handle)
+        XCTAssertEqual(result, ["high"])
+    }
+
+    /// Loose (0.4) includes accounts the Balanced threshold would drop.
+    /// This is the slider-equivalent footgun the safety committee warned
+    /// about — captured here so future regressions don't accidentally
+    /// disable the threshold field.
+    func test_botThreshold_loose_includesLowConfidence() {
+        var f = FollowerFilters()
+        f.showBots = true
+        f.botThreshold = 0.4
+        let high = account(did: "1", handle: "high", botScore: 0.85)
+        let mid  = account(did: "2", handle: "mid",  botScore: 0.55)
+        let lowMed = account(did: "3", handle: "lowMed", botScore: 0.45)
+        let belowLoose = account(did: "4", handle: "belowLoose", botScore: 0.20)
+        let result = Set(f.apply(to: [high, mid, lowMed, belowLoose]).map(\.handle))
+        XCTAssertEqual(result, ["high", "mid", "lowMed"])
+    }
+
+    /// Whitelist still wins over Loose. The dignity affordance can't
+    /// be defeated by lowering sensitivity.
+    func test_botThreshold_loose_respectsWhitelist() {
+        var f = FollowerFilters()
+        f.showBots = true
+        f.botThreshold = 0.4
+        let scored = account(did: "1", handle: "scored", botScore: 0.5)
+        let pardoned = account(did: "2", handle: "pardoned", botScore: 0.5)
+            .withWhitelist(true)
+        let result = f.apply(to: [scored, pardoned]).map(\.handle)
+        XCTAssertEqual(result, ["scored"])
+    }
 }

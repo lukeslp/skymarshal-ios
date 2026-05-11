@@ -16,6 +16,14 @@ struct BluescreenView: View {
     @State private var editMode: EditMode = .inactive
     @State private var detailAccount: AnalyzedAccount? = nil
 
+    /// Inline bot-detection sensitivity preset. Discrete values only —
+    /// safety committee verdict ruled out a free slider because a
+    /// 0.1 setting would let a user bulk-block real humans. The
+    /// 3-preset shape gives explicit, non-dangerous choices.
+    /// 0.4 = Loose, 0.6 = Balanced (default), 0.8 = Strict.
+    @AppStorage("sm.botSensitivity") private var botSensitivityRaw: Double = 0.6
+    @State private var showLooseUnfollowConfirm: Bool = false
+
     /// Single source of truth for the trim-fakes filter UI: the pill
     /// taps in ScanSummaryStrip AND the full BluescreenFilterSheet
     /// both write into this struct. Search keyword is layered on per
@@ -33,7 +41,16 @@ struct BluescreenView: View {
     private var filtered: [AnalyzedAccount] {
         var f = filters
         f.search = keyword
+        f.botThreshold = botSensitivityRaw
         return f.apply(to: model.accounts)
+    }
+
+    private var sensitivityLabel: String {
+        switch botSensitivityRaw {
+        case ..<0.5:  return "Loose"
+        case 0.5..<0.7: return "Balanced"
+        default:      return "Strict"
+        }
     }
 
     private func makeFollowersJSON() -> ExportPayload {
@@ -126,6 +143,36 @@ struct BluescreenView: View {
                             .foregroundStyle(.tint)
                         }
                         .buttonStyle(.plain)
+
+                        // Bot-detection sensitivity preset. 3 discrete
+                        // values; never a free slider (safety verdict).
+                        Menu {
+                            Picker("Bot sensitivity", selection: $botSensitivityRaw) {
+                                Label("Strict (≥80%)", systemImage: "shield.fill")
+                                    .tag(0.8)
+                                Label("Balanced (≥60%)", systemImage: "scale.3d")
+                                    .tag(0.6)
+                                Label("Loose (≥40%)", systemImage: "exclamationmark.shield")
+                                    .tag(0.4)
+                            }
+                            Text("Loose flags more real humans by mistake. Bulk actions require an extra confirmation.")
+                                .font(.caption2)
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: botSensitivityRaw < 0.5
+                                      ? "exclamationmark.shield"
+                                      : botSensitivityRaw < 0.7
+                                        ? "scale.3d"
+                                        : "shield.fill")
+                                    .font(.footnote)
+                                Text("Bots: \(sensitivityLabel)")
+                                    .font(.footnote.weight(.medium))
+                                Image(systemName: "chevron.down")
+                                    .font(.caption2)
+                            }
+                            .foregroundStyle(botSensitivityRaw < 0.5 ? Color(Theme.caution) : Color.accentColor)
+                        }
+                        .accessibilityLabel("Bot sensitivity, \(sensitivityLabel)")
 
                         Spacer(minLength: 8)
 
@@ -287,9 +334,14 @@ struct BluescreenView: View {
                         pendingUnfollow = nil
                     }
                 }
+                .accessibilityLabel("Unfollow \(batch.count) accounts")
                 Button("Cancel", role: .cancel) { pendingUnfollow = nil }
             } message: { batch in
-                Text("Removes you as a follower of \(batch.count) account\(batch.count == 1 ? "" : "s"). They keep their content; you keep yours. Unfollows go through the same rate-limit safety net as deletes — bulk runs may pause briefly.")
+                if botSensitivityRaw < 0.5 && batch.count >= 5 {
+                    Text("⚠︎ Loose sensitivity is on — this list almost certainly includes real humans. Unfollows \(batch.count) account\(batch.count == 1 ? "" : "s"). They keep their content; you keep yours. Through the rate-limit safety net.")
+                } else {
+                    Text("Removes you as a follower of \(batch.count) account\(batch.count == 1 ? "" : "s"). They keep their content; you keep yours. Unfollows go through the same rate-limit safety net as deletes — bulk runs may pause briefly.")
+                }
             }
         }
     }
