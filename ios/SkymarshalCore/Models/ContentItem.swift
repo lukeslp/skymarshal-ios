@@ -8,8 +8,12 @@ import Foundation
 /// not the TS port's `1/2/3` — see MIGRATION.md for the drift rationale.
 public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
 
-    /// at:// URI — the delete key.
+    /// at:// URI of the subject being displayed.
     public let uri: String
+    /// at:// URI of the record to delete from the signed-in user's repo.
+    /// For posts/replies this is the same as `uri`; for likes/reposts it
+    /// is the viewer's like/repost record URI.
+    public let deletionURI: String?
     public let cid: String
     public let contentType: ContentType
     public let text: String?
@@ -27,7 +31,7 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
     /// the subject URI so no extra field is needed.
     public var parentReplyURI: String?
 
-    public var id: String { uri }
+    public var id: String { "\(contentType.rawValue)|\(uri)" }
 
     /// at:// URI parsed into the (handle/did, rkey) pair so we can build
     /// a `https://bsky.app/profile/<handle>/post/<rkey>` deep link for
@@ -64,6 +68,7 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
     public init(
         uri: String,
         cid: String,
+        deletionURI: String? = nil,
         contentType: ContentType,
         text: String? = nil,
         createdAt: Date? = nil,
@@ -76,6 +81,7 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
         parentReplyURI: String? = nil
     ) {
         self.uri = uri
+        self.deletionURI = deletionURI ?? (contentType.isOwnRecord ? uri : nil)
         self.cid = cid
         self.contentType = contentType
         self.text = text
@@ -100,6 +106,12 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
             reposts: repostCount,
             replies: replyCount
         )
+    }
+}
+
+private extension ContentType {
+    var isOwnRecord: Bool {
+        self == .posts || self == .replies
     }
 }
 

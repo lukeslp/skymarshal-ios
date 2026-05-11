@@ -53,9 +53,9 @@ struct ScanErrorBanner: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(.red)
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(Theme.danger)
             VStack(alignment: .leading, spacing: 2) {
                 Text("Couldn't complete that")
                     .font(.footnote.weight(.semibold))
@@ -75,7 +75,7 @@ struct ScanErrorBanner: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
-        .background(Color.red.opacity(0.08))
+        .background(Theme.chipTint(Theme.danger))
         .overlay(alignment: .bottom) { Divider().opacity(0.5) }
     }
 }

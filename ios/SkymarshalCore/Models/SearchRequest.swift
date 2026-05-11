@@ -125,7 +125,7 @@ public struct SearchRequest: Hashable, Sendable, Codable {
 /// `SearchResult` TypedDict.
 public struct SearchResult: Identifiable, Hashable, Sendable {
     public let item: ContentItem
-    public var id: String { item.uri }
+    public var id: String { item.id }
     public var engagementScore: Double { item.engagementScore }
 
     public init(item: ContentItem) {

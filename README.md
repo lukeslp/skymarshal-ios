@@ -8,9 +8,9 @@ This is the iOS app. Native SwiftUI, iOS 17+. No third-party dependencies. App p
 
 ## Status
 
-Pre-TestFlight v1.0.0, build 2. 135 tests pass. Tagged `v1.0.1-pre-testflight` (most recent rollback anchor).
+Pre-TestFlight v1.0.0, build 3. 137 tests pass. Tagged `v1.0.1-pre-testflight` (most recent rollback anchor).
 
-TestFlight Public Link goes here once Build 1 clears Beta App Review.
+TestFlight Public Link goes here once the current build clears Beta App Review.
 
 ## What it does
 
@@ -40,6 +40,10 @@ xcodebuild test -scheme Skymarshal -destination 'platform=iOS Simulator,name=iPh
 ```
 
 Requires Xcode 26.4+, iOS 17 SDK or later.
+
+## Implementation notes
+
+Content rows distinguish between the subject URI being displayed and the record URI used for destructive actions. Posts and replies delete their own post records; likes and reposts delete the viewer's like/repost record (`viewer.like` / `viewer.repost`) while still showing the subject post. Cached content is scoped by owner, content type, and subject URI to avoid cross-account collisions.
 
 ## Repo layout
 

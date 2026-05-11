@@ -38,6 +38,7 @@ final class AppModel {
     private(set) var lastContentScannedAt: Date?
     /// Same, for the followers tab.
     private(set) var lastFollowerScannedAt: Date?
+    private(set) var hydratedOwnerHandle: String?
     /// True when the most-recent hydration source was the disk cache,
     /// not a live scan. Used to gate the "Sign in to refresh" hint
     /// when we're showing stale data without an authenticated client.
@@ -98,16 +99,35 @@ final class AppModel {
             _ = try await content.login(handle: handle, password: password)
             isAuthenticated = await content.isAuthenticated
             currentHandle = await content.currentHandle
-            // If hydration already populated a snapshot for this handle,
-            // skip the immediate refetch — the cache is good enough until
-            // the user explicitly Refreshes. Avoids a double-fetch race
-            // where stale hydrated data immediately gets replaced.
-            if items.isEmpty {
+            // If hydration already populated a snapshot for this same handle,
+            // skip the immediate refetch. If the hydrated owner differs, do
+            // a live load so another account's cache is never shown as yours.
+            if hydratedFromCacheOwnerMismatch {
+                items = []
+                summary = [:]
+                accounts = []
+                scanSummary = ScanSummary()
+                lastContentScannedAt = nil
+                lastFollowerScannedAt = nil
+                hydratedFromCache = false
+                hydratedOwnerHandle = nil
+                await followers.clear()
+                startLoad(forceRefresh: true)
+            } else if items.isEmpty {
                 startLoad(forceRefresh: false)
             }
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    private var hydratedFromCacheOwnerMismatch: Bool {
+        guard hydratedFromCache,
+              let currentHandle,
+              lastContentScannedAt != nil || lastFollowerScannedAt != nil else {
+            return false
+        }
+        return hydratedOwnerHandle != currentHandle
     }
 
     /// Read the SwiftData cache on cold start and pre-populate `items`
@@ -135,6 +155,7 @@ final class AppModel {
                 self.accounts = restored
                 self.scanSummary = BluescreenAnalyzer.summarize(restored)
                 self.lastFollowerScannedAt = mine.map(\.scannedAt).max()
+                self.hydratedOwnerHandle = lastOwner
                 await followers.setLoaded(restored)
             }
         }
@@ -152,6 +173,7 @@ final class AppModel {
                 self.summary = Self.computeContentSummary(restored)
                 self.lastContentScannedAt = mine.map(\.scannedAt).max()
                 self.currentHandle = self.currentHandle ?? lastOwner
+                self.hydratedOwnerHandle = lastOwner
                 await content.setLoadedContent(restored)
             }
         }
@@ -179,6 +201,7 @@ final class AppModel {
         await content.logout()
         isAuthenticated = false
         currentHandle = nil
+        hydratedOwnerHandle = nil
         items = []; summary = [:]; loadProgress = nil
         accounts = []; scanSummary = ScanSummary(); scanProgress = nil
     }
@@ -228,13 +251,17 @@ final class AppModel {
         return results
     }
 
-    func delete(uris: [String]) async -> (deleted: Int, errors: [String]) {
-        let result = await content.delete(uris: uris)
-        if !uris.isEmpty {
-            self.items.removeAll { uris.contains($0.uri) }
+    func delete(itemIDs: [String]) async -> (deleted: Int, errors: [String]) {
+        let result = await content.delete(itemIDs: itemIDs)
+        if !itemIDs.isEmpty {
+            self.items.removeAll { itemIDs.contains($0.id) }
             self.summary = await content.summarize()
         }
         return result
+    }
+
+    func delete(uris: [String]) async -> (deleted: Int, errors: [String]) {
+        await delete(itemIDs: uris)
     }
 
     // MARK: - Followers tab

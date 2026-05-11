@@ -66,7 +66,7 @@ struct LoginView: View {
                     if let error = model.errorMessage {
                         Section {
                             Label(error, systemImage: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.red)
+                                .foregroundStyle(Theme.danger)
                                 .symbolRenderingMode(.hierarchical)
                                 .accessibilityElement(children: .combine)
                                 .accessibilityLabel("Sign-in error: \(error)")

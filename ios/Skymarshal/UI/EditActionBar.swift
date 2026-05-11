@@ -52,7 +52,7 @@ struct EditActionBar: View {
                     .font(.subheadline.weight(.semibold))
             }
             .buttonStyle(.borderedProminent)
-            .tint(.red)
+            .tint(Theme.danger)
             .disabled(selectionCount == 0)
             .accessibilityLabel(selectionCount > 0
                 ? "Delete \(selectionCount) selected posts permanently"

@@ -1,4 +1,5 @@
 import SwiftUI
+import SkymarshalCore
 
 /// Bulk-delete intent gate for batches ≥ 100. Mirrors GitHub's
 /// repo-deletion pattern: user must type the exact word "DELETE" before
@@ -63,7 +64,7 @@ struct TypedConfirmSheet: View {
                             .frame(maxWidth: .infinity, minHeight: 44)
                     }
                     .buttonStyle(.borderedProminent)
-                    .tint(.red)
+                    .tint(Theme.danger)
                     .disabled(!enabled)
                     .accessibilityLabel("Delete \(count) posts permanently")
                     .accessibilityHint("This action cannot be undone")

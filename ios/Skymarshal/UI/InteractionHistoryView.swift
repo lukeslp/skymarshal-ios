@@ -47,7 +47,7 @@ struct InteractionHistoryView: View {
                     Section {
                         Label(error, systemImage: "exclamationmark.triangle.fill")
                             .font(.footnote)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(Theme.danger)
                     }
                 }
 

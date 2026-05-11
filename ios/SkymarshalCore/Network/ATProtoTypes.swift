@@ -39,6 +39,12 @@ public struct PostView: Decodable, Sendable {
     public let replyCount: Int?
     public let indexedAt: String?
     public let embed: PostEmbedView?
+    public let viewer: PostViewerState?
+}
+
+public struct PostViewerState: Decodable, Sendable {
+    public let repost: String?
+    public let like: String?
 }
 
 /// Decoded view of an `app.bsky.embed.*` view object. Each embed type

@@ -10,7 +10,10 @@ import SwiftData
 @available(iOS 17, *)
 @Model
 public final class ContentItemRecord {
-    @Attribute(.unique) public var uri: String
+    @Attribute(.unique) public var compositeKey: String
+    public var itemID: String
+    public var uri: String
+    public var deletionURI: String?
     public var cid: String
     public var contentTypeRaw: String
     public var text: String?
@@ -34,6 +37,7 @@ public final class ContentItemRecord {
     public init(
         uri: String,
         cid: String,
+        deletionURI: String? = nil,
         contentType: ContentType,
         text: String? = nil,
         createdAt: Date? = nil,
@@ -45,7 +49,14 @@ public final class ContentItemRecord {
         scannedAt: Date = Date(),
         parentReplyURI: String? = nil
     ) {
+        self.compositeKey = Self.makeCompositeKey(
+            ownerHandle: ownerHandle,
+            contentType: contentType,
+            uri: uri
+        )
+        self.itemID = "\(contentType.rawValue)|\(uri)"
         self.uri = uri
+        self.deletionURI = deletionURI
         self.cid = cid
         self.contentTypeRaw = contentType.rawValue
         self.text = text
@@ -63,6 +74,14 @@ public final class ContentItemRecord {
         ContentType(rawValue: contentTypeRaw) ?? .posts
     }
 
+    public static func makeCompositeKey(
+        ownerHandle: String,
+        contentType: ContentType,
+        uri: String
+    ) -> String {
+        "\(ownerHandle)|\(contentType.rawValue)|\(uri)"
+    }
+
     public func toContentItem() -> ContentItem {
         // SwiftData store doesn't yet persist the full media list — when
         // the cache layer lands, decode `mediaJSON` here. For now the
@@ -71,6 +90,7 @@ public final class ContentItemRecord {
         ContentItem(
             uri: uri,
             cid: cid,
+            deletionURI: deletionURI,
             contentType: contentType,
             text: text,
             createdAt: createdAt,

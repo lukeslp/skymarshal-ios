@@ -72,7 +72,7 @@ struct PostDetailView: View {
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("Once it leaves the building, it's gone. Bluesky doesn't have an undo.")
+                Text("This permanently deletes the record from Bluesky. It cannot be undone.")
             }
         }
     }
@@ -131,7 +131,7 @@ struct PostDetailView: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .tint(.red)
+            .tint(Theme.danger)
             .controlSize(.large)
         }
     }

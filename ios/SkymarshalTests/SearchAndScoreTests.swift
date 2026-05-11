@@ -27,6 +27,20 @@ final class SearchAndScoreTests: XCTestCase {
         XCTAssertEqual(item.engagementScore, 10 + 8 + 5)
     }
 
+    func test_contentItem_idIncludesTypeToAvoidSubjectUriCollisions() {
+        let post = ContentItem(uri: "at://x/app.bsky.feed.post/1", cid: "p", contentType: .posts)
+        let like = ContentItem(
+            uri: "at://x/app.bsky.feed.post/1",
+            cid: "p",
+            deletionURI: "at://me/app.bsky.feed.like/abc",
+            contentType: .likes
+        )
+
+        XCTAssertNotEqual(post.id, like.id)
+        XCTAssertEqual(like.deletionURI, "at://me/app.bsky.feed.like/abc")
+        XCTAssertNil(ContentItem(uri: "at://x/post/2", cid: "p", contentType: .likes).deletionURI)
+    }
+
     // MARK: - Media filter + alt text search
 
     func test_search_byMediaFilter_onlyMedia() {

@@ -107,6 +107,33 @@ final class HydrationTests: XCTestCase {
         )
     }
 
+    func test_contentItem_compositeKey_isOwnerAndTypeScoped() throws {
+        let post = ContentItemRecord(
+            uri: "at://subject/app.bsky.feed.post/1",
+            cid: "cid-1",
+            contentType: .posts,
+            ownerHandle: "alice.bsky.social"
+        )
+        let like = ContentItemRecord(
+            uri: "at://subject/app.bsky.feed.post/1",
+            cid: "cid-1",
+            deletionURI: "at://alice/app.bsky.feed.like/abc",
+            contentType: .likes,
+            ownerHandle: "alice.bsky.social"
+        )
+        let otherOwner = ContentItemRecord(
+            uri: "at://subject/app.bsky.feed.post/1",
+            cid: "cid-1",
+            contentType: .posts,
+            ownerHandle: "bob.bsky.social"
+        )
+
+        XCTAssertNotEqual(post.compositeKey, like.compositeKey)
+        XCTAssertNotEqual(post.compositeKey, otherOwner.compositeKey)
+        XCTAssertEqual(like.itemID, "likes|at://subject/app.bsky.feed.post/1")
+        XCTAssertEqual(like.deletionURI, "at://alice/app.bsky.feed.like/abc")
+    }
+
     // MARK: - Helpers
 
     private func makeProfile(

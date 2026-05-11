@@ -137,18 +137,18 @@ public actor ContentService {
             let response = try await self.client.getActorLikes(
                 actor: did, limit: 100, cursor: cursor
             )
-            // getActorLikes returns the *liked* posts in the feed; the
-            // user's Like record is what we'd actually delete, so we
-            // re-tag the contentType. Same URI as the post, but the
-            // delete will hit app.bsky.feed.like via the user's repo
-            // when we build the like-record URI in a follow-on.
+            // getActorLikes returns the liked posts as subjects. The
+            // user's deletable like record lives in post.viewer.like.
             let items = response.feed.map { view -> ContentItem in
                 let base = Self.toContentItem(view)
                 return ContentItem(
-                    uri: base.uri, cid: base.cid, contentType: .likes,
+                    uri: base.uri, cid: base.cid,
+                    deletionURI: view.post.viewer?.like,
+                    contentType: .likes,
                     text: base.text, createdAt: base.createdAt,
                     likeCount: base.likeCount, repostCount: base.repostCount,
-                    replyCount: base.replyCount, media: base.media
+                    replyCount: base.replyCount, media: base.media,
+                    linkCard: base.linkCard, textLinks: base.textLinks
                 )
             }
             return (items, response.cursor)
@@ -207,28 +207,43 @@ public actor ContentService {
 
     // MARK: - Delete
 
-    /// Delete each URI individually. Returns (deletedCount, errorMessages).
+    /// Delete each item individually. Returns (deletedCount, errorMessages).
     /// Each call is wrapped in `RateLimit.withBackoff` inside ``ATProtoClient``
     /// — concurrent fan-out is intentionally avoided so we don't blow past
     /// the per-account write quota faster.
-    public func delete(uris: [String]) async -> (deleted: Int, errors: [String]) {
+    public func delete(itemIDs: [String]) async -> (deleted: Int, errors: [String]) {
         var deleted = 0
         var errors: [String] = []
-        var deletedURIs: [String] = []
-        for uri in uris {
+        var deletedIDs: [String] = []
+        for id in itemIDs {
+            guard let item = loadedContent.first(where: { $0.id == id || $0.uri == id }) else {
+                errors.append("\(id): not in loaded content")
+                continue
+            }
+            guard let deletionURI = item.deletionURI else {
+                errors.append("\(item.uri): no deletable \(item.contentType.label.lowercased()) record")
+                continue
+            }
             do {
-                try await client.deleteRecord(uri: uri)
+                try await client.deleteRecord(uri: deletionURI)
                 deleted += 1
-                loadedContent.removeAll { $0.uri == uri }
-                deletedURIs.append(uri)
+                loadedContent.removeAll { $0.id == item.id }
+                deletedIDs.append(item.id)
             } catch {
-                errors.append("\(uri): \(error.localizedDescription)")
+                errors.append("\(item.uri): \(error.localizedDescription)")
             }
         }
-        if !deletedURIs.isEmpty {
-            deletePersistedContent(uris: deletedURIs)
+        if !deletedIDs.isEmpty {
+            let currentHandle = await client.currentHandle
+            let currentDID = await client.currentDid
+            let owner = currentHandle ?? currentDID
+            deletePersistedContent(itemIDs: deletedIDs, owner: owner)
         }
         return (deleted, errors)
+    }
+
+    public func delete(uris: [String]) async -> (deleted: Int, errors: [String]) {
+        await delete(itemIDs: uris)
     }
 
     // MARK: - Summary
@@ -268,6 +283,7 @@ public actor ContentService {
         return ContentItem(
             uri: post.uri,
             cid: post.cid,
+            deletionURI: deletionURI(for: type, post: post),
             contentType: type,
             text: post.record?.text,
             createdAt: createdAt,
@@ -284,6 +300,19 @@ public actor ContentService {
             // record.reply.parent.uri because the relay enriches it.
             parentReplyURI: view.reply?.parent?.uri ?? post.record?.reply?.parent?.uri
         )
+    }
+
+    private static func deletionURI(for type: ContentType, post: PostView) -> String? {
+        switch type {
+        case .posts, .replies:
+            return post.uri
+        case .reposts:
+            return post.viewer?.repost
+        case .likes:
+            return post.viewer?.like
+        case .all:
+            return nil
+        }
     }
 
     /// Walk an `app.bsky.embed.*#view` and pull out image / video previews
@@ -374,9 +403,13 @@ public actor ContentService {
         let context = ModelContext(container)
         let now = Date()
         for item in items {
-            let uri = item.uri
+            let key = ContentItemRecord.makeCompositeKey(
+                ownerHandle: owner,
+                contentType: item.contentType,
+                uri: item.uri
+            )
             let descriptor = FetchDescriptor<ContentItemRecord>(
-                predicate: #Predicate { $0.uri == uri }
+                predicate: #Predicate { $0.compositeKey == key }
             )
             if let existing = try? context.fetch(descriptor).first {
                 // Refresh counts (engagement may have changed since
@@ -385,12 +418,14 @@ public actor ContentService {
                 existing.repostCount = item.repostCount
                 existing.replyCount = item.replyCount
                 existing.hasMedia = item.hasMedia
+                existing.deletionURI = item.deletionURI
                 existing.parentReplyURI = item.parentReplyURI
                 existing.scannedAt = now
             } else {
                 context.insert(ContentItemRecord(
                     uri: item.uri,
                     cid: item.cid,
+                    deletionURI: item.deletionURI,
                     contentType: item.contentType,
                     text: item.text,
                     createdAt: item.createdAt,
@@ -409,12 +444,19 @@ public actor ContentService {
 
     /// Drop matching cached records after a successful delete so they
     /// don't reappear on cold-start.
-    private func deletePersistedContent(uris: [String]) {
+    private func deletePersistedContent(itemIDs: [String], owner: String?) {
         let context = ModelContext(container)
-        for uri in uris {
-            let descriptor = FetchDescriptor<ContentItemRecord>(
-                predicate: #Predicate { $0.uri == uri }
-            )
+        for id in itemIDs {
+            let descriptor: FetchDescriptor<ContentItemRecord>
+            if let owner {
+                descriptor = FetchDescriptor<ContentItemRecord>(
+                    predicate: #Predicate { $0.itemID == id && $0.ownerHandle == owner }
+                )
+            } else {
+                descriptor = FetchDescriptor<ContentItemRecord>(
+                    predicate: #Predicate { $0.itemID == id }
+                )
+            }
             if let existing = try? context.fetch(descriptor).first {
                 context.delete(existing)
             }

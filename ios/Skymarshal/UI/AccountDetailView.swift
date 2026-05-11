@@ -204,10 +204,10 @@ struct AccountDetailView: View {
     private var activeStatusPills: [(icon: String, label: String, color: Color)] {
         var out: [(String, String, Color)] = []
         if account.isMutual { out.append(("person.2.fill", "Mutual", .accentColor)) }
-        if account.isDeleted { out.append(("xmark.octagon.fill", "Deleted", .red)) }
-        else if account.isInactive { out.append(("moon.zzz.fill", "Inactive", .orange)) }
+        if account.isDeleted { out.append(("xmark.octagon.fill", "Deleted", Theme.danger)) }
+        else if account.isInactive { out.append(("moon.zzz.fill", "Inactive", Theme.caution)) }
         if account.profile.viewer?.muted == true { out.append(("speaker.slash.fill", "Muted", .secondary)) }
-        if account.profile.viewer?.blockedBy == true { out.append(("hand.raised.fill", "Blocks you", .red)) }
+        if account.profile.viewer?.blockedBy == true { out.append(("hand.raised.fill", "Blocks you", Theme.danger)) }
         if account.profile.viewer?.blocking != nil { out.append(("hand.raised.fill", "You block", .secondary)) }
         return out.map { (icon: $0.0, label: $0.1, color: $0.2) }
     }
@@ -294,7 +294,7 @@ struct AccountDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
                 Image(systemName: "clock.arrow.circlepath")
-                    .foregroundStyle(account.isInactive ? .orange : .secondary)
+                    .foregroundStyle(account.isInactive ? Theme.caution : .secondary)
                 Text("Activity")
                     .font(.subheadline.weight(.semibold))
                 Spacer()
@@ -333,7 +333,7 @@ struct AccountDetailView: View {
         .overlay(alignment: .leading) {
             if account.isInactive {
                 Capsule()
-                    .fill(.orange)
+                    .fill(Theme.caution)
                     .frame(width: 3)
             }
         }
@@ -431,7 +431,7 @@ struct AccountDetailView: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .tint(.red)
+            .tint(Theme.danger)
             .controlSize(.large)
         }
     }
@@ -524,9 +524,9 @@ public enum BotFlagSeverity: Sendable, Equatable {
 
     public var color: Color {
         switch self {
-        case .high:   return .red
-        case .medium: return .orange
-        case .low:    return .yellow
+        case .high:   return Theme.danger
+        case .medium: return Theme.caution
+        case .low:    return Theme.warn
         }
     }
 

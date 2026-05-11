@@ -47,7 +47,7 @@ struct ContentListView: View {
     }
 
     private var allFilteredSelected: Bool {
-        !filteredItems.isEmpty && selection == Set(filteredItems.map(\.uri))
+        !filteredItems.isEmpty && selection == Set(filteredItems.map(\.id))
     }
 
     /// Build a JSON ExportPayload synchronously for the share menu.
@@ -65,7 +65,7 @@ struct ContentListView: View {
     private func pruneSelectionToVisible() {
         guard editMode.isEditing, !selection.isEmpty else { return }
         let before = selection.count
-        let visible = Set(filteredItems.map(\.uri))
+        let visible = Set(filteredItems.map(\.id))
         selection.formIntersection(visible)
         let removed = before - selection.count
         // VoiceOver / Switch Control users won't see the count change
@@ -145,7 +145,7 @@ struct ContentListView: View {
                         visibleCount: filteredItems.count,
                         allSelected: allFilteredSelected,
                         onToggleAll: {
-                            let all = Set(filteredItems.map(\.uri))
+                            let all = Set(filteredItems.map(\.id))
                             selection = allFilteredSelected ? [] : all
                         },
                         onDelete: { pendingDeletion = Array(selection) }
@@ -170,7 +170,7 @@ struct ContentListView: View {
                         ForEach(filteredItems) { item in
                             ContentRow(item: item)
                                 .listRowBackground(
-                                    selection.contains(item.uri)
+                                    selection.contains(item.id)
                                     ? Color.accentColor.opacity(0.08)
                                     : Color(.systemBackground)
                                 )
@@ -182,7 +182,7 @@ struct ContentListView: View {
                                 }
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     Button(role: .destructive) {
-                                        pendingDeletion = [item.uri]
+                                        pendingDeletion = [item.id]
                                     } label: {
                                         Label("Delete", systemImage: "trash")
                                     }
@@ -191,9 +191,9 @@ struct ContentListView: View {
                                 // VoiceOver users reach the same delete
                                 // action without invoking the rotor.
                                 .accessibilityAction(named: Text("Delete")) {
-                                    pendingDeletion = [item.uri]
+                                    pendingDeletion = [item.id]
                                 }
-                                .tag(item.uri)
+                                .tag(item.id)
                         }
                     }
                 }
@@ -288,9 +288,9 @@ struct ContentListView: View {
             // if the user types "Trump" → 47 results → Edit → Select All →
             // then mis-taps the search clear-X, keyword resets to "" and
             // the visible list jumps to thousands. Without this guard,
-            // `selection` still holds the 47 URIs but the user can't
+            // `selection` still holds the 47 item IDs but the user can't
             // see them — they could bulk-delete content they didn't
-            // intend. Drop any selected URI that's no longer visible
+            // intend. Drop any selected item that's no longer visible
             // under the new filter.
             .onChange(of: keyword) { pruneSelectionToVisible() }
             .onChange(of: scope) { pruneSelectionToVisible() }
@@ -305,7 +305,7 @@ struct ContentListView: View {
             .sheet(item: $detailItem) { item in
                 PostDetailView(item: item) {
                     Task {
-                        _ = await model.delete(uris: [item.uri])
+                        _ = await model.delete(itemIDs: [item.id])
                     }
                 }
             }
@@ -374,7 +374,7 @@ struct ContentListView: View {
     }
 
     private func performDeletion(_ batch: [String]) async {
-        _ = await model.delete(uris: batch)
+        _ = await model.delete(itemIDs: batch)
         selection.removeAll()
         pendingDeletion = nil
     }
