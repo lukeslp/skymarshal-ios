@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import SkymarshalCore
 
 @available(iOS 17, *)
@@ -66,6 +67,9 @@ struct LoginView: View {
                             Label(error, systemImage: "exclamationmark.triangle.fill")
                                 .foregroundStyle(.red)
                                 .symbolRenderingMode(.hierarchical)
+                                .accessibilityElement(children: .combine)
+                                .accessibilityLabel("Sign-in error: \(error)")
+                                .accessibilityAddTraits(.isStaticText)
                         }
                     }
 
@@ -98,6 +102,16 @@ struct LoginView: View {
                 }
             }
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: showEasterEgg)
+            .onChange(of: model.errorMessage) { _, newValue in
+                if let msg = newValue, !msg.isEmpty {
+                    // WCAG 4.1.3 — announce the error so VoiceOver
+                    // users hear it without re-navigating to the form.
+                    UIAccessibility.post(
+                        notification: .announcement,
+                        argument: "Sign-in error: \(msg)"
+                    )
+                }
+            }
         }
     }
 }

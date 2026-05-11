@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import SkymarshalCore
 
 /// The main authenticated screen: list of own content with searchable
@@ -56,8 +57,19 @@ struct ContentListView: View {
 
     private func pruneSelectionToVisible() {
         guard editMode.isEditing, !selection.isEmpty else { return }
+        let before = selection.count
         let visible = Set(filteredItems.map(\.uri))
         selection.formIntersection(visible)
+        let removed = before - selection.count
+        // VoiceOver / Switch Control users won't see the count change
+        // in the EditActionBar — post a live-region announcement so
+        // the drop is audible. WCAG 4.1.3 Status Messages.
+        if removed > 0 {
+            UIAccessibility.post(
+                notification: .announcement,
+                argument: "\(removed) items removed from selection — outside the new filter"
+            )
+        }
     }
 
     var body: some View {
