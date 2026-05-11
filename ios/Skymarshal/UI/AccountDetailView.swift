@@ -9,6 +9,8 @@ import SkymarshalCore
 @available(iOS 17, *)
 struct AccountDetailView: View {
     let account: AnalyzedAccount
+    /// When true, confirmation offers a simulate action and copy matches bulk dry-run mode.
+    var dryRunUnfollow: Bool = false
     let onUnfollow: () -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -58,16 +60,30 @@ struct AccountDetailView: View {
                 }
             }
             .confirmationDialog(
-                "Unfollow @\(account.handle)?",
+                dryRunUnfollow
+                    ? "Simulate unfollow @\(account.handle)?"
+                    : "Unfollow @\(account.handle)?",
                 isPresented: $showUnfollowConfirm
             ) {
-                Button("Unfollow", role: .destructive) {
-                    onUnfollow()
-                    dismiss()
+                if dryRunUnfollow {
+                    Button("Simulate unfollow") {
+                        onUnfollow()
+                        dismiss()
+                    }
+                    .accessibilityLabel("Simulate unfollow for @\(account.handle)")
+                } else {
+                    Button("Unfollow", role: .destructive) {
+                        onUnfollow()
+                        dismiss()
+                    }
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("Removes you as a follower. They keep their content; you keep yours. Unfollows go through the same rate-limit safety net as deletes.")
+                if dryRunUnfollow {
+                    Text("Preview only — no changes are sent to Bluesky. Turn off “Dry-run unfollow” in the followers toolbar to unfollow for real.")
+                } else {
+                    Text("Removes you as a follower. They keep their content; you keep yours. Unfollows go through the same rate-limit safety net as deletes.")
+                }
             }
             .sheet(isPresented: $showInteractions) {
                 InteractionHistoryView(target: account)
@@ -442,15 +458,28 @@ struct AccountDetailView: View {
                 .accessibilityHint("Read-only lists — not a full Bluesky client timeline.")
             }
 
-            Button(role: .destructive) {
-                showUnfollowConfirm = true
-            } label: {
-                Label("Unfollow", systemImage: "person.crop.circle.badge.minus")
-                    .frame(maxWidth: .infinity)
+            if dryRunUnfollow {
+                Button {
+                    showUnfollowConfirm = true
+                } label: {
+                    Label("Simulate unfollow", systemImage: "person.crop.circle.badge.minus")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .tint(Theme.scope)
+                .accessibilityHint("Preview only. No changes are sent to Bluesky.")
+            } else {
+                Button(role: .destructive) {
+                    showUnfollowConfirm = true
+                } label: {
+                    Label("Unfollow", systemImage: "person.crop.circle.badge.minus")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Theme.danger)
+                .controlSize(.large)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(Theme.danger)
-            .controlSize(.large)
         }
     }
 

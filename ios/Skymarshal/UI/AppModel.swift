@@ -312,9 +312,9 @@ final class AppModel {
         }
     }
 
-    func unfollow(dids: [String]) async -> (done: Int, errors: [String]) {
-        let result = await followers.unfollow(dids: dids)
-        if !dids.isEmpty {
+    func unfollow(dids: [String], dryRun: Bool = false) async -> (done: Int, errors: [String]) {
+        let result = await followers.unfollow(dids: dids, dryRun: dryRun)
+        if !dryRun, !dids.isEmpty {
             self.accounts.removeAll { dids.contains($0.did) }
             self.scanSummary = await followers.summary
         }

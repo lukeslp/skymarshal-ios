@@ -16,7 +16,7 @@ TestFlight Public Link goes here once the current build clears Beta App Review.
 
 **Content tab.** Search every post, reply, repost, and like in your archive. Filter by keyword, content type, date range, engagement count, alt-text, presence of media. Sort results (newest/oldest/highest or lowest engagement). Save named filter presets per account. Open **Insights** for on-device analytics (engagement distribution, posting hours/days, top words) — no analytics SDKs. Swipe-delete one at a time or Select All from a search result and delete a hundred at once. Bulk delete ≥ 100 items goes through a typed-confirm sheet so the intent is unambiguous.
 
-**Followers tab.** Pull your full follow list and score every account against six bot signals plus inactivity and follower asymmetry. Sort, filter, segmented bot-sensitivity preset (Strict / Balanced / Loose). One-tap **cleanup presets** (inactive, automation signals, disengaged, follower skew). Optional **dry-run unfollow** previews bulk unfollow without calling the API. Bulk unfollow with the same rate-limit safety net the bulk delete uses. Per-account "this isn't an automated account" whitelist for false positives.
+**Followers tab.** Pull your full follow list and score every account against six bot signals plus inactivity and follower asymmetry. Sort, filter, segmented bot-sensitivity preset (Strict / Balanced / Loose). One-tap **cleanup presets** (inactive, automation signals, disengaged, follower skew). Optional **dry-run unfollow** previews unfollows (bulk confirmation and single-account sheet) with **no XRPC writes** when the toggle is on. Bulk unfollow uses the same rate-limit safety net as bulk delete. Per-account "this isn't an automated account" whitelist for false positives.
 
 **Profile explorer.** From an account sheet, open read-only **followers** and **following** lists (paginated XRPC) — not a full Bluesky client timeline.
 
@@ -49,7 +49,9 @@ Content rows distinguish between the subject URI being displayed and the record 
 
 ## Repo layout
 
-Architecture overview (iOS layers, services, reference provenance): [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Upstream vs iOS feature scope (checklist): [`docs/UPSTREAM_FEATURE_GAP.md`](docs/UPSTREAM_FEATURE_GAP.md). Migration notes and Python-vs-TS drift rules: [`MIGRATION.md`](MIGRATION.md). Frozen upstream snapshot for parity: [`reference/README.md`](reference/README.md).
+**Documentation map** (where to read first): [`docs/README.md`](docs/README.md).
+
+Architecture overview (iOS layers, services, reference provenance): [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). SwiftUI UX guardrails for contributors: [`docs/CONTRIBUTOR_UX.md`](docs/CONTRIBUTOR_UX.md). Upstream vs iOS feature scope (checklist): [`docs/UPSTREAM_FEATURE_GAP.md`](docs/UPSTREAM_FEATURE_GAP.md). Large-branch review / council synthesis: [`docs/TEAM_CONSENSUS_DECISION_PACKAGE.md`](docs/TEAM_CONSENSUS_DECISION_PACKAGE.md). Migration notes and Python-vs-TS drift rules: [`MIGRATION.md`](MIGRATION.md). Frozen upstream snapshot for parity: [`reference/README.md`](reference/README.md).
 
 ```
 ios/
@@ -67,7 +69,7 @@ ios/
   SkymarshalTests/         # XCTest — 145 unit cases
   SkymarshalUITests/       # XCUITest — 2 AX5 regression cases
   project.yml              # xcodegen spec
-docs/                      # ARCHITECTURE.md, UPSTREAM_FEATURE_GAP.md
+docs/                      # README hub, ARCHITECTURE, CONTRIBUTOR_UX, GAP, review artifacts
 reference/                 # frozen Python + TS lift — see reference/README.md
 app-store/                 # paste-ready submission docs
 ```

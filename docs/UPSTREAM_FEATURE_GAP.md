@@ -6,6 +6,8 @@ This document compares **upstream Skymarshal** (Python CLI, Flask API, React web
 
 **Portable provenance:** Commits and lift paths are recorded in [`MIGRATION.md`](../MIGRATION.md) (public repos [`lukeslp/skymarshal`](https://github.com/lukeslp/skymarshal), [`lukeslp/skymarshal-web`](https://github.com/lukeslp/skymarshal-web)). Local deploy trees (e.g. `~/servers/skymarshal` on a dev machine) should match those repos but are not authoritative.
 
+**Documentation hub:** All first-party docs (architecture, UX checklist for SwiftUI, review artifacts) are indexed from [`docs/README.md`](README.md).
+
 ---
 
 ## Legend

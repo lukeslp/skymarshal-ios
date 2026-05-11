@@ -348,8 +348,20 @@ struct BluescreenView: View {
             .environment(\.editMode, $editMode)
             .searchable(text: $keyword, prompt: "Search handle or name")
             .sheet(item: $detailAccount) { acc in
-                AccountDetailView(account: acc) {
-                    Task { _ = await model.unfollow(dids: [acc.did]) }
+                AccountDetailView(account: acc, dryRunUnfollow: unfollowDryRun) {
+                    Task {
+                        let (_, errors) = await model.unfollow(dids: [acc.did], dryRun: unfollowDryRun)
+                        await MainActor.run {
+                            if unfollowDryRun {
+                                if errors.isEmpty {
+                                    dryRunBannerMessage =
+                                        "Dry run — would unfollow @\(acc.handle). No changes sent to Bluesky."
+                                } else {
+                                    dryRunBannerMessage = "Dry run — \(errors.joined(separator: "; "))"
+                                }
+                            }
+                        }
+                    }
                 }
             }
             .sheet(isPresented: $showFilterSheet) {

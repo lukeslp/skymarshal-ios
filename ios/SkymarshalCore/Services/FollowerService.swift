@@ -162,11 +162,14 @@ public actor FollowerService {
     }
 
     /// Bulk unfollow. The follow record URI is in `viewer.following` on
-    /// each AnalyzedAccount's profile. Each call goes through
+    /// each AnalyzedAccount's profile. Each real call goes through
     /// `RateLimit.withBackoff` inside ``ATProtoClient/deleteRecord(uri:)``
     /// — concurrent fan-out is intentionally avoided so we don't sprint
     /// past the per-account write budget.
-    public func unfollow(dids: [String]) async -> (done: Int, errors: [String]) {
+    ///
+    /// When `dryRun` is true, validates each DID and follow record but performs
+    /// no XRPC writes and does not mutate `loaded`.
+    public func unfollow(dids: [String], dryRun: Bool = false) async -> (done: Int, errors: [String]) {
         let owner = await client.currentHandle
         var done = 0
         var errors: [String] = []
@@ -177,6 +180,10 @@ public actor FollowerService {
             }
             guard let followURI = acc.profile.viewer?.following else {
                 errors.append("\(acc.handle): no follow record (already unfollowed?)")
+                continue
+            }
+            if dryRun {
+                done += 1
                 continue
             }
             do {

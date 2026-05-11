@@ -12,7 +12,7 @@ The production app lives under [`../ios/`](../ios/). Start with the repository r
 |------|------|
 | [`python/`](python/) | Python reference: `ContentService` orchestration, deletion backoff, models, search — canonical behavior where TS disagrees (see [`../MIGRATION.md`](../MIGRATION.md)). |
 | [`web/`](web/) | TypeScript/browser managers and pages — useful for structural mapping (facades, types); do **not** treat as authoritative over Python for backoff or engagement weights. |
-| [`docs/`](docs/) | Archived upstream docs (CLI/API/architecture). [`docs/README.md`](docs/README.md) is historical marketing for the Python CLI, not the iOS app. |
+| [`docs/`](docs/) | Archived **upstream** docs (CLI/API). For the **shipping iOS** documentation hub, use repo-root [`../docs/README.md`](../docs/README.md) — not this subtree’s `docs/README.md`. |
 | [`sister-templates/`](sister-templates/) | XcodeGen / project patterns copied from related apps. |
 
 ## Lift date and provenance

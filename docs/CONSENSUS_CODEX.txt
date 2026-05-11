@@ -1,0 +1,9 @@
+DISAGREE — split before merge because the branch mixes runtime feature work, storage/schema changes, UI expansion, tests, docs, and generated project metadata across too many risk surfaces.
+
+1. **Top concrete risk:** saved-search schema and AppModel CRUD changes ship together with new ContentListView preset/sort UI, causing persisted presets to be unreadable, duplicated, or incorrectly applied after upgrade.
+
+2. **Highest-value pre-merge check:** run full `xcodegen generate` plus `xcodebuild test -scheme Skymarshal -destination 'platform=iOS Simulator,name=iPhone 17'` from `ios/`, then inspect that regenerated project output is clean/expected.
+
+3. **Kill criterion:** any failing storage migration, saved-search round-trip, or generated-project drift that changes build membership unexpectedly.
+
+4. **Confidence:** medium.
