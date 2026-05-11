@@ -16,7 +16,8 @@ struct TypeChipsRow: View {
     @Binding var scope: ContentType
     let counts: [ContentType: Int]
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    private var reduceMotion: Bool { ReduceMotion.shouldReduce(systemReduceMotion: systemReduceMotion) }
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {

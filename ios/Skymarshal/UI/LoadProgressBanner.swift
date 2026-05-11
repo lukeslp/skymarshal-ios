@@ -11,7 +11,8 @@ struct LoadProgressBanner: View {
     let progress: ContentService.LoadProgress
     let onCancel: () -> Void
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    private var reduceMotion: Bool { ReduceMotion.shouldReduce(systemReduceMotion: systemReduceMotion) }
     @State private var pulse: Bool = false
 
     var body: some View {

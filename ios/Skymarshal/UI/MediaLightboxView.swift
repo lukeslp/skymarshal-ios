@@ -64,7 +64,8 @@ struct MediaLightboxView: View {
 private struct MediaPage: View {
     let item: MediaPreview
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    private var reduceMotion: Bool { ReduceMotion.shouldReduce(systemReduceMotion: systemReduceMotion) }
     @State private var scale: CGFloat = 1.0
     @State private var lastScale: CGFloat = 1.0
 

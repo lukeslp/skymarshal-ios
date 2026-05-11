@@ -10,7 +10,8 @@ import SkymarshalCore
 struct ContentListView: View {
 
     @Environment(AppModel.self) private var model
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    private var reduceMotion: Bool { ReduceMotion.shouldReduce(systemReduceMotion: systemReduceMotion) }
 
     @State private var keyword: String = ""
     @State private var scope: ContentType = .all
@@ -21,6 +22,7 @@ struct ContentListView: View {
     @State private var selection: Set<String> = []
     @State private var editMode: EditMode = .inactive
     @State private var detailItem: ContentItem? = nil
+    @State private var showAbout: Bool = false
 
     /// Threshold for routing through TypedConfirmSheet instead of the
     /// standard confirmationDialog. Set high enough that single-post and
@@ -223,6 +225,11 @@ struct ContentListView: View {
                                 Label("As CSV", systemImage: "tablecells")
                             }
                         }
+                        Button {
+                            showAbout = true
+                        } label: {
+                            Label("About Skymarshal", systemImage: "info.circle")
+                        }
                         Button("Sign out", role: .destructive) {
                             Task { await model.logout() }
                         }
@@ -276,6 +283,9 @@ struct ContentListView: View {
                         _ = await model.delete(uris: [item.uri])
                     }
                 }
+            }
+            .sheet(isPresented: $showAbout) {
+                AboutView()
             }
             // Small batches (< threshold) go through the standard
             // confirmationDialog. Large batches go through

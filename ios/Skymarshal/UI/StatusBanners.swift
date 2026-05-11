@@ -1,4 +1,5 @@
 import SwiftUI
+import SkymarshalCore
 
 /// Two reusable status banners shown above lists during scans / loads.
 ///
@@ -16,7 +17,8 @@ struct LoadProgressBannerLite: View {
     let title: String
     let onCancel: () -> Void
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    private var reduceMotion: Bool { ReduceMotion.shouldReduce(systemReduceMotion: systemReduceMotion) }
     @State private var pulse = false
 
     var body: some View {

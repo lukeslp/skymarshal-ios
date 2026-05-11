@@ -8,7 +8,8 @@ import SkymarshalCore
 @available(iOS 17, *)
 struct BluescreenView: View {
     @Environment(AppModel.self) private var model
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    private var reduceMotion: Bool { ReduceMotion.shouldReduce(systemReduceMotion: systemReduceMotion) }
 
     @State private var keyword: String = ""
     @State private var pendingUnfollow: [String]? = nil

@@ -9,7 +9,8 @@ struct ScanInFlightView: View {
     let progress: ScanProgress?
     let onStop: () -> Void
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    private var reduceMotion: Bool { ReduceMotion.shouldReduce(systemReduceMotion: systemReduceMotion) }
     @State private var pulse = false
 
     var body: some View {

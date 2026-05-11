@@ -7,7 +7,8 @@ struct LoginView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverOn
     @Environment(\.accessibilitySwitchControlEnabled) private var switchControlOn
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    private var reduceMotion: Bool { ReduceMotion.shouldReduce(systemReduceMotion: systemReduceMotion) }
 
     @State private var handle: String = ""
     @State private var appPassword: String = ""

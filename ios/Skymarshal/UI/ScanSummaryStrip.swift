@@ -81,7 +81,8 @@ private struct Pill: View {
     let isActive: Bool
     let onTap: (() -> Void)?
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    private var reduceMotion: Bool { ReduceMotion.shouldReduce(systemReduceMotion: systemReduceMotion) }
 
     var body: some View {
         Group {
