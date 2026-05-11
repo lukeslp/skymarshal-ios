@@ -17,6 +17,7 @@ struct AccountRow: View {
                 .fill(stripeColor)
                 .frame(width: 3)
                 .frame(maxHeight: .infinity)
+                .accessibilityLabel(stripeAccessibilityLabel)
 
             VStack(alignment: .leading, spacing: 5) {
                 // Header: avatar + name + handle on the left, status
@@ -81,6 +82,20 @@ struct AccountRow: View {
         if account.isInactive { return Theme.warn }
         if account.isMutual { return Theme.scope }
         return Color.gray.opacity(0.6)
+    }
+
+    /// Plain-language summary of what the stripe color means. The
+    /// 3pt visual cue is redundant; this label is the non-visual
+    /// equivalent that Switch Control / VoiceOver users hear.
+    private var stripeAccessibilityLabel: String {
+        if account.isDeleted { return "Deleted account" }
+        if !account.userWhitelisted {
+            if account.botScore >= 0.6 { return "High automation signals" }
+            if account.botScore >= 0.3 { return "Moderate automation signals" }
+        }
+        if account.isInactive { return "Inactive account" }
+        if account.isMutual { return "Mutual follow" }
+        return "Account"
     }
 
     private var ratioLabel: String {

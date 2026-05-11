@@ -217,6 +217,7 @@ struct ContentListView: View {
                     } label: {
                         Image(systemName: "person.circle")
                     }
+                    .accessibilityLabel("Account menu")
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -227,6 +228,8 @@ struct ContentListView: View {
                               ? "line.3.horizontal.decrease.circle.fill"
                               : "line.3.horizontal.decrease.circle")
                     }
+                    .accessibilityLabel(filters.hasActiveFilters ? "Filters (active)" : "Filters")
+                    .accessibilityHint("Opens the search filter sheet")
                 }
                 // EditButton intentionally removed — the inline Select
                 // toggle in the picker row handles entering/exiting
@@ -339,10 +342,14 @@ struct ContentRow: View {
             // 3pt leading hairline — Things-3-style category cue. Subtle
             // enough not to compete with text; visible enough to give the
             // eye a rhythm when scrolling through hundreds of rows.
+            // The stripe encodes content type by color — paired with the
+            // SF Symbol below so VoiceOver and colorblind users see the
+            // same category cue.
             Capsule()
                 .fill(item.contentType.stripeColor)
                 .frame(width: 3)
                 .frame(maxHeight: .infinity)
+                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 6) {

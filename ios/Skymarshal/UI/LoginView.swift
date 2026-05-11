@@ -45,8 +45,10 @@ struct LoginView: View {
                             .keyboardType(.emailAddress)
                             .autocorrectionDisabled()
                             .textInputAutocapitalization(.never)
+                            .accessibilityLabel("Bluesky handle")
                         SecureField("app password", text: $appPassword)
                             .textContentType(.password)
+                            .accessibilityLabel("App password")
                     } header: {
                         Text("Climb aboard")
                             .font(.subheadline.weight(.semibold))

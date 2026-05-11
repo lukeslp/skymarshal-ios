@@ -91,10 +91,12 @@ struct FilterSheet: View {
                 TextField("min", text: min)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.center)
-                Text("–").foregroundStyle(.secondary)
+                    .accessibilityLabel("\(title) minimum")
+                Text("–").foregroundStyle(.secondary).accessibilityHidden(true)
                 TextField("max", text: max)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.center)
+                    .accessibilityLabel("\(title) maximum")
             }
         }
     }

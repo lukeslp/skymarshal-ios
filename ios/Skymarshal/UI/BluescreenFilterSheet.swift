@@ -174,11 +174,13 @@ struct BluescreenFilterSheet: View {
                 .keyboardType(decimal ? .decimalPad : .numberPad)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 70)
-            Text("–").foregroundStyle(.secondary)
+                .accessibilityLabel("\(label) minimum")
+            Text("–").foregroundStyle(.secondary).accessibilityHidden(true)
             TextField("max", text: max)
                 .keyboardType(decimal ? .decimalPad : .numberPad)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 70)
+                .accessibilityLabel("\(label) maximum")
         }
     }
 

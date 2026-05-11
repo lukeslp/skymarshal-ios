@@ -250,6 +250,8 @@ struct BluescreenView: View {
                     } label: {
                         Image(systemName: "scope")
                     }
+                    .accessibilityLabel("Scan menu")
+                    .accessibilityHint("Start or stop the follower scan, or export results")
                 }
                 // Select toggle moved inline above the list — toolbar
                 // items are hidden when .searchable is focused, which
