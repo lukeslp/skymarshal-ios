@@ -20,6 +20,11 @@ struct ContentListView: View {
     @State private var editMode: EditMode = .inactive
     @State private var detailItem: ContentItem? = nil
 
+    /// Threshold for routing through TypedConfirmSheet instead of the
+    /// standard confirmationDialog. Set high enough that single-post and
+    /// small-batch deletes stay fast.
+    private static let typedConfirmThreshold = 100
+
     private var effectiveRequest: SearchRequest {
         var req = filters
         let k = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -160,6 +165,12 @@ struct ContentListView: View {
                                         Label("Delete", systemImage: "trash")
                                     }
                                 }
+                                // Non-gesture path so Switch Control /
+                                // VoiceOver users reach the same delete
+                                // action without invoking the rotor.
+                                .accessibilityAction(named: Text("Delete")) {
+                                    pendingDeletion = [item.uri]
+                                }
                                 .tag(item.uri)
                         }
                     }
@@ -248,26 +259,31 @@ struct ContentListView: View {
                     }
                 }
             }
+            // Small batches (< threshold) go through the standard
+            // confirmationDialog. Large batches go through
+            // TypedConfirmSheet — see the .sheet binding below.
             .confirmationDialog(
                 deletionTitle,
-                isPresented: deletionBinding,
+                isPresented: smallDeletionBinding,
                 presenting: pendingDeletion
             ) { batch in
                 Button("Delete \(batch.count)", role: .destructive) {
-                    Task {
-                        let result = await model.delete(uris: batch)
-                        selection.removeAll()
-                        pendingDeletion = nil
-                        if !result.errors.isEmpty {
-                            // For MVP, errors surface via model.errorMessage
-                            // through the underlying service if individual
-                            // calls fail; bulk-error UI is a follow-on.
-                        }
-                    }
+                    Task { await performDeletion(batch) }
                 }
+                .accessibilityLabel("Delete \(batch.count) posts permanently")
+                .accessibilityHint("This action cannot be undone")
                 Button("Cancel", role: .cancel) { pendingDeletion = nil }
             } message: { batch in
-                Text("\(batch.count) item\(batch.count == 1 ? "" : "s") leaves the building. There's no carry-on for this — deletion is permanent.")
+                Text("This permanently deletes \(batch.count) post\(batch.count == 1 ? "" : "s") from Bluesky. It cannot be undone.")
+            }
+            .sheet(isPresented: bigDeletionBinding) {
+                if let batch = pendingDeletion {
+                    TypedConfirmSheet(
+                        count: batch.count,
+                        onConfirm: { Task { await performDeletion(batch) } },
+                        onCancel: { pendingDeletion = nil }
+                    )
+                }
             }
             .overlay {
                 if model.isLoading && model.items.isEmpty && model.loadProgress == nil {
@@ -281,14 +297,33 @@ struct ContentListView: View {
 
     private var deletionTitle: String {
         let count = pendingDeletion?.count ?? 0
-        return "Delete \(count) item\(count == 1 ? "" : "s")?"
+        return "Delete \(count) post\(count == 1 ? "" : "s")?"
     }
 
-    private var deletionBinding: Binding<Bool> {
+    /// Active only when there's a pending deletion under the
+    /// typed-confirm threshold. The standard confirmationDialog
+    /// handles these.
+    private var smallDeletionBinding: Binding<Bool> {
         Binding(
-            get: { pendingDeletion != nil },
+            get: { (pendingDeletion?.count ?? 0) > 0 &&
+                   (pendingDeletion?.count ?? 0) < Self.typedConfirmThreshold },
             set: { if !$0 { pendingDeletion = nil } }
         )
+    }
+
+    /// Active only when the pending deletion is at or above the
+    /// threshold — routes to TypedConfirmSheet for the intent gate.
+    private var bigDeletionBinding: Binding<Bool> {
+        Binding(
+            get: { (pendingDeletion?.count ?? 0) >= Self.typedConfirmThreshold },
+            set: { if !$0 { pendingDeletion = nil } }
+        )
+    }
+
+    private func performDeletion(_ batch: [String]) async {
+        _ = await model.delete(uris: batch)
+        selection.removeAll()
+        pendingDeletion = nil
     }
 }
 

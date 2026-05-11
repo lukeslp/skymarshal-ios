@@ -48,12 +48,16 @@ struct EditActionBar: View {
                     .font(.subheadline.weight(.semibold))
             }
             .buttonStyle(.borderedProminent)
-            .controlSize(.small)
             .tint(.red)
             .disabled(selectionCount == 0)
+            .accessibilityLabel(selectionCount > 0
+                ? "Delete \(selectionCount) selected posts permanently"
+                : "Delete (no selection)")
+            .accessibilityHint("This action cannot be undone")
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
+        .frame(minHeight: 44)
         .background(.thinMaterial)
         .overlay(alignment: .bottom) {
             Divider().opacity(0.5)

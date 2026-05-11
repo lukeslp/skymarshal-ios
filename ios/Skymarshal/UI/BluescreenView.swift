@@ -200,6 +200,12 @@ struct BluescreenView: View {
                                         Label("Unfollow", systemImage: "person.crop.circle.badge.minus")
                                     }
                                 }
+                                // Non-gesture path for Switch Control /
+                                // VoiceOver — same destructive action
+                                // reachable without invoking the rotor.
+                                .accessibilityAction(named: Text("Unfollow")) {
+                                    pendingUnfollow = [account.did]
+                                }
                                 .tag(account.did)
                         }
                     }
