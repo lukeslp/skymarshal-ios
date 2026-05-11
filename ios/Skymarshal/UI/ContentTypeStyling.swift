@@ -4,15 +4,17 @@ import SkymarshalCore
 /// Visual encoding for the four real content types. The Things 3 / Notion
 /// pattern: a thin leading hairline gives the eye a category cue while
 /// scanning a long list, without the saturation noise of a colored row.
+/// Stripe colors come from `Theme` so they hit WCAG 1.4.11 ≥3:1 contrast
+/// in both light and dark mode.
 @available(iOS 17, *)
 extension ContentType {
     var stripeColor: Color {
         switch self {
         case .all:     return .secondary
-        case .posts:   return .accentColor                // Bluesky blue — the canonical "post"
-        case .replies: return Color(red: 0.35, green: 0.78, blue: 0.98)  // soft cyan
-        case .reposts: return Color(red: 0.20, green: 0.78, blue: 0.35)  // muted leaf green
-        case .likes:   return Color(red: 0.95, green: 0.30, blue: 0.55)  // dusty rose
+        case .posts:   return Theme.scope
+        case .replies: return Theme.info
+        case .reposts: return Theme.success
+        case .likes:   return Theme.like
         }
     }
 

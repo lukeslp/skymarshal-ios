@@ -58,7 +58,7 @@ struct LoginView: View {
                         } label: {
                             HStack {
                                 if model.isLoading {
-                                    ProgressView().controlSize(.small).tint(.white)
+                                    ProgressView().controlSize(.small)
                                 }
                                 Text(model.isLoading ? "Signing in…" : "Sign in")
                                     .font(.headline)

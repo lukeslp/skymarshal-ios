@@ -68,11 +68,11 @@ struct AccountRow: View {
     }
 
     private var stripeColor: Color {
-        if account.isDeleted { return .red }
-        if account.botScore >= 0.6 { return .red }
-        if account.botScore >= 0.3 { return .orange }
-        if account.isInactive { return .yellow }
-        if account.isMutual { return .accentColor }
+        if account.isDeleted { return Theme.danger }
+        if account.botScore >= 0.6 { return Theme.danger }
+        if account.botScore >= 0.3 { return Theme.caution }
+        if account.isInactive { return Theme.warn }
+        if account.isMutual { return Theme.scope }
         return Color.gray.opacity(0.6)
     }
 
@@ -120,10 +120,10 @@ private struct StatusPills: View {
                     .accessibilityLabel("Mutual")
             }
             if account.isDeleted {
-                Pill(systemImage: "xmark.octagon.fill", text: "del", color: .red)
+                Pill(systemImage: "xmark.octagon.fill", text: "del", color: Theme.danger)
                     .accessibilityLabel("Deleted account")
             } else if account.isInactive {
-                Pill(systemImage: "moon.zzz.fill", text: "idle", color: .orange)
+                Pill(systemImage: "moon.zzz.fill", text: "idle", color: Theme.caution)
                     .accessibilityLabel("Inactive account")
             }
             if account.botScore > 0 {
@@ -147,7 +147,7 @@ private struct StatusPills: View {
             .foregroundStyle(color)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
-            .background(color.opacity(0.15), in: .capsule)
+            .background(Theme.chipTint(color), in: .capsule)
         }
     }
 }
@@ -166,13 +166,13 @@ struct BotScoreBadge: View {
         .foregroundStyle(color)
         .padding(.horizontal, 6)
         .padding(.vertical, 2)
-        .background(color.opacity(0.15), in: .capsule)
+        .background(Theme.chipTint(color), in: .capsule)
         .accessibilityLabel("Bot score \(Int(score * 100)) of 100")
     }
 
     private var color: Color {
-        if score >= 0.6 { return .red }
-        if score >= 0.3 { return .orange }
+        if score >= 0.6 { return Theme.danger }
+        if score >= 0.3 { return Theme.caution }
         return .secondary
     }
 }

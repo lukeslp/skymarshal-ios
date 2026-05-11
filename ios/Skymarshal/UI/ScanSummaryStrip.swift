@@ -30,35 +30,35 @@ struct ScanSummaryStrip: View {
                 Pill(
                     value: "\(summary.bots)",
                     label: "bots",
-                    color: .red,
+                    color: Theme.danger,
                     isActive: filters.showBots,
                     onTap: { filters.showBots.toggle() }
                 )
                 Pill(
                     value: "\(summary.inactive)",
                     label: "inactive",
-                    color: .orange,
+                    color: Theme.caution,
                     isActive: filters.showInactive,
                     onTap: { filters.showInactive.toggle() }
                 )
                 Pill(
                     value: "\(summary.deleted)",
                     label: "deleted",
-                    color: .red,
+                    color: Theme.danger,
                     isActive: filters.showDeleted,
                     onTap: { filters.showDeleted.toggle() }
                 )
                 Pill(
                     value: "\(summary.mutuals)",
                     label: "mutuals",
-                    color: .accentColor,
+                    color: Theme.scope,
                     isActive: filters.showMutualOnly,
                     onTap: { filters.showMutualOnly.toggle() }
                 )
                 Pill(
                     value: "\(summary.badRatio)",
                     label: "bad ratio",
-                    color: .yellow,
+                    color: Theme.warn,
                     isActive: filters.showBadRatio,
                     onTap: { filters.showBadRatio.toggle() }
                 )
@@ -110,7 +110,7 @@ private struct Pill: View {
         .background(
             isActive
                 ? AnyShapeStyle(color)
-                : AnyShapeStyle(color.opacity(0.10)),
+                : AnyShapeStyle(Theme.chipTint(color)),
             in: .capsule
         )
     }

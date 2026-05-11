@@ -45,9 +45,9 @@ struct InteractionRow: View {
 
     private var stripeColor: Color {
         switch interaction.kind {
-        case .like:   return .pink
-        case .reply:  return Color(red: 0.35, green: 0.78, blue: 0.98)
-        case .repost: return Color(red: 0.20, green: 0.78, blue: 0.35)
+        case .like:   return Theme.like
+        case .reply:  return Theme.info
+        case .repost: return Theme.success
         }
     }
 
