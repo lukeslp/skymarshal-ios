@@ -6,6 +6,8 @@ Skymarshal is a native SwiftUI iOS app targeting iOS 17+. The active app lives i
 
 For what the upstream Python/web/npm stacks include versus this native surface (scope map, not a port backlog), see [`docs/UPSTREAM_FEATURE_GAP.md`](docs/UPSTREAM_FEATURE_GAP.md).
 
+**Documentation hub** (architecture, UX guardrails, review artifacts): [`docs/README.md`](docs/README.md).
+
 Inside `ios/`, `project.yml` is the canonical XcodeGen spec. Do not hand-edit `Skymarshal.xcodeproj` when target settings can be changed in `project.yml`. `SkymarshalCore/` is the framework for models, networking, services, storage, and standards. `Skymarshal/` contains the SwiftUI app, assets, privacy manifest, entitlements, and UI state. Tests are split between `SkymarshalTests/` for XCTest unit coverage and `SkymarshalUITests/` for XCUITest accessibility regressions.
 
 ## Build, Test, and Development Commands
@@ -24,7 +26,7 @@ xcodebuild test -scheme Skymarshal -destination 'platform=iOS Simulator,name=iPh
 
 Use Swift 5.9 conventions: four-space indentation, `UpperCamelCase` for types, `lowerCamelCase` for properties and functions, and descriptive XCTest names such as `testStorageRoundTripPreservesContentType`. Keep shared behavior in `SkymarshalCore`.
 
-Follow existing standards helpers. Use `Theme` colors instead of raw status colors, `ReduceMotion.shouldReduce(...)` for animations, and `RateLimit.withBackoff` for retry behavior. Preserve app-password language and avoid “AI” marketing copy.
+Follow existing standards helpers. Use `Theme` colors instead of raw status colors, `ReduceMotion.shouldReduce(...)` for animations, and `RateLimit.withBackoff` for retry behavior. Preserve app-password language and avoid “AI” marketing copy. For new SwiftUI surfaces, follow [`docs/CONTRIBUTOR_UX.md`](docs/CONTRIBUTOR_UX.md) so layout, menus, and destructive semantics stay consistent with shipped patterns.
 
 For content records, keep display identity separate from destructive identity. `ContentItem.uri` is the subject being shown; `ContentItem.deletionURI` is the AT Protocol record to delete. Likes and reposts must use the viewer record URI, not the subject post URI.
 

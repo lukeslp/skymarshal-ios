@@ -1,5 +1,7 @@
 # Migration provenance
 
+**iOS docs index:** [`docs/README.md`](docs/README.md) (architecture, UX checklist, upstream gap, review artifacts).
+
 This repo is a fresh start. The Python and TypeScript material under `reference/`
 was lifted on **2026-05-09** from these source commits:
 

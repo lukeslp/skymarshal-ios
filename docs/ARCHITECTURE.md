@@ -43,13 +43,27 @@ Companion services:
 | Motion | [`ReduceMotion.shouldReduce`](../ios/SkymarshalCore/Standards/ReduceMotion.swift) at animation sites. |
 | Follower automation signals | [`BluescreenAnalyzer`](../ios/SkymarshalCore/Standards/BluescreenAnalyzer.swift). |
 
+## Contributor UX (SwiftUI)
+
+Shipped screens should stay visually and behaviorally coherent — menus, chips, destructive flows, and motion are part of the architecture boundary for this app. See **[`docs/CONTRIBUTOR_UX.md`](CONTRIBUTOR_UX.md)** for the condensed checklist (Theme, ReduceMotion, Liquid Glass scope, horizontal scroll margins, dry-run vs per-account unfollow scope).
+
+### User-facing contracts (roadmap surfaces)
+
+- **Insights:** Pure on-device aggregation over cached [`ContentItem`](../ios/SkymarshalCore/Models/ContentItem.swift); no network in [`AnalyticsService`](../ios/SkymarshalCore/Services/AnalyticsService.swift). Copy must not imply third-party analytics SDKs.
+- **Power search:** Presets and sort are account-scoped via SwiftData (`SavedSearchPresetRecord`); failures should surface to the user where possible (avoid silent decode drops without recovery UI).
+- **Profile explorer:** Paginated graph reads via [`ProfileService`](../ios/SkymarshalCore/Services/ProfileService.swift); subject to latency, cursoring, and rate limits — UI should tolerate empty/partial pages.
+- **Dry-run unfollow:** Bulk confirmation path in [`BluescreenView`](../ios/Skymarshal/UI/BluescreenView.swift) honors `unfollowDryRun`. The account-detail sheet’s `onUnfollow` still calls `model.unfollow` directly — document as intentional or unify in code; see `CONTRIBUTOR_UX.md`.
+
 ## Reference tree
 
 [`reference/README.md`](../reference/README.md) explains the frozen Python + TypeScript snapshot. **Python wins** on behavioral disputes with TS (backoff, engagement weights) — see [`MIGRATION.md`](../MIGRATION.md).
 
 ## Further reading
 
+- Documentation hub (all `docs/` entry points): [`README.md`](README.md)
 - Contributor workflow: [`AGENTS.md`](../AGENTS.md)
+- Contributor SwiftUI / destructive-flow checklist: [`CONTRIBUTOR_UX.md`](CONTRIBUTOR_UX.md)
 - Lift provenance and drift rules: [`MIGRATION.md`](../MIGRATION.md)
 - Upstream (Python / Flask / web / npm) vs iOS scope: [`UPSTREAM_FEATURE_GAP.md`](UPSTREAM_FEATURE_GAP.md)
+- Large-branch review package: [`TEAM_CONSENSUS_DECISION_PACKAGE.md`](TEAM_CONSENSUS_DECISION_PACKAGE.md)
 - App Store submission notes: [`app-store/`](../app-store/)
