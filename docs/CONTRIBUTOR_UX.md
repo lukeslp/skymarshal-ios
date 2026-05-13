@@ -2,7 +2,18 @@
 
 This repo treats **documentation as part of the product boundary**: new screens should feel like Skymarshal, not like a generic template. The goal is **intentional** layout, typography, color, and motion — the same discipline as strong web product design, applied to SwiftUI and Apple HIG.
 
-These rules align with workspace guidance and [`ios/SkymarshalCore/Standards/Theme.swift`](../ios/SkymarshalCore/Standards/Theme.swift).
+These rules align with workspace guidance and [`ios/SkymarshalCore/Standards/Theme.swift`](../ios/SkymarshalCore/Standards/Theme.swift). Visualization-specific tokens and graph rules: [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md).
+
+---
+
+## UX charter (operations console)
+
+Skymarshal is **air-traffic control**, not a timeline client. Every screen should read as a **small control room**: one obvious primary task per region, dense data only where the user asked for it.
+
+- **Hierarchy:** Prefer **progressive disclosure** — default Content uses a calmer chrome ([`ContentListView`](../ios/Skymarshal/UI/ContentListView.swift) **Full Content tools** toggle in the options menu and **About → Feature lab**). Type tabs, search, list, and destructive gates stay visible; optional stats strip tucks behind the toggle until the user opts in.
+- **Differentiation:** Reuse established motifs (**DotBird** / dot-matrix header, **scope** iconography, leading stripe rows) instead of generic template chrome. Character comes from **rhythm** (spacing, weight, monospaced metadata), not from one-off decorations.
+- **Typography:** Stay **Dynamic Type** safe. Prefer SF weights, tracking, and `monospacedDigit()` over custom fonts unless bundled with full AX testing. Never ship “AI” framing for on-device stats (see **Insights and analytics UI** below).
+- **Liquid Glass:** Navigation layer only — never `.glassEffect()` on list rows or metric pills ([`docs/CONTRIBUTOR_UX.md`](CONTRIBUTOR_UX.md) below).
 
 ---
 
@@ -19,7 +30,7 @@ These rules align with workspace guidance and [`ios/SkymarshalCore/Standards/The
 ## Navigation and density
 
 - **Menu triggers** stay **icon + short word** only; put full dynamic state in the menu’s checkmarked rows or `.accessibilityLabel`, not in the trigger label (iOS 26 circular menus clip verbose text).
-- **Row min-height** targets **≥ 44 pt**; dense follower rows may justify **56–60 pt** when bio + badges stack.
+- **Row min-height:** Apple HIG floor **≥ 44 pt**; **ContentRow** and **AccountRow** ship **56 pt** minimum body height for dense metrics + text at default Dynamic Type. After changing row chrome, re-run **`SkymarshalUITests`** AX5 login test and spot-check Content in Simulator at **AX5** before App Store captures.
 - Horizontal `ScrollView` chip rows: **`.contentMargins(.trailing, 24, for: .scrollContent)`** on the trailing end so the last chip is not clipped mid-glyph. Do not combine with `.scrollClipDisabled()` on the same axis unless you have a deliberate reason.
 
 ## Liquid Glass (iOS 26)
@@ -40,7 +51,7 @@ These rules align with workspace guidance and [`ios/SkymarshalCore/Standards/The
 
 | Concern | Primary files |
 |---------|----------------|
-| Content search / presets / sort | [`ContentListView.swift`](../ios/Skymarshal/UI/ContentListView.swift), [`AppModel.swift`](../ios/Skymarshal/UI/AppModel.swift) |
+| Content search / presets / sort / power strip | [`ContentListView.swift`](../ios/Skymarshal/UI/ContentListView.swift), [`AppModel.swift`](../ios/Skymarshal/UI/AppModel.swift) |
 | Follower cleanup / dry-run | [`BluescreenView.swift`](../ios/Skymarshal/UI/BluescreenView.swift), [`FollowerService`](../ios/SkymarshalCore/Services/FollowerService.swift) |
 | Profile lists | [`ProfileExplorerView.swift`](../ios/Skymarshal/UI/ProfileExplorerView.swift), [`ProfileService.swift`](../ios/SkymarshalCore/Services/ProfileService.swift) |
-| Feature rollout | [`FeatureFlags.swift`](../ios/SkymarshalCore/Standards/FeatureFlags.swift) |
+| Feature rollout + Feature lab | [`FeatureFlags.swift`](../ios/SkymarshalCore/Standards/FeatureFlags.swift), [`AboutView.swift`](../ios/Skymarshal/UI/AboutView.swift) |

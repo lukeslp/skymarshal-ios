@@ -4,7 +4,7 @@ import SkymarshalCore
 /// The "About Skymarshal" sheet. Modeled on whatcolor's
 /// `UITableViewController.insetGrouped` shape but native SwiftUI.
 ///
-/// Five sections — Header / Privacy / Accessibility / Credit / Source.
+/// Seven sections — Header / Privacy / Feature lab / Data / Accessibility / Credit / Source.
 /// No marketing copy, no jargon. The privacy paragraph is the
 /// load-bearing claim of this product; it deserves the second slot.
 @available(iOS 17, *)
@@ -12,6 +12,10 @@ struct AboutView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("sm.reduceMotionOverride") private var motionOverride: Bool = false
     @AppStorage(FeatureFlags.backupRestoreKey) private var featureBackupRestore: Bool = false
+    @AppStorage(FeatureFlags.visualizationHubKey) private var featureVisualizationHub: Bool = false
+    @AppStorage(FeatureFlags.advancedSearchGrammarKey) private var featureAdvancedSearchGrammar: Bool = false
+    @AppStorage(FeatureFlags.wordPatternsKey) private var featureWordPatterns: Bool = false
+    @AppStorage(FeatureFlags.contentPowerToolsExpandedKey) private var contentPowerToolsExpanded: Bool = false
 
     private var versionLine: String {
         let v = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
@@ -24,6 +28,7 @@ struct AboutView: View {
             Form {
                 headerSection
                 privacySection
+                featureLabSection
                 dataToolsSection
                 accessibilitySection
                 creditSection
@@ -67,6 +72,21 @@ struct AboutView: View {
                 .foregroundStyle(.primary)
         } header: {
             Text("Privacy").font(.subheadline.weight(.semibold))
+        }
+    }
+
+    @ViewBuilder
+    private var featureLabSection: some View {
+        Section {
+            Toggle("Scope tab (visualization hub)", isOn: $featureVisualizationHub)
+            Toggle("Advanced search grammar", isOn: $featureAdvancedSearchGrammar)
+            Toggle("Word patterns in Insights", isOn: $featureWordPatterns)
+            Toggle("Full Content tools strip", isOn: $contentPowerToolsExpanded)
+        } header: {
+            Text("Feature lab").font(.subheadline.weight(.semibold))
+        } footer: {
+            Text("Optional surfaces default off except where noted. Scope adds a third tab when on. Content strip shows counts and average engagement under the search bar.")
+                .font(.caption2)
         }
     }
 

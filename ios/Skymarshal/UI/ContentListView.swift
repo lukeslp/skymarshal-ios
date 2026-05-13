@@ -33,6 +33,7 @@ struct ContentListView: View {
     @AppStorage(FeatureFlags.analyticsInsightsKey) private var featureAnalytics: Bool = true
     @AppStorage(FeatureFlags.savedSearchPresetsKey) private var featureSavedSearch: Bool = true
     @AppStorage(FeatureFlags.advancedSearchGrammarKey) private var featureAdvancedSearch: Bool = false
+    @AppStorage(FeatureFlags.contentPowerToolsExpandedKey) private var contentPowerToolsExpanded: Bool = false
 
     @State private var showAdvancedSearch: Bool = false
 
@@ -143,7 +144,7 @@ struct ContentListView: View {
 
                 ActiveFilterChips(filters: $filters)
 
-                if !filteredItems.isEmpty {
+                if contentPowerToolsExpanded && !filteredItems.isEmpty {
                     HStack {
                         Text("\(filteredItems.count) visible")
                         Text("·")
@@ -359,10 +360,16 @@ struct ContentListView: View {
                                 }
                             }
                         }
+
+                        Section {
+                            Toggle("Full Content tools", isOn: $contentPowerToolsExpanded)
+                        } footer: {
+                            Text("When on, shows the result stats strip (count and average engagement). Filter chips still appear whenever filters are active.")
+                        }
                     } label: {
                         Image(systemName: "ellipsis.circle")
                     }
-                    .accessibilityLabel("View options — filters, sort, insights, saved searches")
+                    .accessibilityLabel("View options — filters, sort, insights, saved searches, display")
                 }
                 // EditButton intentionally removed — the inline Select
                 // toggle in the picker row handles entering/exiting
@@ -632,7 +639,7 @@ struct ContentRow: View {
             }
         }
         .padding(.vertical, 6)
-        .frame(minHeight: 44)
+        .frame(minHeight: 56)
     }
 
     @ViewBuilder

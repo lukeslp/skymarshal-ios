@@ -1,7 +1,7 @@
 # Design System: Skymarshal Ops Visual Language
 
 **Version:** 1.0.0  
-**Last Updated:** 2026-05-12  
+**Last Updated:** 2026-05-13  
 **Platform:** iOS 17+ (SwiftUI)  
 **Scope:** New parity + visualization surfaces
 
@@ -12,6 +12,8 @@ Skymarshal expansion adopts an **operations-console** aesthetic:
 - High-contrast semantic status colors from existing `Theme`
 - Radar-like focus rings and restrained motion
 - Legibility and trust over ornamental density
+
+**App-wide UX charter (hierarchy, progressive disclosure, typography discipline):** see **[`CONTRIBUTOR_UX.md`](CONTRIBUTOR_UX.md) — UX charter** at the top of that file. This document owns **visualization** tokens and graph encoding; contributor SwiftUI checklist + Content power strip live in CONTRIBUTOR_UX.
 
 ## 2) Color Tokens
 

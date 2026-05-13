@@ -11,8 +11,8 @@ struct AccountRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            // Min 44pt outer height — S1 fix so AX text sizes can't
-            // collapse the row below Apple HIG.
+            // Min 56pt outer target — dense bio + badges; HIG floor 44pt
+            // with padding for comfortable tap targets at default type.
             Capsule()
                 .fill(stripeColor)
                 .frame(width: 3)
@@ -68,7 +68,7 @@ struct AccountRow: View {
             }
         }
         .padding(.vertical, 6)
-        .frame(minHeight: 44)
+        .frame(minHeight: 56)
     }
 
     private var stripeColor: Color {

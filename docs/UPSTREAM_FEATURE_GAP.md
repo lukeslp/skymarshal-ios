@@ -36,6 +36,11 @@ This document compares **upstream Skymarshal** (Python CLI, Flask API, React web
 | Saved search presets + list sort | [`SavedSearchPresetRecord`](../ios/SkymarshalCore/Storage/StorageModels.swift), [`ContentSortOrder`](../ios/SkymarshalCore/Models/ContentSortOrder.swift), [`ContentListView`](../ios/Skymarshal/UI/ContentListView.swift) |
 | Follower cleanup presets + unfollow dry-run | [`CleanupPreset`](../ios/SkymarshalCore/Models/CleanupPreset.swift), [`BluescreenView`](../ios/Skymarshal/UI/BluescreenView.swift) |
 | Profile graph explorer (followers/following lists) | [`ProfileService`](../ios/SkymarshalCore/Services/ProfileService.swift), [`ProfileExplorerView`](../ios/Skymarshal/UI/ProfileExplorerView.swift) |
+| Advanced keyword grammar (+ builder UI; phrases, required/excluded, boundaries) | [`SearchKeywordGrammar`](../ios/SkymarshalCore/Models/SearchKeywordGrammar.swift), [`AdvancedSearchBuilderView`](../ios/Skymarshal/UI/AdvancedSearchBuilderView.swift), flag `sm.feature.advancedSearchGrammar` (default **off** in UI) |
+| Delete preflight in confirmations (counts deletable Bluesky records vs. selection) | [`DeletePreflight`](../ios/SkymarshalCore/Services/DeletePreflight.swift), [`ContentListView`](../ios/Skymarshal/UI/ContentListView.swift) |
+| Word-pattern stats (lexicon hits; not sentiment) | [`WordPatternsService`](../ios/SkymarshalCore/Services/WordPatternsService.swift), [`AnalyticsInsightsView`](../ios/Skymarshal/UI/AnalyticsInsightsView.swift), flag `sm.feature.wordPatterns` (default **off**) |
+| Visualization hub / Scope tab (local summaries, graph snapshot metadata) | [`VisualizationHubView`](../ios/Skymarshal/UI/VisualizationHubView.swift), [`GraphSnapshotWriter`](../ios/SkymarshalCore/Services/GraphSnapshotWriter.swift), graph models in [`StorageModels`](../ios/SkymarshalCore/Storage/StorageModels.swift), flag `sm.feature.visualizationHub` (default **off**) |
+| JSON backup import (integrity + handle/DID checks) | [`ContentBackupImport`](../ios/SkymarshalCore/Services/ContentBackupImport.swift), [`BackupRestoreView`](../ios/Skymarshal/UI/BackupRestoreView.swift), flag `sm.feature.backupRestore` (default **off**) |
 
 ---
 
@@ -45,13 +50,13 @@ Upstream exposes a full terminal product: main menu (search, stats, data, auth, 
 
 | Feature | Disposition | Notes |
 |---------|-------------|--------|
-| Search + refine + export + delete from results | Partial | iOS: [`ContentListView`](../ios/Skymarshal/UI/ContentListView.swift) — saved presets, sort, quick stats; no Rich legend/pagination idioms |
-| Dedicated “statistics / engagement insights” console | Partial | iOS: **Insights** sheet + strip counts — local analytics only; no Rich console tables |
+| Search + refine + export + delete from results | Partial | iOS: [`ContentListView`](../ios/Skymarshal/UI/ContentListView.swift) — saved presets, sort, optional stats strip (collapsible **Power tools**), advanced grammar when enabled; no Rich legend/pagination idioms |
+| Dedicated “statistics / engagement insights” console | Partial | iOS: **Insights** sheet + strip counts — local histograms / hours / top words; optional **word-pattern** lexicon stats when `sm.feature.wordPatterns` is on; no Rich console tables |
 | Data management: multi-file picker, JSON vs backup scenarios | Non-goal | iOS uses SwiftData + single-owner archive load |
 | CAR download / import / process / backup-first pipeline | Non-goal | [`PROJECT_PLAN.md`](../PROJECT_PLAN.md) — API path only on device |
 | Download via API with limit, date range, categories (desktop export files) | Partial | iOS loads paginated feeds into cache; different export destination (share sheet vs `~/skymarshal`) |
 | Refresh / hydrate engagement on loaded files | Partial | Engagement refresh behavior differs; parity rules in [`MIGRATION.md`](../MIGRATION.md) |
-| `DeleteMode`: dry-run for **content** deletes | Partial | [`DeleteMode`](../ios/SkymarshalCore/Models/ContentType.swift) exists; content UI still no dry-run — **unfollow** dry-run exists on Followers tab |
+| `DeleteMode`: dry-run for **content** deletes | Partial | **Unfollow** dry-run on Followers tab ([`BluescreenView`](../ios/Skymarshal/UI/BluescreenView.swift)). **Content** deletes: no full dry-run yet; confirmations include [`DeletePreflight`](../ios/SkymarshalCore/Services/DeletePreflight.swift) counts (records that will delete vs. skipped selections). [`DeleteMode`](../ios/SkymarshalCore/Models/ContentType.swift) exists for model use |
 | Settings manager (Rich) | Partial | iOS: Keychain + [`AppStorage`](../ios/Skymarshal/UI/AboutView.swift) where applicable |
 | Integrated help system | Non-goal | iOS: About / copy; not an interactive help browser |
 | Follower submenu “rank / bots / quality” taxonomy | Partial | iOS: BluescreenView filters + sort; not identical menu structure |
@@ -70,7 +75,7 @@ The unified server wraps managers for a **browser client**. The iOS app calls **
 | `/api/content/search`, delete, CSV export, load, summary | In iOS / Partial | Implemented via `ContentService`; no server-mediated export path |
 | `/api/content/export/car` | Non-goal | CAR |
 | `/api/content/share`, hosted permalink DB | Non-goal | Server-side sharing; iOS uses local export/share |
-| `/api/analytics/*` (sentiment, time patterns, words, insights, …) | Partial | Server sentiment/network analytics remain non-goals; **local** histograms / hours / top words ship via [`AnalyticsService`](../ios/SkymarshalCore/Services/AnalyticsService.swift) |
+| `/api/analytics/*` (sentiment, time patterns, words, insights, …) | Partial | Server sentiment/network analytics remain non-goals; **local** histograms / hours / top words via [`AnalyticsService`](../ios/SkymarshalCore/Services/AnalyticsService.swift); optional on-device **word-pattern** lexicon stats via [`WordPatternsService`](../ios/SkymarshalCore/Services/WordPatternsService.swift) (flagged, not sentiment) |
 | `/api/firehose/*` + SocketIO stream | Non-goal | Jetstream / live firehose |
 | `/api/network/*` (async graph jobs, cache) | Non-goal | Network graphs |
 | `/api/cleanup/*` | Partial | Unfollow/analyze concepts overlap follower tab; no Flask-mediated cleanup |

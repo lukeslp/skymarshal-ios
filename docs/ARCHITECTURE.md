@@ -32,7 +32,7 @@ Companion services:
 - **Word patterns (optional):** [`WordPatternsService`](../ios/SkymarshalCore/Services/WordPatternsService.swift); default-off `sm.feature.wordPatterns`.
 - **Visualization hub (optional):** [`VisualizationHubView`](../ios/Skymarshal/UI/VisualizationHubView.swift), [`GraphSnapshotWriter`](../ios/SkymarshalCore/Services/GraphSnapshotWriter.swift), graph models in [`StorageModels`](../ios/SkymarshalCore/Storage/StorageModels.swift); default-off `sm.feature.visualizationHub`.
 - **Cleanup presets:** [`CleanupPreset`](../ios/SkymarshalCore/Models/CleanupPreset.swift) applied to [`FollowerFilters`](../ios/SkymarshalCore/Models/FollowerFilters.swift).
-- **Rollout toggles:** [`FeatureFlags`](../ios/SkymarshalCore/Standards/FeatureFlags.swift) (`UserDefaults`, keys prefixed `sm.feature.`).
+- **Rollout toggles:** [`FeatureFlags`](../ios/SkymarshalCore/Standards/FeatureFlags.swift) (`UserDefaults`; keys `sm.feature.*` and `sm.ui.contentPowerToolsExpanded` — per-key first-launch defaults documented in source).
 
 ## Network and storage
 

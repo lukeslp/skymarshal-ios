@@ -1,7 +1,7 @@
 # Parity + Visualization Implementation Plan (iOS)
 
-**Status:** Proposed  
-**Updated:** 2026-05-12  
+**Status:** In progress — Phases 1–2 largely **shipped** on `main` (2026-05); Phase 3+ remain planning / partial  
+**Updated:** 2026-05-13  
 **Scope:** Bring upstream CLI/web parity into native iOS where it improves safe cleanup outcomes, plus account/post/interaction visualizations.
 
 ## Executive Direction
@@ -41,6 +41,10 @@ Priority order:
 - Performance budgets + regression gates + release kill criteria
 
 ## Phase Plan
+
+### Shipment snapshot (`main`, 2026-05)
+
+**Delivered:** Grammar v1 + tests; `DeletePreflight` + confirmation copy; SwiftData graph schema + `GraphSnapshotWriter`; Visualization Hub alpha (Scope tab, default off); word-pattern lexicon stats (default off); JSON backup import with integrity gate (default off); advanced search builder (default off). **Partial vs this doc:** “Delete review center” is preflight + typed confirm, not a separate review browser; hub graphs are bounded summaries, not full ego-ring force layout; baseline perf reports and `BGAppRefresh`/`BGProcessing` scaffolding are not yet committed. **Phase 3:** sentiment/correlation analytics and restore-preview diff remain open; import/merge is further along than full CAR center.
 
 ## Phase 1 — Foundation + Safety Gates
 
