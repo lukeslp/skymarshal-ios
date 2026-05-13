@@ -74,6 +74,15 @@ reference/                 # frozen Python + TS lift — see reference/README.md
 app-store/                 # paste-ready submission docs
 ```
 
+## Public Release Pack
+
+For public launch prep and App Store submission, use:
+
+- `app-store/PUBLIC_RELEASE_PACK.md`
+- `app-store/PUBLIC_RELEASE_COPY.md`
+- `app-store/PUBLIC_RELEASE_ASSETS.md`
+- `app-store/PUBLIC_RELEASE_RUNBOOK.md`
+
 ## License
 
 MIT — © 2026 Luke Steuber.

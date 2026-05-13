@@ -34,3 +34,23 @@ Shipped in-repo: on-device **Insights** analytics, **saved search presets**, **c
 - Orchestration: [`ios/SkymarshalCore/Services/ContentService.swift`](ios/SkymarshalCore/Services/ContentService.swift).
 - Behavioral parity with Python reference: [`MIGRATION.md`](MIGRATION.md), [`reference/README.md`](reference/README.md).
 - Full upstream vs iOS scope map (not a port backlog): [`docs/UPSTREAM_FEATURE_GAP.md`](docs/UPSTREAM_FEATURE_GAP.md).
+
+## Release ops addendum (2026-05-12)
+
+Objective: keep public App Store release prep executable end-to-end from docs.
+
+Completed:
+
+- Added `app-store/PUBLIC_RELEASE_PACK.md` as the release index.
+- Added `app-store/PUBLIC_RELEASE_COPY.md` with paste-ready listing and launch copy.
+- Added `app-store/PUBLIC_RELEASE_ASSETS.md` with iOS asset requirements and QA checks.
+- Added `app-store/PUBLIC_RELEASE_RUNBOOK.md` with pre-submit and launch operations.
+- Added `app-store/APP_STORE_CONNECT_PASTE_SESSION.md` with exact App Store Connect field order.
+- Updated `README.md` with direct links to the release pack.
+
+Remaining:
+
+- Confirm final screenshot exports for required iPhone size classes.
+- Verify marketing, support, and privacy pages are live and consistent with listing language.
+- Execute paste session and submit release build.
+- Prepare 72-hour post-launch support and review-response cadence.
