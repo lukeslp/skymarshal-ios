@@ -51,7 +51,7 @@ Content rows distinguish between the subject URI being displayed and the record 
 
 **Documentation map** (where to read first): [`docs/README.md`](docs/README.md).
 
-Architecture overview (iOS layers, services, reference provenance): [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). SwiftUI UX guardrails for contributors: [`docs/CONTRIBUTOR_UX.md`](docs/CONTRIBUTOR_UX.md). Upstream vs iOS feature scope (checklist): [`docs/UPSTREAM_FEATURE_GAP.md`](docs/UPSTREAM_FEATURE_GAP.md). Large-branch review / council synthesis: [`docs/TEAM_CONSENSUS_DECISION_PACKAGE.md`](docs/TEAM_CONSENSUS_DECISION_PACKAGE.md). Migration notes and Python-vs-TS drift rules: [`MIGRATION.md`](MIGRATION.md). Frozen upstream snapshot for parity: [`reference/README.md`](reference/README.md).
+Architecture overview (iOS layers, services, reference provenance): [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). SwiftUI UX guardrails for contributors: [`docs/CONTRIBUTOR_UX.md`](docs/CONTRIBUTOR_UX.md). Upstream vs iOS feature scope (checklist): [`docs/UPSTREAM_FEATURE_GAP.md`](docs/UPSTREAM_FEATURE_GAP.md). Parity + visualization execution roadmap: [`docs/PARITY_VISUALIZATION_PLAN.md`](docs/PARITY_VISUALIZATION_PLAN.md). Expansion UX and design specs: [`docs/UX_SPEC.md`](docs/UX_SPEC.md), [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md). Large-branch review / council synthesis: [`docs/TEAM_CONSENSUS_DECISION_PACKAGE.md`](docs/TEAM_CONSENSUS_DECISION_PACKAGE.md). Migration notes and Python-vs-TS drift rules: [`MIGRATION.md`](MIGRATION.md). Frozen upstream snapshot for parity: [`reference/README.md`](reference/README.md).
 
 ```
 ios/

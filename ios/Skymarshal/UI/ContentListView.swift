@@ -31,6 +31,9 @@ struct ContentListView: View {
 
     @AppStorage(FeatureFlags.analyticsInsightsKey) private var featureAnalytics: Bool = true
     @AppStorage(FeatureFlags.savedSearchPresetsKey) private var featureSavedSearch: Bool = true
+    @AppStorage(FeatureFlags.advancedSearchGrammarKey) private var featureAdvancedSearch: Bool = true
+
+    @State private var showAdvancedSearch: Bool = false
 
     /// Remember-last-choice for the Export submenu. The format the
     /// user picked previously shows first; the alternative shows
@@ -322,6 +325,14 @@ struct ContentListView: View {
                             }
                         }
 
+                        if featureAdvancedSearch {
+                            Button {
+                                showAdvancedSearch = true
+                            } label: {
+                                Label("Advanced search…", systemImage: "text.magnifyingglass")
+                            }
+                        }
+
                         if featureSavedSearch {
                             Section("Saved searches") {
                                 Button {
@@ -380,6 +391,9 @@ struct ContentListView: View {
                         // — FilterSheet mutates its own binding, so we copy.
                         filters = draftFilters
                     }
+            }
+            .sheet(isPresented: $showAdvancedSearch) {
+                AdvancedSearchBuilderView(keyword: $keyword, filters: $filters)
             }
             .sheet(item: $detailItem) { item in
                 PostDetailView(item: item) {

@@ -6,6 +6,10 @@ import SwiftData
 /// (`contentItems`, `engagementCache`, `userSettings`). The other five
 /// stores (`searchHistory`, `backups`, `carFiles`, `bookmarks`,
 /// `growthSnapshots`) are intentionally skipped for the MVP.
+///
+/// **Visualization graph** tables (`GraphSnapshotRecord`, `GraphNodeRecord`,
+/// `GraphEdgeRecord`, `GraphCheckpointRecord`) materialize account/post
+/// relationship views with explicit completeness metadata for UI honesty.
 
 @available(iOS 17, *)
 @Model
@@ -419,6 +423,185 @@ public final class SavedSearchPresetRecord {
     }
 }
 
+// MARK: - Visualization graph (materialized snapshots)
+
+/// Completeness of a graph snapshot — UI must never imply full coverage when `.partial`.
+@available(iOS 17, *)
+public enum GraphCompletenessState: String, Sendable, Codable, CaseIterable {
+    case unknown
+    case partial
+    case complete
+}
+
+/// What produced this snapshot (drives hub tabs and invalidation).
+@available(iOS 17, *)
+public enum GraphSnapshotKind: String, Sendable, Codable, CaseIterable {
+    case accountGraph
+    case interactionGraph
+    case postGraph
+    case timelineHeatmap
+}
+
+@available(iOS 17, *)
+@Model
+public final class GraphSnapshotRecord {
+    @Attribute(.unique) public var id: UUID
+    public var ownerHandle: String
+    public var kindRaw: String
+    public var completenessRaw: String
+    public var generatedAt: Date
+    /// Optional JSON blob for hub-specific metrics (counts, caps hit, etc.).
+    public var summaryJSON: String?
+
+    public init(
+        id: UUID = UUID(),
+        ownerHandle: String,
+        kind: GraphSnapshotKind,
+        completeness: GraphCompletenessState,
+        generatedAt: Date = Date(),
+        summaryJSON: String? = nil
+    ) {
+        self.id = id
+        self.ownerHandle = ownerHandle
+        self.kindRaw = kind.rawValue
+        self.completenessRaw = completeness.rawValue
+        self.generatedAt = generatedAt
+        self.summaryJSON = summaryJSON
+    }
+
+    public var kind: GraphSnapshotKind {
+        GraphSnapshotKind(rawValue: kindRaw) ?? .accountGraph
+    }
+
+    public var completeness: GraphCompletenessState {
+        GraphCompletenessState(rawValue: completenessRaw) ?? .unknown
+    }
+}
+
+@available(iOS 17, *)
+@Model
+public final class GraphNodeRecord {
+    @Attribute(.unique) public var compositeKey: String
+    public var ownerHandle: String
+    public var snapshotId: UUID
+    /// Stable node identifier (typically DID or AT URI).
+    public var nodeId: String
+    public var displayLabel: String?
+    public var nodeKindRaw: String
+    public var completenessRaw: String
+    public var lastSyncedAt: Date
+
+    public init(
+        ownerHandle: String,
+        snapshotId: UUID,
+        nodeId: String,
+        displayLabel: String? = nil,
+        nodeKind: String = "account",
+        completeness: GraphCompletenessState = .unknown,
+        lastSyncedAt: Date = Date()
+    ) {
+        self.compositeKey = Self.makeCompositeKey(
+            ownerHandle: ownerHandle,
+            snapshotId: snapshotId,
+            nodeId: nodeId
+        )
+        self.ownerHandle = ownerHandle
+        self.snapshotId = snapshotId
+        self.nodeId = nodeId
+        self.displayLabel = displayLabel
+        self.nodeKindRaw = nodeKind
+        self.completenessRaw = completeness.rawValue
+        self.lastSyncedAt = lastSyncedAt
+    }
+
+    public static func makeCompositeKey(ownerHandle: String, snapshotId: UUID, nodeId: String) -> String {
+        "\(ownerHandle)|\(snapshotId.uuidString)|\(nodeId)"
+    }
+
+    public var completeness: GraphCompletenessState {
+        GraphCompletenessState(rawValue: completenessRaw) ?? .unknown
+    }
+}
+
+@available(iOS 17, *)
+@Model
+public final class GraphEdgeRecord {
+    @Attribute(.unique) public var compositeKey: String
+    public var ownerHandle: String
+    public var snapshotId: UUID
+    public var sourceNodeId: String
+    public var targetNodeId: String
+    public var edgeTypeRaw: String
+    public var weight: Double
+    public var provenanceJSON: String?
+    public var createdAt: Date
+
+    public init(
+        ownerHandle: String,
+        snapshotId: UUID,
+        sourceNodeId: String,
+        targetNodeId: String,
+        edgeType: String,
+        weight: Double = 1,
+        provenanceJSON: String? = nil,
+        createdAt: Date = Date()
+    ) {
+        self.compositeKey = Self.makeCompositeKey(
+            ownerHandle: ownerHandle,
+            snapshotId: snapshotId,
+            sourceNodeId: sourceNodeId,
+            targetNodeId: targetNodeId,
+            edgeType: edgeType
+        )
+        self.ownerHandle = ownerHandle
+        self.snapshotId = snapshotId
+        self.sourceNodeId = sourceNodeId
+        self.targetNodeId = targetNodeId
+        self.edgeTypeRaw = edgeType
+        self.weight = weight
+        self.provenanceJSON = provenanceJSON
+        self.createdAt = createdAt
+    }
+
+    public static func makeCompositeKey(
+        ownerHandle: String,
+        snapshotId: UUID,
+        sourceNodeId: String,
+        targetNodeId: String,
+        edgeType: String
+    ) -> String {
+        "\(ownerHandle)|\(snapshotId.uuidString)|\(sourceNodeId)|\(targetNodeId)|\(edgeType)"
+    }
+}
+
+/// Resume tokens for incremental graph materialization (per owner + logical scope).
+@available(iOS 17, *)
+@Model
+public final class GraphCheckpointRecord {
+    @Attribute(.unique) public var scopeKey: String
+    public var ownerHandle: String
+    public var scopeKindRaw: String
+    public var cursorJSON: String?
+    public var updatedAt: Date
+
+    public init(
+        ownerHandle: String,
+        scopeKind: GraphSnapshotKind,
+        cursorJSON: String? = nil,
+        updatedAt: Date = Date()
+    ) {
+        self.scopeKey = "\(ownerHandle)|\(scopeKind.rawValue)"
+        self.ownerHandle = ownerHandle
+        self.scopeKindRaw = scopeKind.rawValue
+        self.cursorJSON = cursorJSON
+        self.updatedAt = updatedAt
+    }
+
+    public var scopeKind: GraphSnapshotKind {
+        GraphSnapshotKind(rawValue: scopeKindRaw) ?? .accountGraph
+    }
+}
+
 /// SwiftData container factory for the app and tests.
 @available(iOS 17, *)
 public enum SkymarshalSchema {
@@ -428,6 +611,10 @@ public enum SkymarshalSchema {
         UserSettingsRecord.self,
         AnalyzedAccountRecord.self,
         SavedSearchPresetRecord.self,
+        GraphSnapshotRecord.self,
+        GraphNodeRecord.self,
+        GraphEdgeRecord.self,
+        GraphCheckpointRecord.self,
     ]
 
     public static func makeContainer(

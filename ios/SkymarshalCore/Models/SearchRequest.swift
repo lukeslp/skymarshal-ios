@@ -24,6 +24,13 @@ public struct SearchRequest: Hashable, Sendable, Codable {
     public var mediaFilter: MediaFilter?
     public var includeAltTextInKeyword: Bool
     public var limit: Int
+    /// When `true`, ``keyword`` is parsed with ``SearchKeywordGrammar``
+    /// (`+required`, `-excluded`, `"phrase"`, `plain` OR-terms, `\bword\b`).
+    /// Optional so older saved presets decode without migration.
+    public var advancedKeywordGrammar: Bool?
+    /// Case-insensitive substring match against the item's `at://` URI (e.g.
+    /// filter likes/reposts toward posts whose URI contains a DID fragment).
+    public var subjectUriContains: String?
 
     public init(
         keyword: String? = nil,
@@ -39,6 +46,8 @@ public struct SearchRequest: Hashable, Sendable, Codable {
         excludedUris: Set<String>? = nil,
         mediaFilter: MediaFilter? = nil,
         includeAltTextInKeyword: Bool = true,
+        advancedKeywordGrammar: Bool? = nil,
+        subjectUriContains: String? = nil,
         limit: Int = 250
     ) {
         self.keyword = keyword
@@ -54,6 +63,8 @@ public struct SearchRequest: Hashable, Sendable, Codable {
         self.excludedUris = excludedUris
         self.mediaFilter = mediaFilter
         self.includeAltTextInKeyword = includeAltTextInKeyword
+        self.advancedKeywordGrammar = advancedKeywordGrammar
+        self.subjectUriContains = subjectUriContains
         self.limit = limit
     }
 
@@ -84,6 +95,8 @@ public struct SearchRequest: Hashable, Sendable, Codable {
             || authorDid != nil
             || (excludedUris?.isEmpty == false)
             || mediaFilter != nil
+            || advancedKeywordGrammar == true
+            || (subjectUriContains?.isEmpty == false)
     }
 
     /// Apply the request as a synchronous filter against an in-memory list.
@@ -97,10 +110,23 @@ public struct SearchRequest: Hashable, Sendable, Codable {
         if let types = contentTypes, !types.contains(.all),
            !types.contains(item.contentType) { return false }
         if let needle = keyword, !needle.isEmpty {
-            let lowered = needle.lowercased()
-            let textHit = item.text?.lowercased().contains(lowered) ?? false
-            let altHit = includeAltTextInKeyword && item.altText.lowercased().contains(lowered)
-            guard textHit || altHit else { return false }
+            let haystack = Self.keywordHaystack(item: item, includeAltText: includeAltTextInKeyword)
+            if advancedKeywordGrammar == true {
+                guard let clauses = try? SearchKeywordGrammar.parse(needle),
+                      SearchKeywordGrammar.matches(haystack: haystack, clauses: clauses)
+                else { return false }
+            } else {
+                let lowered = needle.lowercased()
+                let textHit = item.text?.lowercased().contains(lowered) ?? false
+                let altHit = includeAltTextInKeyword && item.altText.lowercased().contains(lowered)
+                guard textHit || altHit else { return false }
+            }
+        }
+        if let did = authorDid, !did.isEmpty {
+            guard item.uri.localizedCaseInsensitiveContains(did) else { return false }
+        }
+        if let sub = subjectUriContains, !sub.isEmpty {
+            guard item.uri.localizedCaseInsensitiveContains(sub) else { return false }
         }
         if let start = startDate, let created = item.createdAt, created < start { return false }
         if let end = endDate, let created = item.createdAt, created > end { return false }
@@ -117,6 +143,13 @@ public struct SearchRequest: Hashable, Sendable, Codable {
         case .none:      break
         }
         return true
+    }
+
+    private static func keywordHaystack(item: ContentItem, includeAltText: Bool) -> String {
+        var parts: [String] = []
+        if let t = item.text, !t.isEmpty { parts.append(t) }
+        if includeAltText, !item.altText.isEmpty { parts.append(item.altText) }
+        return parts.joined(separator: "\n")
     }
 }
 

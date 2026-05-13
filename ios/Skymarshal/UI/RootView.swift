@@ -4,6 +4,7 @@ import SkymarshalCore
 @available(iOS 17, *)
 struct RootView: View {
     @State private var model = AppModel.liveDefault()
+    @AppStorage(FeatureFlags.visualizationHubKey) private var featureVisualizationHub: Bool = true
 
     var body: some View {
         Group {
@@ -18,6 +19,10 @@ struct RootView: View {
                         .tabItem { Label("Content", systemImage: "tray.full") }
                     BluescreenView()
                         .tabItem { Label("Followers", systemImage: "person.2") }
+                    if featureVisualizationHub {
+                        VisualizationHubView()
+                            .tabItem { Label("Scope", systemImage: "scope") }
+                    }
                 }
             } else {
                 LoginView()

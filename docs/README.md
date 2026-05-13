@@ -21,6 +21,9 @@ Skymarshal documentation is split by **job**: ship the app, understand architect
 |----------|---------|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | iOS layers, orchestration boundary, services, network, SwiftData, standards. |
 | [UPSTREAM_FEATURE_GAP.md](UPSTREAM_FEATURE_GAP.md) | Scope map: what shipped in iOS vs upstream stacks (not an implicit backlog). |
+| [PARITY_VISUALIZATION_PLAN.md](PARITY_VISUALIZATION_PLAN.md) | Phased parity + visualization roadmap with risk gates and 90-day execution timeline. |
+| [UX_SPEC.md](UX_SPEC.md) | IA and wireframe-level UX spec for advanced search, delete review, backups, and visualization hub. |
+| [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) | Ops-console visual language, graph encoding/accessibility standards, and implementation checklist. |
 
 ---
 
