@@ -52,8 +52,8 @@ Shipped behind `sm.feature.*` defaults **off**: advanced keyword grammar + build
 ## Council + consensus (2026-05-13)
 
 - **`/team` kill criteria (echo):** Do not ship if viewer **`deletionURI`** mapping or **429 backoff** regresses; pivot if demand is primarily a full Bluesky client; sunset if AT/XRPC + solo maintenance + revenue no longer align.
-- **Consensus run (partial):** External CLIs/APIs did not complete in automation; **session synthesis** captured in [`docs/archive/consensus-skymarshal-ios-2026-05-13.md`](docs/archive/consensus-skymarshal-ios-2026-05-13.md) with verdict matrix and re-run instructions. Prompt: [`docs/archive/consensus-skymarshal-ios-PROMPT.txt`](docs/archive/consensus-skymarshal-ios-PROMPT.txt).
-- **Re-run locally:** `gemini -p "$(cat docs/archive/consensus-skymarshal-ios-PROMPT.txt)"` and/or `codex exec …` from repo root; merge new columns into the archive markdown when voices return.
+- **Consensus run:** **Codex** (`gpt-5.5`, read-only) and **Claude Code** (`claude -p`) completed 2026-05-13; merged matrix + raw appendices in [`docs/archive/consensus-skymarshal-ios-2026-05-13.md`](docs/archive/consensus-skymarshal-ios-2026-05-13.md). Prompt: [`docs/archive/consensus-skymarshal-ios-PROMPT.txt`](docs/archive/consensus-skymarshal-ios-PROMPT.txt). **Gemini CLI** prior attempt: HTTP 499; **cursor-agent**: auth skipped.
+- **Re-run / extend:** `gemini` retry in full terminal; optional API voices from `~/documentation/API_KEYS.md` per `/consensus` skill. Codex: `cat docs/archive/consensus-skymarshal-ios-PROMPT.txt | codex exec --skip-git-repo-check -c 'sandbox_mode="read-only"' -`
 
 ## Release ops addendum (2026-05-12)
 
