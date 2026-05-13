@@ -269,6 +269,10 @@ final class AppModel {
         await delete(itemIDs: uris)
     }
 
+    func preflightDelete(itemIDs: [String]) async -> DeletePreflightSummary {
+        await content.preflightDelete(itemIDs: itemIDs)
+    }
+
     // MARK: - Followers tab
 
     func startScan(checkLastPost: Bool = true, inactivityDays: Int = 90) {

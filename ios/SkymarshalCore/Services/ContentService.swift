@@ -204,6 +204,11 @@ public actor ContentService {
         return (results, filtered.count)
     }
 
+    /// Resolves delete targets the same way as ``delete(itemIDs:)`` without XRPC.
+    public func preflightDelete(itemIDs: [String]) -> DeletePreflightSummary {
+        DeletePreflight.summarize(itemIDs: itemIDs, loadedContent: loadedContent)
+    }
+
     // MARK: - Delete
 
     /// Delete each item individually. Returns (deletedCount, errorMessages).
