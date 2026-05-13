@@ -29,7 +29,7 @@ Shipped in-repo: on-device **Insights** analytics, **saved search presets**, **c
 
 ## Near-term polish (non-blocking)
 
-- Row min-height polish for dense bio + badge rows (56–60pt) noted in workspace guidance.
+- Row min-height: **ContentRow** / **AccountRow** use **56 pt** minimum (see [`docs/CONTRIBUTOR_UX.md`](docs/CONTRIBUTOR_UX.md)); further density polish remains non-blocking.
 - Keep README test counts / build numbers aligned with CI or manual verification after substantive changes (current `SkymarshalTests`: **164** `func test` methods).
 
 ## Parity + visualization (on main, 2026-05)
@@ -48,6 +48,12 @@ Shipped behind `sm.feature.*` defaults **off**: advanced keyword grammar + build
 - Orchestration: [`ios/SkymarshalCore/Services/ContentService.swift`](ios/SkymarshalCore/Services/ContentService.swift).
 - Behavioral parity with Python reference: [`MIGRATION.md`](MIGRATION.md), [`reference/README.md`](reference/README.md).
 - Full upstream vs iOS scope map (not a port backlog): [`docs/UPSTREAM_FEATURE_GAP.md`](docs/UPSTREAM_FEATURE_GAP.md).
+
+## Council + consensus (2026-05-13)
+
+- **`/team` kill criteria (echo):** Do not ship if viewer **`deletionURI`** mapping or **429 backoff** regresses; pivot if demand is primarily a full Bluesky client; sunset if AT/XRPC + solo maintenance + revenue no longer align.
+- **Consensus run (partial):** External CLIs/APIs did not complete in automation; **session synthesis** captured in [`docs/archive/consensus-skymarshal-ios-2026-05-13.md`](docs/archive/consensus-skymarshal-ios-2026-05-13.md) with verdict matrix and re-run instructions. Prompt: [`docs/archive/consensus-skymarshal-ios-PROMPT.txt`](docs/archive/consensus-skymarshal-ios-PROMPT.txt).
+- **Re-run locally:** `gemini -p "$(cat docs/archive/consensus-skymarshal-ios-PROMPT.txt)"` and/or `codex exec …` from repo root; merge new columns into the archive markdown when voices return.
 
 ## Release ops addendum (2026-05-12)
 

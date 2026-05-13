@@ -1,0 +1,25 @@
+You are advising on Skymarshal iOS — a native SwiftUI 17+ utility for Bluesky (not a full client).
+
+CONTEXT
+- Two targets: SkymarshalCore (models, ATProto URLSession client, services, SwiftData) and Skymarshal (SwiftUI, AppModel).
+- Network: direct XRPC to bsky.social / public.api.bsky.app only; no third-party analytics SDKs; Keychain session; app passwords only.
+- Core flows: load own archive via API pagination (no CAR on device); search/filter/sort; bulk delete with 429 backoff; deletionURI vs display uri for likes/reposts; follower scan + “automation signals” scoring; unfollow dry-run; interaction history; on-device Insights.
+- Optional / flag-gated (mostly default off in UI): advanced keyword grammar + builder; Scope tab visualization hub; JSON backup import; word-pattern lexicon stats in Insights; “Full Content tools” strip (counts + avg engagement) toggleable from options menu and About → Feature lab.
+- Tests: 164 Skymarshal XCTest cases; 2 UI tests including AX5 LoginView smoke.
+- Positioning tagline: “Air-traffic control for your Bluesky.”
+- Docs: CONTRIBUTOR_UX has UX charter; UPSTREAM_FEATURE_GAP maps Python/web vs iOS; PARITY_VISUALIZATION_PLAN tracks phased parity.
+
+INSTRUCTIONS
+Answer EACH numbered question below with exactly one line in this format:
+  Q<n>: AGREE | DISAGREE | WAIT — <one sentence>
+If DISAGREE or WAIT, append: Failure mode: <one concrete failure mode> (what breaks, for whom, when).
+
+QUESTIONS
+Q1: Keeping advanced grammar, Scope hub, backup import, and word patterns default-OFF (power users opt in via Feature lab / flags) is the right GTM posture for TestFlight/App Store vs turning more of them ON by default.
+Q2: The Scope visualization hub should remain a third TabView tab when enabled, rather than moving entry to a sheet from Insights only.
+Q3: Discoverability of experiments is adequate with Feature lab inside About plus menu toggles, without adding a persistent “Labs” affordance on the Content chrome.
+Q4: The single highest-ROI next engineering slice is (pick one only): (a) content delete dry-run parity with CLI, (b) background refresh / checkpoint jobs for large accounts, (c) row-level density and list polish, (d) defer Scope hub until adoption signal — state A/B/C/D and AGREE|DISAGREE|WAIT on whether that choice is right default advice.
+Q5: The largest App Store / TestFlight review risk given “Data Not Collected”, optional imports, and optional graph hub is manageable with current disclosure posture.
+Q6: Beyond “all tests green”, one additional ship-blocker you would insist on before wide release (name one specific gate).
+
+End with one line: Confidence: high | medium | low

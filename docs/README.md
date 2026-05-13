@@ -36,6 +36,7 @@ Used for merge discipline on large tranches (insights, power-search, cleanup, ex
 | [REVIEW_BRIEF_IOS_ROADMAP_BRANCH.md](REVIEW_BRIEF_IOS_ROADMAP_BRANCH.md) | Single canonical prompt / facts for `/team` and `/consensus`. |
 | [TEAM_CONSENSUS_DECISION_PACKAGE.md](TEAM_CONSENSUS_DECISION_PACKAGE.md) | Matrix, committee synthesis, Option A vs B, execution gates. |
 | [archive/council-raw/](archive/council-raw/) | Raw CLI attempt logs (Gemini / Codex / Cursor-agent) — advisory only; see folder `README`. |
+| [archive/consensus-skymarshal-ios-2026-05-13.md](archive/consensus-skymarshal-ios-2026-05-13.md) | 2026-05-13 `/consensus` matrix (CLIs skipped in automation; session synthesis) + re-run instructions; prompt in [`consensus-skymarshal-ios-PROMPT.txt`](archive/consensus-skymarshal-ios-PROMPT.txt). |
 
 ---
 
