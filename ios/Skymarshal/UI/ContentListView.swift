@@ -75,7 +75,7 @@ struct ContentListView: View {
     /// never appears with a stale file.
     private func makeContentJSON() -> ExportPayload {
         do {
-            return try Exporter.contentJSON(model.items, handle: model.currentHandle)
+            return try Exporter.contentJSON(model.items, handle: model.currentHandle, did: model.currentDid)
         } catch {
             return Exporter.contentCSV([])
         }

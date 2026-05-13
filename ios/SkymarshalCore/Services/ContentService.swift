@@ -196,6 +196,33 @@ public actor ContentService {
         self.loadedContent = items
     }
 
+    /// How ``applyBackupImport`` should combine imported rows with the live cache.
+    public enum BackupImportMode: String, Sendable {
+        case mergeByURI
+        case replaceAll
+    }
+
+    /// Merge or replace in-memory content and upsert into SwiftData for `owner`
+    /// (the same owner key used when persisting loaded pages — typically
+    /// ``currentHandle`` or DID from the active session).
+    public func applyBackupImport(
+        items: [ContentItem],
+        mode: BackupImportMode,
+        owner: String
+    ) async {
+        switch mode {
+        case .mergeByURI:
+            var byURI: [String: ContentItem] = [:]
+            for i in loadedContent { byURI[i.uri] = i }
+            for i in items { byURI[i.uri] = i }
+            loadedContent = Array(byURI.values)
+        case .replaceAll:
+            loadedContent = items
+            clearPersistedContent(owner: owner)
+        }
+        persist(loadedContent, owner: owner)
+    }
+
     // MARK: - Search
 
     public func search(_ request: SearchRequest) -> (results: [SearchResult], total: Int) {

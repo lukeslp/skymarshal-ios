@@ -11,6 +11,7 @@ import SkymarshalCore
 struct AboutView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("sm.reduceMotionOverride") private var motionOverride: Bool = false
+    @AppStorage(FeatureFlags.backupRestoreKey) private var featureBackupRestore: Bool = false
 
     private var versionLine: String {
         let v = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
@@ -23,6 +24,7 @@ struct AboutView: View {
             Form {
                 headerSection
                 privacySection
+                dataToolsSection
                 accessibilitySection
                 creditSection
                 sourceSection
@@ -65,6 +67,25 @@ struct AboutView: View {
                 .foregroundStyle(.primary)
         } header: {
             Text("Privacy").font(.subheadline.weight(.semibold))
+        }
+    }
+
+    @ViewBuilder
+    private var dataToolsSection: some View {
+        Section {
+            Toggle("Experimental backup & restore", isOn: $featureBackupRestore)
+            if featureBackupRestore {
+                NavigationLink {
+                    BackupRestoreView()
+                } label: {
+                    Text("Backup & restore…")
+                }
+            }
+        } header: {
+            Text("Data").font(.subheadline.weight(.semibold))
+        } footer: {
+            Text("Off by default. Import only JSON you exported from Skymarshal on a trusted device.")
+                .font(.caption2)
         }
     }
 

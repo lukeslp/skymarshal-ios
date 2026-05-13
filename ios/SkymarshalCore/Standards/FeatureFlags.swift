@@ -12,6 +12,7 @@ public enum FeatureFlags {
     public static let advancedSearchGrammarKey = "sm.feature.advancedSearchGrammar"
     public static let visualizationHubKey = "sm.feature.visualizationHub"
     public static let wordPatternsKey = "sm.feature.wordPatterns"
+    public static let backupRestoreKey = "sm.feature.backupRestore"
 
     public static func bool(for key: String, default defaultValue: Bool = true) -> Bool {
         if UserDefaults.standard.object(forKey: key) == nil { return defaultValue }

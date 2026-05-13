@@ -13,10 +13,12 @@ public enum Exporter {
 
     public static func contentJSON(
         _ items: [ContentItem],
-        handle: String?
+        handle: String?,
+        did: String? = nil
     ) throws -> ExportPayload {
         let envelope = ContentExportEnvelope(
             handle: handle,
+            did: did,
             exportedAt: ISO8601DateFormatter().string(from: Date()),
             itemCount: items.count,
             items: items.map(ContentExportRow.init)
@@ -176,6 +178,7 @@ public struct ExportPayload: Sendable, Hashable {
 
 private struct ContentExportEnvelope: Encodable {
     let handle: String?
+    let did: String?
     let exportedAt: String
     let itemCount: Int
     let items: [ContentExportRow]
@@ -193,6 +196,7 @@ private struct ContentExportRow: Encodable {
     let engagementScore: Double
     let hasMedia: Bool
     let altText: String?
+    let deletionURI: String?
 
     init(_ item: ContentItem) {
         self.uri = item.uri
@@ -206,6 +210,7 @@ private struct ContentExportRow: Encodable {
         self.engagementScore = item.engagementScore
         self.hasMedia = item.hasMedia
         self.altText = item.altText.isEmpty ? nil : item.altText
+        self.deletionURI = item.deletionURI
     }
 }
 

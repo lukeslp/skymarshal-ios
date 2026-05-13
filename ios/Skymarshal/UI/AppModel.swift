@@ -22,6 +22,7 @@ final class AppModel {
     // ----- Auth state -----
     private(set) var isAuthenticated: Bool = false
     private(set) var currentHandle: String?
+    private(set) var currentDid: String?
 
     // ----- Content tab state -----
     private(set) var items: [ContentItem] = []
@@ -104,6 +105,7 @@ final class AppModel {
             _ = try await content.login(handle: handle, password: password)
             isAuthenticated = await content.isAuthenticated
             currentHandle = await content.currentHandle
+            currentDid = await content.currentDID
             // If hydration already populated a snapshot for this same handle,
             // skip the immediate refetch. If the hydrated owner differs, do
             // a live load so another account's cache is never shown as yours.
@@ -206,6 +208,7 @@ final class AppModel {
         await content.logout()
         isAuthenticated = false
         currentHandle = nil
+        currentDid = nil
         hydratedOwnerHandle = nil
         items = []; summary = [:]; loadProgress = nil
         accounts = []; scanSummary = ScanSummary(); scanProgress = nil
@@ -271,6 +274,17 @@ final class AppModel {
 
     func preflightDelete(itemIDs: [String]) async -> DeletePreflightSummary {
         await content.preflightDelete(itemIDs: itemIDs)
+    }
+
+    /// Apply a decoded backup into the content cache (merge by URI or replace all).
+    func applyBackupImport(importedItems: [ContentItem], mode: ContentService.BackupImportMode) async {
+        guard let owner = currentHandle ?? currentDid else {
+            errorMessage = "Sign in to apply a backup to your account cache."
+            return
+        }
+        await content.applyBackupImport(items: importedItems, mode: mode, owner: owner)
+        self.items = await content.loadedSnapshot
+        self.summary = await content.summarize()
     }
 
     // MARK: - Followers tab
