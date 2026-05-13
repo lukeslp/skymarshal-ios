@@ -1,6 +1,6 @@
 # Skymarshal iOS App Store Connect Paste Session
 
-Last updated: 2026-05-12
+Last updated: 2026-05-12 (reconciled)
 
 Use this checklist in one uninterrupted session while filling App Store Connect.
 
@@ -45,11 +45,11 @@ Confirm policy language matches:
 Paste these fields:
 
 - Promotional Text:
-  `Search every post, reply, repost, and like in your archive, then tidy in bulk. Score followers for automation signals and inactivity. App password only, nothing tracked.`
+  `Search every post, reply, repost, and like in your archive — tidy in bulk. Score your follow list for bots and inactive accounts. App password only, nothing tracked.`
 - Description:
   Use the full Description block from `PUBLIC_RELEASE_COPY.md`.
 - Keywords:
-  `posts,replies,reposts,likes,archive,delete,bulk,filter,unfollow,follower,atproto,cleanup,manage,bot`
+  `posts,replies,reposts,likes,archive,manage,delete,follower,unfollow,bot,atproto,bulk,clean,filter`
 - What's New in This Version:
   Use the `What's New (v1.0.0)` block from `PUBLIC_RELEASE_COPY.md`.
 
@@ -61,7 +61,7 @@ Paste:
 - Contact phone: your reviewer-reachable number
 - Demo account: leave blank unless requested
 - Notes for Review:
-  Use the `App Review Information` block from `PUBLIC_RELEASE_COPY.md`.
+  Use the full `App Review Information` block from `SUBMISSION_NOTES.md`.
 
 ## Step 6: URLs
 

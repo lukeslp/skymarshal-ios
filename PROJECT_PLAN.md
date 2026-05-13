@@ -46,6 +46,7 @@ Completed:
 - Added `app-store/PUBLIC_RELEASE_ASSETS.md` with iOS asset requirements and QA checks.
 - Added `app-store/PUBLIC_RELEASE_RUNBOOK.md` with pre-submit and launch operations.
 - Added `app-store/APP_STORE_CONNECT_PASTE_SESSION.md` with exact App Store Connect field order.
+- Reconciled drift across listing/paste-session/review-note docs with a canonical hierarchy in `app-store/PUBLIC_RELEASE_PACK.md`.
 - Updated `README.md` with direct links to the release pack.
 
 Remaining:

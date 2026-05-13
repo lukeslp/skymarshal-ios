@@ -1,6 +1,6 @@
 # Skymarshal iOS Public Release Copy
 
-Last updated: 2026-05-12
+Last updated: 2026-05-12 (reconciled)
 
 Paste these values directly into App Store Connect for the public iOS release.
 
@@ -16,58 +16,91 @@ Paste these values directly into App Store Connect for the public iOS release.
 
 ### Promotional Text (170 max)
 
-`Search every post, reply, repost, and like in your archive, then tidy in bulk. Score followers for automation signals and inactivity. App password only, nothing tracked.`
+`Search every post, reply, repost, and like in your archive — tidy in bulk. Score your follow list for bots and inactive accounts. App password only, nothing tracked.`
 
 ### Keywords (100 max, comma-separated)
 
-`posts,replies,reposts,likes,archive,delete,bulk,filter,unfollow,follower,atproto,cleanup,manage,bot`
+`posts,replies,reposts,likes,archive,manage,delete,follower,unfollow,bot,atproto,bulk,clean,filter`
 
 ### Description (4000 max)
 
 Skymarshal is air-traffic control for your Bluesky.
 
-Search your archive, surface what no longer represents you, and clean it up safely at scale.
+Find old posts you forgot you wrote. Catch the late-night replies you'd
+rather not look at. Cull the followers you'd never have followed back.
+Skymarshal scans your own Bluesky archive, scores it, and lets you tidy
+in bulk — with the kind of confirmations a deletion deserves.
+
+Built for power users who've used Bluesky long enough that "delete one
+post at a time" stopped being acceptable.
 
 CONTENT MANAGEMENT
-- Search every post, reply, repost, and like you've made
-- Filter by keyword, type, date range, engagement, alt-text, and media presence
-- Preview media inline so you can verify before acting
-- Delete one item at a time or in bulk from search results
-- Multi-step confirmations for destructive actions
-- Rate-limit-aware retries for large cleanup sessions
+- Search every post, reply, repost, and like you've ever made — keyword,
+  content type, date range, engagement count, alt-text, presence of media.
+- Inline media thumbnails so you can remember exactly which post you're
+  looking at before you act.
+- Swipe-delete one at a time, or Select All from a search result and
+  delete a hundred at once.
+- Multiple confirmation steps. Permanent deletions deserve them.
+- Rate-limit aware — bulk deletes pause and retry instead of hammering
+  the API and getting throttled.
 
 FOLLOWER CLEANUP
-- Scan your follows for automation signals and inactivity
-- Sort and filter by account age, follower/following ratio, activity, and mutuality
-- Bulk unfollow with the same safety-focused retry behavior
+- Pull your full follow list and score every account against six bot
+  signals: mass-following, no posts, missing profile bits, suspiciously
+  round numbers, very-new accounts flooding follows, and bad ratios.
+- Flag inactive accounts (no posts in N days, configurable).
+- Catch deleted accounts (handle.invalid).
+- Sort by follower ratio, account age, post frequency, mutuality, or
+  influence tier (mega, macro, micro, nano).
+- Bulk unfollow with the same rate-limit safety net the bulk delete uses.
+
+DYNAMIC SEARCH
+- Filter to "with media" or "without media."
+- Search alt-text alongside post text — finds that capybara post even
+  when you didn't write the word "capybara."
+- Combine date range + engagement bounds to surface "dead threads"
+  (low engagement) or "old bangers" (high engagement, distant past).
 
 PRIVACY
-- Sign in with a Bluesky app password (not your primary password)
-- No analytics, no third-party SDKs, no tracking
-- No Skymarshal-hosted backend
-- Data is fetched directly from Bluesky endpoints on your device
+- Sign in with a Bluesky app password. Skymarshal never sees your real
+  password — generate a disposable one in Bluesky's settings.
+- No analytics. No tracking pixels. No third-party SDKs of any kind.
+- No account on our end, no server we host. Your archive is fetched
+  directly from Bluesky's public XRPC endpoints. Nothing leaves your
+  phone.
 
 WHO IT'S FOR
-Power users, journalists, creators, and anyone managing a large Bluesky history.
+Power users with thousands of posts. Journalists. Public-facing accounts.
+Anyone who wants their archive on their terms. Light users will find it
+overkill — that's fine. Skymarshal is the second tool you reach for when
+the first one isn't enough.
 
 WHAT IT'S NOT
-Skymarshal is not a Bluesky client and is not affiliated with Bluesky Social, PBC.
+Not a Bluesky client. You can't post from Skymarshal. Not a network
+growth tool. Not affiliated with Bluesky Social, PBC. The Bluesky logo,
+butterfly mark, and "Bluesky" name are property of their owner;
+Skymarshal is an independent third-party utility.
+
+Made by a small studio. Questions: skymarshal@lukesteuber.com
 
 ### What's New (v1.0.0)
 
 First flight.
 
-Skymarshal helps you clean up your Bluesky presence in two places:
-- Search and manage every post, reply, repost, and like in your archive
-- Scan follows for automation signals and inactive accounts, then act in bulk
+Skymarshal does two things: searches every post, reply, repost, and like
+in your Bluesky archive, and scores your follow list for bots and
+inactive accounts. Bulk delete and bulk unfollow on top, with the
+rate-limit safety nets they deserve.
 
-Built with safety rails for destructive actions, including confirmation steps and rate-limit-aware retries.
-
-App password only. No tracking. No server.
+App password only. No tracking. No server. Your archive stays on your
+phone.
 
 ## App Review Information (Paste in Review Notes)
 
-Skymarshal is a third-party Bluesky archive management utility. It is not affiliated with Bluesky Social, PBC. Users sign in with a Bluesky app password and manage only their own content and follows. The app supports search/filtering and bulk cleanup with confirmation steps and rate-limit-aware retries. We do not operate a backend for user data, and we do not use analytics or tracking SDKs.
+Use the full block from `SUBMISSION_NOTES.md` under:
+
+- `App Review Information (paste verbatim into App Store Connect)`
 
 ## URL Fields
 

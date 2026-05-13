@@ -1,6 +1,6 @@
 # Skymarshal iOS Public Release Pack
 
-Last updated: 2026-05-12
+Last updated: 2026-05-12 (reconciled)
 
 Use this pack to prepare, submit, and launch the public iOS release from one place.
 
@@ -14,6 +14,16 @@ Use this pack to prepare, submit, and launch the public iOS release from one pla
   - `LISTING.md`
   - `SCREENSHOTS.md`
   - `SUBMISSION_NOTES.md`
+
+## Canonical Hierarchy (Source of Truth)
+
+Use this order when two docs overlap:
+
+1. `APP_STORE_CONNECT_PASTE_SESSION.md` (execution order)
+2. `PUBLIC_RELEASE_COPY.md` (metadata fields and launch copy)
+3. `SUBMISSION_NOTES.md` (full reviewer note + risk audit)
+4. `SCREENSHOTS.md` (storyboard and capture details)
+5. `LISTING.md` (rationale and longer-form commentary)
 
 ## Fast Path (30 Minutes)
 
@@ -38,4 +48,4 @@ Use this pack to prepare, submit, and launch the public iOS release from one pla
 - Canonical launch sequence: `PUBLIC_RELEASE_RUNBOOK.md`
 - Canonical screenshot plan: `SCREENSHOTS.md`
 
-When fields drift between files, update this pack first, then sync the supporting docs.
+When fields drift between files, update the canonical files in the hierarchy above, then sync supporting docs.

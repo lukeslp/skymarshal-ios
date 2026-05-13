@@ -2,6 +2,10 @@
 
 Last revised 2026-05-10. Paste these into App Store Connect when submitting.
 
+Reconciliation note (2026-05-12): canonical execution now lives in
+`APP_STORE_CONNECT_PASTE_SESSION.md` and canonical field values live in
+`PUBLIC_RELEASE_COPY.md`. This file remains the detailed rationale record.
+
 ---
 
 ## App name (30 chars)
