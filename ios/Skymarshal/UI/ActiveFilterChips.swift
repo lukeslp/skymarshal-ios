@@ -66,7 +66,21 @@ struct ActiveFilterChips: View {
         if let m = filters.mediaFilter {
             chips.append(Chip(id: "media", label: m.label.lowercased()) { $0.mediaFilter = nil })
         }
+        if filters.advancedKeywordGrammar == true {
+            chips.append(Chip(id: "grammar", label: "grammar mode") { $0.advancedKeywordGrammar = nil })
+        }
+        if let sub = filters.subjectUriContains, !sub.isEmpty {
+            chips.append(Chip(id: "suburi", label: "uri ⊃ \(shortSnippet(sub))") { $0.subjectUriContains = nil })
+        }
+        if let did = filters.authorDid, !did.isEmpty {
+            chips.append(Chip(id: "authordid", label: "author \(shortSnippet(did))") { $0.authorDid = nil })
+        }
         return chips
+    }
+
+    private func shortSnippet(_ s: String) -> String {
+        if s.count <= 18 { return s }
+        return String(s.prefix(15)) + "…"
     }
 
     private func short(_ date: Date) -> String {
