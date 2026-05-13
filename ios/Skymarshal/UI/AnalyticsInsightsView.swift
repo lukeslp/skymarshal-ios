@@ -8,6 +8,7 @@ struct AnalyticsInsightsView: View {
     let items: [ContentItem]
     @Environment(\.dismiss) private var dismiss
     @AppStorage(FeatureFlags.wordPatternsKey) private var featureWordPatterns: Bool = false
+    @AppStorage(FeatureFlags.visualizationHubKey) private var featureVisualizationHub: Bool = false
 
     private var snapshot: AnalyticsSnapshot {
         AnalyticsService.buildSnapshot(from: items)
@@ -111,6 +112,27 @@ struct AnalyticsInsightsView: View {
                     Text("Word patterns")
                 } footer: {
                     Text("Optional English lexicon hits and token/engagement summaries — on-device only, not sentiment scoring.")
+                }
+
+                if !featureVisualizationHub {
+                    Section {
+                        NavigationLink {
+                            VisualizationHubView()
+                                .onAppear {
+                                    ScopeExperimentTelemetry.recordScopeOpenedFromInsightsPath()
+                                }
+                        } label: {
+                            Label("Scope visualizations", systemImage: "scope")
+                        }
+                        .accessibilityIdentifier("insights_scope_visualizations_link")
+                    } header: {
+                        Text("Scope (Feature lab)")
+                    } footer: {
+                        Text("Same on-device summaries as the Scope tab. Enable the tab in About → Feature lab, or open here while the tab is off.")
+                    }
+                    .onAppear {
+                        ScopeExperimentTelemetry.recordInsightsScopeEntryOfferDisplayed()
+                    }
                 }
             }
             .navigationTitle("Insights")

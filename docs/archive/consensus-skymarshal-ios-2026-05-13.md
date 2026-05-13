@@ -5,7 +5,7 @@ Advisory only. Prompt: **`/tmp/consensus-skymarshal-ios.txt`** (if present) and 
 **Re-run Codex** (stdin form avoids “Reading additional input from stdin” hang when the prompt is long):
 
 ```bash
-cd /path/to/skymarshal-ios
+cd "$(git rev-parse --show-toplevel)"   # repo root, e.g. skymarshal-ios
 cat docs/archive/consensus-skymarshal-ios-PROMPT.txt | codex exec --skip-git-repo-check -c 'sandbox_mode="read-only"' -
 ```
 
@@ -15,15 +15,15 @@ cat docs/archive/consensus-skymarshal-ios-PROMPT.txt | codex exec --skip-git-rep
 claude -p "$(cat docs/archive/consensus-skymarshal-ios-PROMPT.txt)" --output-format text
 ```
 
-Raw transcripts: [`consensus-raw-codex-2026-05-13.txt`](consensus-raw-codex-2026-05-13.txt), [`consensus-raw-claude-2026-05-13.txt`](consensus-raw-claude-2026-05-13.txt).
+Full transcripts: **Appendix — Codex raw** and **Appendix — Claude Code raw** below (no separate `.txt` files in-repo).
 
 ## Transports
 
 | Transport | Result |
 |-----------|--------|
 | **Gemini CLI** | **Failed** — prior attempt returned HTTP **499 CANCELLED** from Code Assist stream (`backendError`); no Q1–Q6 text. Re-run in a full terminal / retry. |
-| **Codex CLI** | **Completed** — `gpt-5.5`, read-only sandbox; see raw file. |
-| **Claude Code CLI** (`claude -p`) | **Completed** — see raw file. |
+| **Codex CLI** | **Completed** — `gpt-5.5`, read-only sandbox; see Appendix — Codex raw. |
+| **Claude Code CLI** (`claude -p`) | **Completed** — see Appendix — Claude Code raw. |
 | **Cursor-agent** | **Skipped** — auth required. |
 | **API curl fallback** | **Skipped** — no keys file in automation environment. |
 

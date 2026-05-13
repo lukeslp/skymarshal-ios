@@ -67,7 +67,7 @@ struct AboutView: View {
     @ViewBuilder
     private var privacySection: some View {
         Section {
-            Text("Data Not Collected. Your handle, posts, and follows stay on this device. The only server Skymarshal talks to is Bluesky itself — no analytics, no third-party SDKs, no telemetry.")
+            Text("Data Not Collected in App Store terms: nothing is sent to Skymarshal servers — there are none. Your handle, archive, and scans stay on this device except when Skymarshal calls Bluesky’s XRPC APIs. No third-party analytics SDKs. Optional Feature lab counters (for example Scope navigation experiments) are stored **only** in local preferences on this device and are never transmitted.")
                 .font(.callout)
                 .foregroundStyle(.primary)
         } header: {
@@ -83,7 +83,9 @@ struct AboutView: View {
             Toggle("Word patterns in Insights", isOn: $featureWordPatterns)
             Toggle("Full Content tools strip", isOn: $contentPowerToolsExpanded)
         } header: {
-            Text("Feature lab").font(.subheadline.weight(.semibold))
+            Text("Feature lab")
+                .font(.subheadline.weight(.semibold))
+                .accessibilityIdentifier("about_feature_lab_section_header")
         } footer: {
             Text("Optional surfaces default off except where noted. Scope adds a third tab when on. Content strip shows counts and average engagement under the search bar.")
                 .font(.caption2)
@@ -104,7 +106,7 @@ struct AboutView: View {
         } header: {
             Text("Data").font(.subheadline.weight(.semibold))
         } footer: {
-            Text("Off by default. Import only JSON you exported from Skymarshal on a trusted device.")
+            Text("Off by default. Import only JSON you exported from Skymarshal for the **same** signed-in handle; the app blocks handle or DID mismatches. Use a trusted device.")
                 .font(.caption2)
         }
     }

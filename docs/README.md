@@ -11,7 +11,7 @@ Skymarshal documentation is split by **job**: ship the app, understand architect
 | **New to the repo** | Root [`README.md`](../README.md) → [`AGENTS.md`](../AGENTS.md) |
 | **Implementing a feature** | [`ARCHITECTURE.md`](ARCHITECTURE.md) → [`CONTRIBUTOR_UX.md`](CONTRIBUTOR_UX.md) → optional flags in [`FeatureFlags`](../ios/SkymarshalCore/Standards/FeatureFlags.swift) |
 | **Comparing to upstream Python/web** | [`UPSTREAM_FEATURE_GAP.md`](UPSTREAM_FEATURE_GAP.md) + [`MIGRATION.md`](../MIGRATION.md) |
-| **Preparing App Store / privacy** | [`../app-store/`](../app-store/) + [`../ios/Skymarshal/PrivacyInfo.xcprivacy`](../ios/Skymarshal/PrivacyInfo.xcprivacy) |
+| **Preparing App Store / privacy** | [`../app-store/`](../app-store/) + [`../ios/Skymarshal/PrivacyInfo.xcprivacy`](../ios/Skymarshal/PrivacyInfo.xcprivacy) + soak checklist [`SOAK_PROTOCOL.md`](SOAK_PROTOCOL.md) |
 
 ---
 
@@ -37,8 +37,10 @@ Used for merge discipline on large tranches (insights, power-search, cleanup, ex
 | [TEAM_CONSENSUS_DECISION_PACKAGE.md](TEAM_CONSENSUS_DECISION_PACKAGE.md) | Matrix, committee synthesis, Option A vs B, execution gates. |
 | [archive/council-raw/](archive/council-raw/) | Raw CLI attempt logs (Gemini / Codex / Cursor-agent) — advisory only; see folder `README`. |
 | [archive/consensus-skymarshal-ios-2026-05-13.md](archive/consensus-skymarshal-ios-2026-05-13.md) | 2026-05-13 `/consensus` matrix (**Codex** + **Claude Code** transcripts; Gemini 499 noted) + merged read + re-run instructions; prompt in [`consensus-skymarshal-ios-PROMPT.txt`](archive/consensus-skymarshal-ios-PROMPT.txt). |
-
----
+| [archive/consensus-skymarshal-ios-delta-2026-05-14.md](archive/consensus-skymarshal-ios-delta-2026-05-14.md) | Post-ship delta vs 2026-05-13 matrix (Q4/Q6 what landed). |
+| [archive/scope-ia-decision-2026-05-14.md](archive/scope-ia-decision-2026-05-14.md) | Scope tab vs Insights entry — rubric + pending telemetry table. |
+| [ARCHIVE_LOAD_CHECKPOINTS.md](ARCHIVE_LOAD_CHECKPOINTS.md) | `ArchiveLoadCheckpointRecord` schema + `ContentService` resume invariants. |
+| [SOAK_PROTOCOL.md](SOAK_PROTOCOL.md) | Large-account / device soak checklist (screen recording gate). |
 
 ## Contributor UX (SwiftUI)
 

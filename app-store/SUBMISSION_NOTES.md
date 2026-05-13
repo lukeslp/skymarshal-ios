@@ -63,6 +63,12 @@ rejection trigger we've matched against current App Review behavior.
 - [x] Privacy Policy URL is reachable and matches the in-app posture
       (one-page "we collect nothing" policy is fine; reviewer just
       needs the URL to load)
+- [x] Optional JSON backup import: in-app copy and gatekeeper require a
+      signed-in session and **reject** handle/DID mismatches (see
+      `ContentBackupImport`); aligns with 5.1.2 reviewer narrative
+- [x] Optional on-device experiment counters (UserDefaults) for Scope
+      navigation testing — **not** declared as collected data; no
+      transmission off-device
 - [x] App password storage uses Keychain, not UserDefaults; Keychain
       access is documented in the privacy policy
 

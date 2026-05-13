@@ -32,7 +32,7 @@ For content records, keep display identity separate from destructive identity. `
 
 ## Testing Guidelines
 
-Tests use XCTest and XCUITest. Add focused unit tests in `ios/SkymarshalTests/` for model, service, storage, scoring, filtering, and rate-limit behavior. Add UI regression tests in `ios/SkymarshalUITests/` for accessibility, Dynamic Type, or destructive-flow changes. Run the full `xcodebuild test` command before opening a PR when behavior changes.
+Tests use XCTest and XCUITest. Add focused unit tests in `ios/SkymarshalTests/` for model, service, storage, scoring, filtering, and rate-limit behavior. Add UI regression tests in `ios/SkymarshalUITests/` for accessibility, Dynamic Type, or destructive-flow changes. Prefer `UITestBootstrap.swift` launch keys over ad hoc strings; see [`docs/CONTRIBUTOR_UX.md`](docs/CONTRIBUTOR_UX.md) “UI testing (XCUITest)”. Run the full `xcodebuild test` command before opening a PR when behavior changes.
 
 ## Commit & Pull Request Guidelines
 

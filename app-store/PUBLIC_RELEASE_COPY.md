@@ -96,6 +96,15 @@ rate-limit safety nets they deserve.
 App password only. No tracking. No server. Your archive stays on your
 phone.
 
+## TestFlight “What to try” (paste into build notes)
+
+- **Archive refresh + interrupt:** Start a full archive load, background the app mid-pagination, return and confirm counts move forward without duplicate rows.
+- **Bulk delete + 429:** Try a medium batch delete on a test account; confirm backoff feels steady and any interruption surfaces the recovery alert (pull to refresh afterward).
+- **Scope:** Toggle **About → Feature lab → Scope tab**; open **Insights → Scope visualizations** when the tab is off (alternate entry).
+- **Advanced search grammar / word patterns:** Enable in Feature lab, run a few saved filters.
+- **Backup import (signed-in only):** Export JSON from Skymarshal, re-import merge/replace on a throwaway handle; confirm DID/handle mismatch **blocks** import.
+- **Soak gate:** Follow [`docs/SOAK_PROTOCOL.md`](../docs/SOAK_PROTOCOL.md) before a public build; attach a device screen recording per checklist.
+
 ## App Review Information (Paste in Review Notes)
 
 Use the full block from `SUBMISSION_NOTES.md` under:

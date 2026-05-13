@@ -78,6 +78,15 @@ public actor ContentService {
             case posts = "Posts and replies"
             case likes = "Likes"
             case done  = "Done"
+
+            /// Segment for ``ArchiveLoadCheckpointRecord`` persistence (no `.done` row).
+            var archivePhaseRaw: String? {
+                switch self {
+                case .posts: return "posts"
+                case .likes: return "likes"
+                case .done: return nil
+                }
+            }
         }
     }
 
@@ -104,17 +113,20 @@ public actor ContentService {
         forceRefresh: Bool = false,
         progress: (@Sendable (LoadProgress) async -> Void)? = nil
     ) async throws -> [ContentItem] {
-        if !forceRefresh, !loadedContent.isEmpty {
-            return loadedContent
-        }
         guard let did = await client.currentDid else {
             throw ATProtoError(status: 401, message: "Not authenticated")
         }
 
         let owner = await client.currentHandle ?? did
+        let hasPendingArchiveCheckpoint = archiveLoadHasPendingCheckpoint(owner: owner)
+        if !forceRefresh, !loadedContent.isEmpty, !hasPendingArchiveCheckpoint {
+            return loadedContent
+        }
+
         if forceRefresh {
             loadedContent = []
             clearPersistedContent(owner: owner)
+            clearArchiveLoadCheckpoints(owner: owner)
         }
 
         try await loopEndpoint(
@@ -172,15 +184,28 @@ public actor ContentService {
         progress: (@Sendable (LoadProgress) async -> Void)?,
         fetch: (String?) async throws -> ([ContentItem], String?)
     ) async throws {
-        var cursor: String? = nil
-        var pages = 0
+        guard let phaseKey = phase.archivePhaseRaw else { return }
+
+        var cursor: String? = loadArchiveCheckpointCursor(owner: owner, phaseKey: phaseKey)
+        var pages = loadArchiveCheckpointPagesFetched(owner: owner, phaseKey: phaseKey)
+        var knownIDs = Set(loadedContent.map(\.id))
         repeat {
             try Task.checkCancellation()
             let (items, nextCursor) = try await fetch(cursor)
-            loadedContent.append(contentsOf: items)
+            for item in items {
+                if knownIDs.insert(item.id).inserted {
+                    loadedContent.append(item)
+                }
+            }
             persist(items, owner: owner)
             pages += 1
             cursor = nextCursor
+            upsertArchiveCheckpoint(
+                owner: owner,
+                phaseKey: phaseKey,
+                cursor: nextCursor,
+                pagesFetched: pages
+            )
             await progress?(LoadProgress(
                 phase: phase,
                 itemsLoaded: loadedContent.count,
@@ -188,6 +213,10 @@ public actor ContentService {
                 isComplete: false
             ))
         } while cursor != nil && pages < Self.maxPagesPerEndpoint
+
+        if cursor == nil {
+            deleteArchiveCheckpoint(owner: owner, phaseKey: phaseKey)
+        }
     }
 
     /// Inject a content list directly. Useful for previews, tests, and
@@ -511,5 +540,86 @@ public actor ContentService {
             for row in rows { context.delete(row) }
             try? context.save()
         }
+        clearArchiveLoadCheckpoints(owner: owner)
+    }
+
+    // MARK: - Archive load checkpoints (resume pagination)
+
+    private func archiveLoadHasPendingCheckpoint(owner: String) -> Bool {
+        let context = ModelContext(container)
+        let descriptor = FetchDescriptor<ArchiveLoadCheckpointRecord>(
+            predicate: #Predicate { $0.ownerHandle == owner }
+        )
+        guard let rows = try? context.fetch(descriptor) else { return false }
+        return !rows.isEmpty
+    }
+
+    private func clearArchiveLoadCheckpoints(owner: String) {
+        let context = ModelContext(container)
+        let descriptor = FetchDescriptor<ArchiveLoadCheckpointRecord>(
+            predicate: #Predicate { $0.ownerHandle == owner }
+        )
+        for row in (try? context.fetch(descriptor)) ?? [] {
+            context.delete(row)
+        }
+        try? context.save()
+    }
+
+    private func loadArchiveCheckpointCursor(owner: String, phaseKey: String) -> String? {
+        let scopeKey = "\(owner)|\(phaseKey)"
+        let context = ModelContext(container)
+        let descriptor = FetchDescriptor<ArchiveLoadCheckpointRecord>(
+            predicate: #Predicate { $0.scopeKey == scopeKey }
+        )
+        return try? context.fetch(descriptor).first?.cursor
+    }
+
+    private func loadArchiveCheckpointPagesFetched(owner: String, phaseKey: String) -> Int {
+        let scopeKey = "\(owner)|\(phaseKey)"
+        let context = ModelContext(container)
+        let descriptor = FetchDescriptor<ArchiveLoadCheckpointRecord>(
+            predicate: #Predicate { $0.scopeKey == scopeKey }
+        )
+        return (try? context.fetch(descriptor).first?.pagesFetched) ?? 0
+    }
+
+    private func upsertArchiveCheckpoint(
+        owner: String,
+        phaseKey: String,
+        cursor: String?,
+        pagesFetched: Int
+    ) {
+        let scopeKey = "\(owner)|\(phaseKey)"
+        let context = ModelContext(container)
+        let descriptor = FetchDescriptor<ArchiveLoadCheckpointRecord>(
+            predicate: #Predicate { $0.scopeKey == scopeKey }
+        )
+        let now = Date()
+        if let row = try? context.fetch(descriptor).first {
+            row.cursor = cursor
+            row.pagesFetched = pagesFetched
+            row.updatedAt = now
+        } else {
+            context.insert(ArchiveLoadCheckpointRecord(
+                ownerHandle: owner,
+                phaseRaw: phaseKey,
+                cursor: cursor,
+                pagesFetched: pagesFetched,
+                updatedAt: now
+            ))
+        }
+        try? context.save()
+    }
+
+    private func deleteArchiveCheckpoint(owner: String, phaseKey: String) {
+        let scopeKey = "\(owner)|\(phaseKey)"
+        let context = ModelContext(container)
+        let descriptor = FetchDescriptor<ArchiveLoadCheckpointRecord>(
+            predicate: #Predicate { $0.scopeKey == scopeKey }
+        )
+        for row in (try? context.fetch(descriptor)) ?? [] {
+            context.delete(row)
+        }
+        try? context.save()
     }
 }

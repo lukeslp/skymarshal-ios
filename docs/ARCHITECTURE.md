@@ -13,7 +13,7 @@ Targets and XcodeGen: [`ios/project.yml`](../ios/project.yml). Do not hand-edit 
 
 ## Orchestration boundary
 
-[`ContentService`](../ios/SkymarshalCore/Services/ContentService.swift) (Swift `actor`) mirrors the Python orchestrator [`reference/python/services/content_service.py`](../reference/python/services/content_service.py): login, load archive into SwiftData, search, delete, summaries. **Views should call this surface** rather than duplicating fetch/delete flows.
+[`ContentService`](../ios/SkymarshalCore/Services/ContentService.swift) (Swift `actor`) mirrors the Python orchestrator [`reference/python/services/content_service.py`](../reference/python/services/content_service.py): login, load archive into SwiftData, search, delete, summaries. **Views should call this surface** rather than duplicating fetch/delete flows. Long loads persist **`ArchiveLoadCheckpointRecord`** cursors per owner/phase so pagination can resume after interruption; `forceRefresh` clears checkpoints alongside cached rows.
 
 Companion services:
 
@@ -38,6 +38,7 @@ Companion services:
 
 - **HTTP:** [`ATProtoClient`](../ios/SkymarshalCore/Network/ATProtoClient.swift) — `URLSession` only, no third-party ATProto SDK; Bluesky hosts `bsky.social` / `public.api.bsky.app`.
 - **Persistence:** SwiftData schemas in [`Storage/`](../ios/SkymarshalCore/Storage/StorageModels.swift); per-account isolation via composite keys (see [`AGENTS.md`](../AGENTS.md)).
+- **Background tasks:** [`BackgroundTaskCoordinator`](../ios/Skymarshal/App/BackgroundTaskCoordinator.swift) — registers `BGAppRefreshTask` / `BGProcessingTask` and runs bounded [`GraphSnapshotWriter.refreshPersistedSummariesFromCache`](../ios/SkymarshalCore/Services/GraphSnapshotWriter.swift) (SwiftData only; no full archive fetch in background).
 - **Rate limits:** [`RateLimit.withBackoff`](../ios/SkymarshalCore/Standards/RateLimit.swift) preserves the Python deletion backoff schedule — do not simplify.
 
 ## Standards (non-negotiables)

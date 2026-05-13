@@ -48,6 +48,9 @@ struct VisualizationHubView: View {
             }
             .navigationTitle("Scope")
             .navigationBarTitleDisplayMode(.large)
+            .onAppear {
+                ScopeExperimentTelemetry.recordScopeHubAppearance()
+            }
             .task { await model.refreshGraphSnapshots() }
         }
     }

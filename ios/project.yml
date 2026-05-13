@@ -71,6 +71,12 @@ targets:
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
         ITSAppUsesNonExemptEncryption: false
+        BGTaskSchedulerPermittedIdentifiers:
+          - blue.skymarshal.ios.refresh
+          - blue.skymarshal.ios.processing
+        UIBackgroundModes:
+          - fetch
+          - processing
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: blue.skymarshal.ios

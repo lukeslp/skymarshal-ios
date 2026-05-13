@@ -67,4 +67,60 @@ final class AccessibilityRegressionTests: XCTestCase {
         XCTAssert(app.secureTextFields["App password"].exists)
         XCTAssert(app.buttons["Sign in"].exists)
     }
+
+    func test_launchAtAX5_featureDiscovery_about_featureLabHeader() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-UIPreferredContentSizeCategoryName",
+            "UICTContentSizeCategoryAccessibilityExtraExtraExtraLarge",
+            XCUIApplication.forceFeatureDiscoveryArgument,
+        ]
+        app.launch()
+        let header = app.descendants(matching: .any)["about_feature_lab_section_header"]
+        XCTAssert(
+            header.waitForExistence(timeout: 6),
+            "Feature lab section header missing at AX5 — About discovery sheet regression"
+        )
+    }
+
+    func test_launchAtAX5_insights_scopeLink_withStubContent() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-UIPreferredContentSizeCategoryName",
+            "UICTContentSizeCategoryAccessibilityExtraExtraExtraLarge",
+            XCUIApplication.stubMinimalContentArgument,
+            XCUIApplication.openInsightsArgument,
+        ]
+        app.skymarshalUseUITestFeatureDefaults()
+        app.launch()
+        XCTAssert(app.staticTexts["Insights"].waitForExistence(timeout: 15))
+
+        let sectionHeader = app.staticTexts["Scope (Feature lab)"]
+        var scrolls = 0
+        while !sectionHeader.exists, scrolls < 12 {
+            app.swipeUp(velocity: .fast)
+            scrolls += 1
+        }
+        XCTAssert(
+            sectionHeader.waitForExistence(timeout: 4),
+            "Scope (Feature lab) section not found after scrolling"
+        )
+
+        let scopeLink = app.descendants(matching: .any)["insights_scope_visualizations_link"]
+        XCTAssert(
+            scopeLink.waitForExistence(timeout: 5),
+            "Insights → Scope navigation missing at AX5"
+        )
+    }
+
+    func test_backgroundGraphRefreshNote_displaysWithUITestForceFlag() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [XCUIApplication.stubMinimalContentArgument]
+        app.launchEnvironment[XCUIApplication.forceBackgroundGraphNoteEnvironment] = "1"
+        app.skymarshalUseUITestFeatureDefaults()
+        app.launch()
+
+        let note = app.descendants(matching: .any)["content_bg_scope_refresh_note"]
+        XCTAssert(note.waitForExistence(timeout: 8))
+    }
 }

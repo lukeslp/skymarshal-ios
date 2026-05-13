@@ -55,3 +55,17 @@ Skymarshal is **air-traffic control**, not a timeline client. Every screen shoul
 | Follower cleanup / dry-run | [`BluescreenView.swift`](../ios/Skymarshal/UI/BluescreenView.swift), [`FollowerService`](../ios/SkymarshalCore/Services/FollowerService.swift) |
 | Profile lists | [`ProfileExplorerView.swift`](../ios/Skymarshal/UI/ProfileExplorerView.swift), [`ProfileService.swift`](../ios/SkymarshalCore/Services/ProfileService.swift) |
 | Feature rollout + Feature lab | [`FeatureFlags.swift`](../ios/SkymarshalCore/Standards/FeatureFlags.swift), [`AboutView.swift`](../ios/Skymarshal/UI/AboutView.swift) |
+
+## UI testing (XCUITest)
+
+`SkymarshalUITests` uses **launch arguments** and **launch environment** keys that the app reads at startup (never in production user flows unless a test harness sets them):
+
+| Key | Where read | Purpose |
+|-----|------------|---------|
+| `-uitestForceFeatureDiscovery` | [`RootView`](../ios/Skymarshal/UI/RootView.swift) | Opens the post-update About sheet without changing marketing version. |
+| `-uitestStubMinimalContent` | [`AppModel`](../ios/Skymarshal/UI/AppModel.swift) | Injects one placeholder `ContentItem` so TabView mounts without sign-in. |
+| `-uitestOpenInsights` | [`ContentListView`](../ios/Skymarshal/UI/ContentListView.swift) | Presents Insights after a short async delay. |
+| `UITEST_RESET_FEATURE_DEFAULTS` | [`SkymarshalApp`](../ios/Skymarshal/App/SkymarshalApp.swift) | Sets Insights feature on and Scope tab off in `UserDefaults` (test process isolation). |
+| `UITEST_FORCE_BG_SCOPE_NOTE` | [`ContentListView`](../ios/Skymarshal/UI/ContentListView.swift) | Shows the background graph refresh honesty banner. |
+
+Shared string constants: [`UITestBootstrap.swift`](../ios/SkymarshalUITests/UITestBootstrap.swift) (`XCUIApplication` extension).

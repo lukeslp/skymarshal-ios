@@ -8,7 +8,7 @@ This is the iOS app. Native SwiftUI, iOS 17+. No third-party dependencies. App p
 
 ## Status
 
-Pre-TestFlight v1.0.0, build 3. **164** XCTest cases in `SkymarshalTests` pass (`-only-testing:SkymarshalTests`). Tagged `v1.0.1-pre-testflight` (most recent rollback anchor).
+Pre-TestFlight v1.0.0, build 3. **162** XCTest cases in `SkymarshalTests` pass (`-only-testing:SkymarshalTests`). Tagged `v1.0.1-pre-testflight` (most recent rollback anchor).
 
 TestFlight Public Link goes here once the current build clears Beta App Review.
 
@@ -70,7 +70,7 @@ ios/
     Assets.xcassets/       # AppIcon, LaunchBird, DotBird, EasterAlf, ColorSets
     Info.plist
     PrivacyInfo.xcprivacy
-  SkymarshalTests/         # XCTest — 164 unit test methods
+  SkymarshalTests/         # XCTest — 162 unit test methods
   SkymarshalUITests/       # XCUITest — 2 AX5 regression cases
   project.yml              # xcodegen spec
 docs/                      # README hub, ARCHITECTURE, CONTRIBUTOR_UX, GAP, review artifacts

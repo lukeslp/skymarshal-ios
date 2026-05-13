@@ -5,6 +5,7 @@ import SkymarshalCore
 struct RootView: View {
     @State private var model = AppModel.liveDefault()
     @AppStorage(FeatureFlags.visualizationHubKey) private var featureVisualizationHub: Bool = false
+    @State private var showPostUpdateFeatureDiscovery = false
 
     var body: some View {
         Group {
@@ -29,10 +30,35 @@ struct RootView: View {
             }
         }
         .environment(model)
+        .sheet(isPresented: $showPostUpdateFeatureDiscovery) {
+            AboutView()
+                .onDisappear {
+                    guard !ProcessInfo.processInfo.arguments.contains("-uitestForceFeatureDiscovery") else { return }
+                    let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+                    UserDefaults.standard.set(version, forKey: "sm.featureDiscoveryPresentedForVersion")
+                }
+        }
         .task {
             // Cold-start cache read. Idempotent — does nothing if
             // already hydrated this session, or if cache is empty.
             await model.hydrateFromCache()
+            await model.seedUITestMinimalContentIfNeeded()
+            presentFeatureLabDiscoveryIfNeeded()
+            BackgroundTaskCoordinator.scheduleProcessingPass()
+            BackgroundTaskCoordinator.scheduleAppRefreshPass()
+        }
+    }
+
+    private func presentFeatureLabDiscoveryIfNeeded() {
+        if ProcessInfo.processInfo.arguments.contains("-uitestForceFeatureDiscovery") {
+            showPostUpdateFeatureDiscovery = true
+            return
+        }
+        guard model.isAuthenticated || !model.items.isEmpty || !model.accounts.isEmpty else { return }
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+        let key = "sm.featureDiscoveryPresentedForVersion"
+        if UserDefaults.standard.string(forKey: key) != version {
+            showPostUpdateFeatureDiscovery = true
         }
     }
 }

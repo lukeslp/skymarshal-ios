@@ -8,6 +8,7 @@ This runbook is the operational checklist for submitting and launching the publi
 
 - [ ] Confirm release build number and version string
 - [ ] Run full test suite in CI/local
+- [ ] Execute large-account soak checklist: [`docs/SOAK_PROTOCOL.md`](../docs/SOAK_PROTOCOL.md) (screen recording + device)
 - [ ] Validate login, search, bulk delete, bulk unfollow on real device
 - [ ] Reconfirm privacy posture and URLs
 - [ ] Finalize App Store copy from `PUBLIC_RELEASE_COPY.md`

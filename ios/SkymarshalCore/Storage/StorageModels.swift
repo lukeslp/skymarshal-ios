@@ -574,6 +574,37 @@ public final class GraphEdgeRecord {
     }
 }
 
+/// Pagination resume cursor for ``ContentService.ensureContentLoaded`` —
+/// one row per `(ownerHandle, phase)` while a phase is in flight. Rows are
+/// deleted when the phase finishes cleanly; any remaining row means a prior
+/// load was interrupted and pagination should continue from ``cursor``.
+@available(iOS 17, *)
+@Model
+public final class ArchiveLoadCheckpointRecord {
+    @Attribute(.unique) public var scopeKey: String
+    public var ownerHandle: String
+    /// `posts` or `likes` — matches ``ContentService/LoadProgress/Phase`` archive segments.
+    public var phaseRaw: String
+    public var cursor: String?
+    public var pagesFetched: Int
+    public var updatedAt: Date
+
+    public init(
+        ownerHandle: String,
+        phaseRaw: String,
+        cursor: String?,
+        pagesFetched: Int,
+        updatedAt: Date = Date()
+    ) {
+        self.scopeKey = "\(ownerHandle)|\(phaseRaw)"
+        self.ownerHandle = ownerHandle
+        self.phaseRaw = phaseRaw
+        self.cursor = cursor
+        self.pagesFetched = pagesFetched
+        self.updatedAt = updatedAt
+    }
+}
+
 /// Resume tokens for incremental graph materialization (per owner + logical scope).
 @available(iOS 17, *)
 @Model
@@ -615,6 +646,7 @@ public enum SkymarshalSchema {
         GraphNodeRecord.self,
         GraphEdgeRecord.self,
         GraphCheckpointRecord.self,
+        ArchiveLoadCheckpointRecord.self,
     ]
 
     public static func makeContainer(

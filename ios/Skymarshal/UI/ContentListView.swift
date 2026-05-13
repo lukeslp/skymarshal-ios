@@ -36,6 +36,7 @@ struct ContentListView: View {
     @AppStorage(FeatureFlags.contentPowerToolsExpandedKey) private var contentPowerToolsExpanded: Bool = false
 
     @State private var showAdvancedSearch: Bool = false
+    @State private var showBackgroundGraphRefreshNote: Bool = false
 
     /// Remember-last-choice for the Export submenu. The format the
     /// user picked previously shows first; the alternative shows
@@ -104,6 +105,16 @@ struct ContentListView: View {
         @Bindable var model = model
         NavigationStack {
             VStack(spacing: 0) {
+                if showBackgroundGraphRefreshNote {
+                    Text("Scope summaries were refreshed in the background from your saved archive.")
+                        .font(.caption)
+                        .foregroundStyle(Theme.info)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                        .padding(.vertical, 6)
+                        .background(Theme.info.opacity(0.12))
+                        .accessibilityIdentifier("content_bg_scope_refresh_note")
+                }
                 // Pill-chip row — lifted from skymarshal-web's
                 // ContentManagement pattern. Each chip carries its
                 // category count, so a glance tells you "9,832 Posts,
@@ -423,8 +434,34 @@ struct ContentListView: View {
             } message: {
                 Text("Stores keyword, type tab, filters, and sort for this handle.")
             }
+            .alert(
+                "Interrupted delete",
+                isPresented: Binding(
+                    get: { model.deleteInterruptionNotice != nil },
+                    set: { newValue in
+                        if !newValue { model.dismissDeleteInterruptionRecovery() }
+                    }
+                )
+            ) {
+                Button("OK", role: .cancel) {
+                    model.dismissDeleteInterruptionRecovery()
+                }
+            } message: {
+                Text(model.deleteInterruptionNotice ?? "")
+            }
             .onAppear {
                 reloadSavedPresets()
+                if ProcessInfo.processInfo.environment["UITEST_FORCE_BG_SCOPE_NOTE"] == "1" {
+                    showBackgroundGraphRefreshNote = true
+                } else if UserDefaults.standard.bool(forKey: BackgroundGraphRefreshNotice.pendingUserDefaultsKey) {
+                    showBackgroundGraphRefreshNote = true
+                    UserDefaults.standard.set(false, forKey: BackgroundGraphRefreshNotice.pendingUserDefaultsKey)
+                }
+            }
+            .task {
+                guard ProcessInfo.processInfo.arguments.contains("-uitestOpenInsights") else { return }
+                try? await Task.sleep(nanoseconds: 150_000_000)
+                showInsights = true
             }
             .onChange(of: featureSavedSearch) { _, _ in
                 reloadSavedPresets()

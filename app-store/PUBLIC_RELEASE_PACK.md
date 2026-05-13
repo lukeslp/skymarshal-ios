@@ -1,6 +1,6 @@
 # Skymarshal iOS Public Release Pack
 
-Last updated: 2026-05-12 (reconciled)
+Last updated: 2026-05-13 (reconciled)
 
 Use this pack to prepare, submit, and launch the public iOS release from one place.
 
@@ -10,6 +10,7 @@ Use this pack to prepare, submit, and launch the public iOS release from one pla
 - `PUBLIC_RELEASE_ASSETS.md` - Required/optional App Store visual asset specs.
 - `PUBLIC_RELEASE_RUNBOOK.md` - Timeline and execution checklist for launch.
 - `APP_STORE_CONNECT_PASTE_SESSION.md` - Exact App Store Connect fill order.
+- `docs/SOAK_PROTOCOL.md` — large-account / real-device soak checklist (screen recording gate).
 - Existing references:
   - `LISTING.md`
   - `SCREENSHOTS.md`

@@ -28,7 +28,7 @@ struct BackupRestoreView: View {
                     Text(err).foregroundStyle(Theme.danger)
                 }
             } footer: {
-                Text("Exports from this app include handle and optional DID. Likes/reposts without a viewer delete URI are skipped.")
+                Text("Exports from this app include handle and optional DID. Import applies only while signed in; handle and DID must match the backup envelope or the import is blocked. Likes/reposts without a viewer delete URI are skipped. Replace all clears cached content rows for this signed-in owner on this device, then writes the import.")
             }
 
             if let outcome {
@@ -98,7 +98,7 @@ struct BackupRestoreView: View {
                 case .handleMismatch(let exp, let found):
                     importError = "Handle mismatch (expected \(exp), found \(found ?? "nil"))."
                 case .didMismatch(let exp, let found):
-                    importError = "DID mismatch (expected \(exp), found \(found))."
+                    importError = "DID mismatch (expected \(exp), found \(found ?? "nil"))."
                 }
             } catch {
                 importError = error.localizedDescription

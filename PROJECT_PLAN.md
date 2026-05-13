@@ -29,8 +29,9 @@ Shipped in-repo: on-device **Insights** analytics, **saved search presets**, **c
 
 ## Near-term polish (non-blocking)
 
+- **Reliability + review docs:** Archive load checkpoints ([`docs/ARCHIVE_LOAD_CHECKPOINTS.md`](docs/ARCHIVE_LOAD_CHECKPOINTS.md)), device soak gate ([`docs/SOAK_PROTOCOL.md`](docs/SOAK_PROTOCOL.md)), consensus implementation delta ([`docs/archive/consensus-skymarshal-ios-delta-2026-05-14.md`](docs/archive/consensus-skymarshal-ios-delta-2026-05-14.md)), Scope IA placeholder ([`docs/archive/scope-ia-decision-2026-05-14.md`](docs/archive/scope-ia-decision-2026-05-14.md)).
 - Row min-height: **ContentRow** / **AccountRow** use **56 pt** minimum (see [`docs/CONTRIBUTOR_UX.md`](docs/CONTRIBUTOR_UX.md)); further density polish remains non-blocking.
-- Keep README test counts / build numbers aligned with CI or manual verification after substantive changes (current `SkymarshalTests`: **164** `func test` methods).
+- Keep README test counts / build numbers aligned with CI or manual verification after substantive changes (current `SkymarshalTests`: **162** `func test_` methods).
 
 ## Parity + visualization (on main, 2026-05)
 

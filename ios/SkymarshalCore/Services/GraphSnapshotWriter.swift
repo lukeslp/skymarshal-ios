@@ -97,4 +97,23 @@ public enum GraphSnapshotWriter: Sendable {
         let data = try encoder.encode(enc)
         return String(data: data, encoding: .utf8) ?? "{}"
     }
+
+    /// Rebuild persisted graph summaries from SwiftData only (no network).
+    /// Used by background tasks to refresh Scope metrics from the on-disk cache.
+    public static func refreshPersistedSummariesFromCache(
+        container: ModelContainer,
+        ownerHandle: String
+    ) throws {
+        let context = ModelContext(container)
+        let oh = ownerHandle
+        let itemDescriptor = FetchDescriptor<ContentItemRecord>(
+            predicate: #Predicate { $0.ownerHandle == oh }
+        )
+        let acctDescriptor = FetchDescriptor<AnalyzedAccountRecord>(
+            predicate: #Predicate { $0.ownerHandle == oh }
+        )
+        let items = try context.fetch(itemDescriptor).map { $0.toContentItem() }
+        let accounts = try context.fetch(acctDescriptor).map { $0.toAnalyzedAccount() }
+        try syncLocalSummaries(context: context, ownerHandle: ownerHandle, items: items, accounts: accounts)
+    }
 }

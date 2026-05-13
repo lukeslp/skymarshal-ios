@@ -54,6 +54,8 @@ final class AppModel {
     var isLoading: Bool = false
     var isScanning: Bool = false
     var errorMessage: String?
+    /// Set when a multi-item delete may have been interrupted before completion.
+    var deleteInterruptionNotice: String?
 
     private var loadTask: Task<Void, Never>?
     private var scanTask: Task<Void, Never>?
@@ -126,6 +128,7 @@ final class AppModel {
             } else if items.isEmpty {
                 startLoad(forceRefresh: false)
             }
+            evaluateDeleteInterruptionRecovery()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -191,6 +194,23 @@ final class AppModel {
         if !accounts.isEmpty || !items.isEmpty {
             hydratedFromCache = true
         }
+        evaluateDeleteInterruptionRecovery()
+    }
+
+    /// UI-testing only: forces one in-memory row so TabView + Insights can load without auth or network.
+    func seedUITestMinimalContentIfNeeded() async {
+        guard ProcessInfo.processInfo.arguments.contains("-uitestStubMinimalContent") else { return }
+        let stub = ContentItem(
+            uri: "at://did:plc:uitestfixture/app.bsky.feed.post/uitestrkeyaaa",
+            cid: "uitestcid",
+            deletionURI: "at://did:plc:uitestfixture/app.bsky.feed.post/uitestrkeyaaa",
+            contentType: .posts,
+            text: "UI test placeholder",
+            createdAt: Date()
+        )
+        items = [stub]
+        summary = Self.computeContentSummary([stub])
+        await content.setLoadedContent([stub])
     }
 
     /// Recompute the content-type counts from a list of items.
@@ -215,6 +235,8 @@ final class AppModel {
         hydratedOwnerHandle = nil
         items = []; summary = [:]; loadProgress = nil
         accounts = []; scanSummary = ScanSummary(); scanProgress = nil
+        deleteInterruptionNotice = nil
+        DeleteBatchRecovery.clear()
     }
 
     // MARK: - Content tab
@@ -263,12 +285,37 @@ final class AppModel {
     }
 
     func delete(itemIDs: [String]) async -> (deleted: Int, errors: [String]) {
+        let ownerKey = currentHandle ?? currentDid ?? ""
+        if itemIDs.count >= 2, !ownerKey.isEmpty {
+            DeleteBatchRecovery.store(ownerKey: ownerKey, itemIDs: itemIDs)
+        }
         let result = await content.delete(itemIDs: itemIDs)
+        DeleteBatchRecovery.clear()
         if !itemIDs.isEmpty {
             self.items.removeAll { itemIDs.contains($0.id) }
             self.summary = await content.summarize()
         }
         return result
+    }
+
+    func dismissDeleteInterruptionRecovery() {
+        DeleteBatchRecovery.clear()
+        deleteInterruptionNotice = nil
+    }
+
+    /// Surfaces a one-shot notice when a bulk delete breadcrumb remains on disk.
+    func evaluateDeleteInterruptionRecovery() {
+        guard let payload = DeleteBatchRecovery.current() else {
+            deleteInterruptionNotice = nil
+            return
+        }
+        let owner = currentHandle ?? currentDid ?? ""
+        if !owner.isEmpty, payload.ownerKey != owner {
+            deleteInterruptionNotice = nil
+            return
+        }
+        deleteInterruptionNotice =
+            "A bulk delete of \(payload.itemIDs.count) items may have been interrupted before Skymarshal finished. Some records may already be gone on Bluesky. Pull to refresh or run Refresh archive to reconcile this device."
     }
 
     func delete(uris: [String]) async -> (deleted: Int, errors: [String]) {
