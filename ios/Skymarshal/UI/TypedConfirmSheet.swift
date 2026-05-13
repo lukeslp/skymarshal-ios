@@ -14,6 +14,7 @@ import SkymarshalCore
 @available(iOS 17, *)
 struct TypedConfirmSheet: View {
     let count: Int
+    var preflight: DeletePreflightSummary?
     let onConfirm: () -> Void
     let onCancel: () -> Void
 
@@ -21,6 +22,10 @@ struct TypedConfirmSheet: View {
     @FocusState private var fieldFocused: Bool
 
     private static let requiredWord = "DELETE"
+
+    private var effectiveCount: Int {
+        preflight?.totalCount ?? count
+    }
 
     private var enabled: Bool {
         typed == Self.requiredWord
@@ -31,8 +36,18 @@ struct TypedConfirmSheet: View {
             Form {
                 Section {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("\(count) posts will be permanently deleted from Bluesky.")
+                        Text("\(effectiveCount) record\(effectiveCount == 1 ? "" : "s") will be permanently deleted from Bluesky.")
                             .font(.body)
+                        if count > effectiveCount {
+                            Text("\(count) item(s) were selected; \(count - effectiveCount) cannot be deleted from this archive.")
+                                .font(.caption)
+                                .foregroundStyle(Theme.caution)
+                        }
+                        if let preflight, !preflight.resolutionErrors.isEmpty {
+                            Text("\(preflight.resolutionErrors.count) selection(s) skipped (no deletable URI).")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                         Text("This action cannot be undone. Deleted posts cannot be recovered, and the bsky.social rate limit means this batch will take several minutes to complete.")
                             .font(.callout)
                             .foregroundStyle(.secondary)
@@ -59,14 +74,14 @@ struct TypedConfirmSheet: View {
 
                 Section {
                     Button(role: .destructive, action: onConfirm) {
-                        Label("Delete \(count) posts permanently", systemImage: "trash")
+                        Label("Delete \(effectiveCount) record\(effectiveCount == 1 ? "" : "s") permanently", systemImage: "trash")
                             .labelStyle(.titleAndIcon)
                             .frame(maxWidth: .infinity, minHeight: 44)
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(Theme.danger)
                     .disabled(!enabled)
-                    .accessibilityLabel("Delete \(count) posts permanently")
+                    .accessibilityLabel("Delete \(effectiveCount) records permanently")
                     .accessibilityHint("This action cannot be undone")
                 }
             }
@@ -86,10 +101,10 @@ struct TypedConfirmSheet: View {
 
 @available(iOS 17, *)
 #Preview("Big batch") {
-    TypedConfirmSheet(count: 1_247, onConfirm: {}, onCancel: {})
+    TypedConfirmSheet(count: 1_247, preflight: nil, onConfirm: {}, onCancel: {})
 }
 
 @available(iOS 17, *)
 #Preview("Just over threshold") {
-    TypedConfirmSheet(count: 100, onConfirm: {}, onCancel: {})
+    TypedConfirmSheet(count: 100, preflight: nil, onConfirm: {}, onCancel: {})
 }

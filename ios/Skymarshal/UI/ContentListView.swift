@@ -19,6 +19,7 @@ struct ContentListView: View {
     @State private var showFilterSheet: Bool = false
     @State private var draftFilters: SearchRequest = SearchRequest()
     @State private var pendingDeletion: [String]? = nil
+    @State private var deletePreflight: DeletePreflightSummary?
     @State private var selection: Set<String> = []
     @State private var editMode: EditMode = .inactive
     @State private var detailItem: ContentItem? = nil
@@ -421,6 +422,16 @@ struct ContentListView: View {
             .onChange(of: featureSavedSearch) { _, _ in
                 reloadSavedPresets()
             }
+            .onChange(of: pendingDeletion) { _, newVal in
+                guard let ids = newVal, !ids.isEmpty else {
+                    deletePreflight = nil
+                    return
+                }
+                Task {
+                    let s = await model.preflightDelete(itemIDs: ids)
+                    await MainActor.run { deletePreflight = s }
+                }
+            }
             // Small batches (< threshold) go through the standard
             // confirmationDialog. Large batches go through
             // TypedConfirmSheet — see the .sheet binding below.
@@ -429,19 +440,20 @@ struct ContentListView: View {
                 isPresented: smallDeletionBinding,
                 presenting: pendingDeletion
             ) { batch in
-                Button("Delete \(batch.count)", role: .destructive) {
+                Button("Delete \(deletePreflight?.totalCount ?? batch.count)", role: .destructive) {
                     Task { await performDeletion(batch) }
                 }
-                .accessibilityLabel("Delete \(batch.count) posts permanently")
+                .accessibilityLabel("Delete \(deletePreflight?.totalCount ?? batch.count) posts permanently")
                 .accessibilityHint("This action cannot be undone")
                 Button("Cancel", role: .cancel) { pendingDeletion = nil }
             } message: { batch in
-                Text("This permanently deletes \(batch.count) post\(batch.count == 1 ? "" : "s") from Bluesky. It cannot be undone.")
+                deletionConfirmationMessage(selectedCount: batch.count)
             }
             .sheet(isPresented: bigDeletionBinding) {
                 if let batch = pendingDeletion {
                     TypedConfirmSheet(
                         count: batch.count,
+                        preflight: deletePreflight,
                         onConfirm: { Task { await performDeletion(batch) } },
                         onCancel: { pendingDeletion = nil }
                     )
@@ -482,10 +494,30 @@ struct ContentListView: View {
         )
     }
 
+    private func deletionConfirmationMessage(selectedCount: Int) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let p = deletePreflight {
+                Text("Bluesky records to delete: \(p.totalCount) (of \(selectedCount) selected).")
+                    .font(.body)
+                if !p.resolutionErrors.isEmpty {
+                    Text("\(p.resolutionErrors.count) selected item(s) have no deletable record (for example likes missing a viewer delete URI).")
+                        .font(.caption)
+                        .foregroundStyle(Theme.caution)
+                }
+            } else {
+                Text("Checking delete scope…")
+                    .foregroundStyle(.secondary)
+            }
+            Text("This permanently removes matching records from Bluesky. It cannot be undone.")
+                .font(.callout)
+        }
+    }
+
     private func performDeletion(_ batch: [String]) async {
         _ = await model.delete(itemIDs: batch)
         selection.removeAll()
         pendingDeletion = nil
+        deletePreflight = nil
     }
 
     private func reloadSavedPresets() {
