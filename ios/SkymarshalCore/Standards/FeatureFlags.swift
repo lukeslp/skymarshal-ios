@@ -10,6 +10,7 @@ public enum FeatureFlags {
     public static let profileExplorerKey = "sm.feature.profileExplorer"
     public static let unfollowDryRunKey = "sm.feature.unfollowDryRun"
     public static let advancedSearchGrammarKey = "sm.feature.advancedSearchGrammar"
+    public static let visualizationHubKey = "sm.feature.visualizationHub"
 
     public static func bool(for key: String, default defaultValue: Bool = true) -> Bool {
         if UserDefaults.standard.object(forKey: key) == nil { return defaultValue }
