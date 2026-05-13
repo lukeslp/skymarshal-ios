@@ -14,8 +14,8 @@ This document implements the **Full /team + /consensus execution plan**: frozen 
 
 | Transport | Model / tool | Result |
 |-----------|----------------|--------|
-| Codex CLI | `codex exec` (read-only, ephemeral) | **Skipped** — run exceeded time budget; no model verdict captured (see `docs/CONSENSUS_CODEX.txt` placeholder). |
-| Gemini CLI | `gemini-2.5-flash` | **Completed** — see `docs/CONSENSUS_GEMINI.txt`. |
+| Codex CLI | `codex exec` (read-only, ephemeral) | **Skipped** — run exceeded time budget; no model verdict captured (see `docs/archive/council-raw/CONSENSUS_CODEX.txt` placeholder). |
+| Gemini CLI | `gemini-2.5-flash` | **Completed** — see `docs/archive/council-raw/CONSENSUS_GEMINI.txt`. |
 | Cursor CLI | `cursor-agent` | **Skipped** — authentication required (`agent login` / `CURSOR_API_KEY`). |
 | API fallback | `~/documentation/API_KEYS.md` | **Skipped** — file not present in this environment. |
 | Local gateway | `localhost:5200` | **Skipped** — not used per skill (no attempt). |
@@ -101,9 +101,9 @@ Full structured committee markdown was generated in-session from the canonical b
 | File | Purpose |
 |------|---------|
 | [REVIEW_BRIEF_IOS_ROADMAP_BRANCH.md](REVIEW_BRIEF_IOS_ROADMAP_BRANCH.md) | Canonical brief (Phase 1). |
-| [CONSENSUS_GEMINI.txt](CONSENSUS_GEMINI.txt) | Raw Gemini CLI output. |
-| [CONSENSUS_CODEX.txt](CONSENSUS_CODEX.txt) | Codex attempt log (timeout). |
-| [CONSENSUS_CURSOR_AGENT.txt](CONSENSUS_CURSOR_AGENT.txt) | Cursor-agent attempt (auth failure if empty). |
+| [CONSENSUS_GEMINI.txt](archive/council-raw/CONSENSUS_GEMINI.txt) | Raw Gemini CLI output. |
+| [CONSENSUS_CODEX.txt](archive/council-raw/CONSENSUS_CODEX.txt) | Codex attempt log (timeout). |
+| [CONSENSUS_CURSOR_AGENT.txt](archive/council-raw/CONSENSUS_CURSOR_AGENT.txt) | Cursor-agent attempt (auth failure if empty). |
 | This file | Phases 4–6 synthesis. |
 
 ---

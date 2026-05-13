@@ -8,13 +8,17 @@ This is the iOS app. Native SwiftUI, iOS 17+. No third-party dependencies. App p
 
 ## Status
 
-Pre-TestFlight v1.0.0, build 3. 145 XCTest unit cases pass (`-only-testing:SkymarshalTests`). Tagged `v1.0.1-pre-testflight` (most recent rollback anchor).
+Pre-TestFlight v1.0.0, build 3. **164** XCTest cases in `SkymarshalTests` pass (`-only-testing:SkymarshalTests`). Tagged `v1.0.1-pre-testflight` (most recent rollback anchor).
 
 TestFlight Public Link goes here once the current build clears Beta App Review.
 
 ## What it does
 
-**Content tab.** Search every post, reply, repost, and like in your archive. Filter by keyword, content type, date range, engagement count, alt-text, presence of media. Sort results (newest/oldest/highest or lowest engagement). Save named filter presets per account. Open **Insights** for on-device analytics (engagement distribution, posting hours/days, top words) — no analytics SDKs. Swipe-delete one at a time or Select All from a search result and delete a hundred at once. Bulk delete ≥ 100 items goes through a typed-confirm sheet so the intent is unambiguous.
+**Content tab.** Search every post, reply, repost, and like in your archive. Filter by keyword, content type, date range, engagement count, alt-text, presence of media. Optional **advanced keyword grammar** (phrases, required/excluded terms, word boundaries) and URI filters — gated by `sm.feature.advancedSearchGrammar` (default off). Sort results (newest/oldest/highest or lowest engagement). Save named filter presets per account. Open **Insights** for on-device analytics (engagement distribution, posting hours/days, top words) plus optional **word-pattern stats** (lexicon hits; not sentiment) behind `sm.feature.wordPatterns`. Swipe-delete one at a time or Select All from a search result and delete a hundred at once. Bulk delete shows a **preflight scope** (how many Bluesky records will actually delete vs. skipped selections). Bulk delete ≥ 100 items goes through a typed-confirm sheet so the intent is unambiguous.
+
+**Scope tab (optional).** Local-cache summaries for account scan, interaction counts, and timeline heatmap; persisted **graph snapshot** metadata for honesty about completeness — gated by `sm.feature.visualizationHub` (default off).
+
+**About → Backup & restore (optional).** Import Skymarshal JSON exports with handle/DID checks and merge-or-replace apply — gated by `sm.feature.backupRestore` (default off).
 
 **Followers tab.** Pull your full follow list and score every account against six bot signals plus inactivity and follower asymmetry. Sort, filter, segmented bot-sensitivity preset (Strict / Balanced / Loose). One-tap **cleanup presets** (inactive, automation signals, disengaged, follower skew). Optional **dry-run unfollow** previews unfollows (bulk confirmation and single-account sheet) with **no XRPC writes** when the toggle is on. Bulk unfollow uses the same rate-limit safety net as bulk delete. Per-account "this isn't an automated account" whitelist for false positives.
 
@@ -58,7 +62,7 @@ ios/
   SkymarshalCore/          # Framework — models, services, network, storage
     Models/                # AnalyzedAccount, ContentItem, Interaction, FollowerFilters
     Network/               # ATProtoClient, ATProtoTypes
-    Services/              # ContentService, FollowerService, InteractionService, ProfileService, AnalyticsService
+    Services/              # ContentService, FollowerService, InteractionService, ProfileService, AnalyticsService, DeletePreflight, WordPatternsService, ContentBackupImport, GraphSnapshotWriter, …
     Standards/             # Theme, ReduceMotion, BluescreenAnalyzer, Exporter, RateLimit, FeatureFlags
     Storage/               # SwiftData models (ContentItemRecord, AnalyzedAccountRecord, …)
   Skymarshal/              # App — SwiftUI views, AppModel
@@ -66,7 +70,7 @@ ios/
     Assets.xcassets/       # AppIcon, LaunchBird, DotBird, EasterAlf, ColorSets
     Info.plist
     PrivacyInfo.xcprivacy
-  SkymarshalTests/         # XCTest — 145 unit cases
+  SkymarshalTests/         # XCTest — 164 unit test methods
   SkymarshalUITests/       # XCUITest — 2 AX5 regression cases
   project.yml              # xcodegen spec
 docs/                      # README hub, ARCHITECTURE, CONTRIBUTOR_UX, GAP, review artifacts

@@ -22,10 +22,15 @@ Companion services:
 - [`ProfileService`](../ios/SkymarshalCore/Services/ProfileService.swift) — paginated `getFollowers` / `getFollows` for the profile explorer (read-only graph lists).
 - [`AnalyticsService`](../ios/SkymarshalCore/Services/AnalyticsService.swift) — pure-function snapshots from cached [`ContentItem`](../ios/SkymarshalCore/Models/ContentItem.swift) data (no network).
 
-### Imported upstream-adjacent surfaces (roadmap tranche)
+### Imported upstream-adjacent surfaces (roadmap tranches)
 
 - **On-device insights:** [`AnalyticsInsightsView`](../ios/Skymarshal/UI/AnalyticsInsightsView.swift) + [`AnalyticsSnapshot`](../ios/SkymarshalCore/Models/AnalyticsSnapshot.swift).
 - **Power search:** [`ContentSortOrder`](../ios/SkymarshalCore/Models/ContentSortOrder.swift), [`SavedSearchPresetRecord`](../ios/SkymarshalCore/Storage/StorageModels.swift), [`ContentListView`](../ios/Skymarshal/UI/ContentListView.swift) ellipsis menu.
+- **Advanced keyword grammar (optional):** [`SearchKeywordGrammar`](../ios/SkymarshalCore/Models/SearchKeywordGrammar.swift), [`AdvancedSearchBuilderView`](../ios/Skymarshal/UI/AdvancedSearchBuilderView.swift); default-off flag `sm.feature.advancedSearchGrammar`.
+- **Delete preflight:** [`DeletePreflight`](../ios/SkymarshalCore/Services/DeletePreflight.swift) — counts Bluesky records that would be deleted vs. skipped selections; surfaced in bulk delete confirmation.
+- **Backup import:** [`ContentBackupImport`](../ios/SkymarshalCore/Services/ContentBackupImport.swift), [`BackupRestoreView`](../ios/Skymarshal/UI/BackupRestoreView.swift); default-off `sm.feature.backupRestore`.
+- **Word patterns (optional):** [`WordPatternsService`](../ios/SkymarshalCore/Services/WordPatternsService.swift); default-off `sm.feature.wordPatterns`.
+- **Visualization hub (optional):** [`VisualizationHubView`](../ios/Skymarshal/UI/VisualizationHubView.swift), [`GraphSnapshotWriter`](../ios/SkymarshalCore/Services/GraphSnapshotWriter.swift), graph models in [`StorageModels`](../ios/SkymarshalCore/Storage/StorageModels.swift); default-off `sm.feature.visualizationHub`.
 - **Cleanup presets:** [`CleanupPreset`](../ios/SkymarshalCore/Models/CleanupPreset.swift) applied to [`FollowerFilters`](../ios/SkymarshalCore/Models/FollowerFilters.swift).
 - **Rollout toggles:** [`FeatureFlags`](../ios/SkymarshalCore/Standards/FeatureFlags.swift) (`UserDefaults`, keys prefixed `sm.feature.`).
 

@@ -30,7 +30,11 @@ Shipped in-repo: on-device **Insights** analytics, **saved search presets**, **c
 ## Near-term polish (non-blocking)
 
 - Row min-height polish for dense bio + badge rows (56–60pt) noted in workspace guidance.
-- Keep README test counts / build numbers aligned with CI or manual verification after substantive changes.
+- Keep README test counts / build numbers aligned with CI or manual verification after substantive changes (current `SkymarshalTests`: **164** `func test` methods).
+
+## Parity + visualization (on main, 2026-05)
+
+Shipped behind `sm.feature.*` defaults **off**: advanced keyword grammar + builder UI, delete preflight in confirm flows, graph snapshot models + writer, visualization hub (Scope tab), word-pattern stats in Insights, JSON backup import + About entry. Canonical spec remains [`docs/PARITY_VISUALIZATION_PLAN.md`](docs/PARITY_VISUALIZATION_PLAN.md); architecture links in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Explicit non-goals (unless requested)
 
