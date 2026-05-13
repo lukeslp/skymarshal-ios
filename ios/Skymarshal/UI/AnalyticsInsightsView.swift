@@ -7,6 +7,7 @@ struct AnalyticsInsightsView: View {
 
     let items: [ContentItem]
     @Environment(\.dismiss) private var dismiss
+    @AppStorage(FeatureFlags.wordPatternsKey) private var featureWordPatterns: Bool = false
 
     private var snapshot: AnalyticsSnapshot {
         AnalyticsService.buildSnapshot(from: items)
@@ -99,6 +100,18 @@ struct AnalyticsInsightsView: View {
                 } footer: {
                     Text("Words are counted from your post and reply text only — local tokenization, no cloud.")
                 }
+
+                Section {
+                    Toggle("Show word pattern stats", isOn: $featureWordPatterns)
+                        .accessibilityHint("Lexicon word hits and engagement contrast. Not clinical sentiment analysis.")
+                    if featureWordPatterns {
+                        wordPatternsContent
+                    }
+                } header: {
+                    Text("Word patterns")
+                } footer: {
+                    Text("Optional English lexicon hits and token/engagement summaries — on-device only, not sentiment scoring.")
+                }
             }
             .navigationTitle("Insights")
             .navigationBarTitleDisplayMode(.inline)
@@ -144,5 +157,45 @@ struct AnalyticsInsightsView: View {
             }
         }
         .padding(.vertical, 4)
+    }
+
+    @ViewBuilder
+    private var wordPatternsContent: some View {
+        let wp = WordPatternsService.buildSnapshot(from: items)
+        Group {
+            LabeledContent("Affirmative lexicon hits", value: "\(wp.affirmativeWordCount)")
+            LabeledContent("Critical lexicon hits", value: "\(wp.criticalWordCount)")
+            LabeledContent("Other tokens (approx.)", value: "\(wp.otherWordApprox)")
+            if !wp.highEngagementWords.isEmpty {
+                Text("Words in higher-engagement posts")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 4)
+                ForEach(Array(wp.highEngagementWords.enumerated()), id: \.offset) { _, row in
+                    HStack {
+                        Text(row.word)
+                        Spacer()
+                        Text(String(format: "%.1f", row.avgScore))
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
+                }
+            }
+            if !wp.lowEngagementWords.isEmpty {
+                Text("Words in lower-engagement posts")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 4)
+                ForEach(Array(wp.lowEngagementWords.enumerated()), id: \.offset) { _, row in
+                    HStack {
+                        Text(row.word)
+                        Spacer()
+                        Text(String(format: "%.1f", row.avgScore))
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
+                }
+            }
+        }
     }
 }
