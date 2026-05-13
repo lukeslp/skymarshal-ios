@@ -7,7 +7,17 @@ Living snapshot of objectives and boundaries. Product copy and build commands st
 - **Distribution:** Pre–public TestFlight; public link pending Beta App Review ([`README.md` Status](README.md)).
 - **Quality bar:** Full `xcodebuild test` green before release-worthy changes; preserve 429 backoff and deletion URI semantics ([`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)).
 
-## Roadmap tranche (native imports from upstream CLI/web patterns)
+## Expansion plan (approved for planning)
+
+Goal: bring upstream CLI/web parity surfaces into iOS with explicit safety gates, and add account/post/interaction visualizations.
+
+Canonical roadmap:
+
+- [`docs/PARITY_VISUALIZATION_PLAN.md`](docs/PARITY_VISUALIZATION_PLAN.md) — phased delivery, risk register, visualization architecture, 90-day plan.
+- [`docs/UX_SPEC.md`](docs/UX_SPEC.md) — IA and screen-level behavior for advanced search, delete review, backup center, visualization hub.
+- [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) — visual language + accessibility/performance rules for graph-heavy surfaces.
+
+## Existing roadmap tranche (already shipped)
 
 Shipped in-repo: on-device **Insights** analytics, **saved search presets**, **content sort**, **cleanup presets**, **dry-run unfollow**, **profile explorer** (followers/following lists). Toggle keys live in [`FeatureFlags`](ios/SkymarshalCore/Standards/FeatureFlags.swift).
 
@@ -24,8 +34,8 @@ Shipped in-repo: on-device **Insights** analytics, **saved search presets**, **c
 
 ## Explicit non-goals (unless requested)
 
-- Firehose, network graphs, hosted analytics backends.
-- CAR archive decode on device (API pagination only).
+- Firehose and hosted analytics backends.
+- Full on-device CAR decode remains deferred until Phase 3 feasibility gates pass.
 - Third-party AT Protocol SDKs; dependency-free `URLSession` remains the rule.
 - Marketing copy using “AI” framing ([`app-store/`](app-store/) and in-app voice).
 
