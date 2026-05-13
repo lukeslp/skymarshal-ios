@@ -47,6 +47,9 @@ final class AppModel {
     /// when we're showing stale data without an authenticated client.
     private(set) var hydratedFromCache: Bool = false
 
+    /// Latest persisted graph snapshot JSON keyed by ``GraphSnapshotKind/rawValue``.
+    private(set) var graphSnapshotSummaries: [String: String] = [:]
+
     // ----- Shared -----
     var isLoading: Bool = false
     var isScanning: Bool = false
@@ -285,6 +288,31 @@ final class AppModel {
         await content.applyBackupImport(items: importedItems, mode: mode, owner: owner)
         self.items = await content.loadedSnapshot
         self.summary = await content.summarize()
+    }
+
+    /// Materialize ``GraphSnapshotRecord`` rows from the current in-memory lists (local-only).
+    func refreshGraphSnapshots() async {
+        guard let container, let owner = currentHandle ?? currentDid else { return }
+        let ctx = ModelContext(container)
+        do {
+            try GraphSnapshotWriter.syncLocalSummaries(
+                context: ctx,
+                ownerHandle: owner,
+                items: items,
+                accounts: accounts
+            )
+            let descriptor = FetchDescriptor<GraphSnapshotRecord>(
+                predicate: #Predicate { $0.ownerHandle == owner }
+            )
+            let rows = try ctx.fetch(descriptor)
+            var m: [String: String] = [:]
+            for r in rows {
+                if let s = r.summaryJSON { m[r.kindRaw] = s }
+            }
+            graphSnapshotSummaries = m
+        } catch {
+            // non-fatal — Scope tab still shows live counts
+        }
     }
 
     // MARK: - Followers tab

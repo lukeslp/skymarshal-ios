@@ -48,6 +48,7 @@ struct VisualizationHubView: View {
             }
             .navigationTitle("Scope")
             .navigationBarTitleDisplayMode(.large)
+            .task { await model.refreshGraphSnapshots() }
         }
     }
 
@@ -84,13 +85,29 @@ private struct AccountGraphVizView: View {
         model.accounts.sorted { $0.profile.followersCount > $1.profile.followersCount }.prefix(24).map { $0 }
     }
 
+    @ViewBuilder
+    private func persistedFooter(kind: GraphSnapshotKind, explanation: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(explanation)
+            if let raw = model.graphSnapshotSummaries[kind.rawValue] {
+                Text(raw)
+                    .font(.caption2.monospaced())
+                    .textSelection(.enabled)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
     var body: some View {
         List {
             Section {
                 LabeledContent("Accounts in scan", value: "\(model.accounts.count)")
                 LabeledContent("Completeness", value: model.accounts.isEmpty ? "Unknown" : "Partial")
             } footer: {
-                Text("Shows your scanned follow list only — not the entire Bluesky graph.")
+                persistedFooter(
+                    kind: .accountGraph,
+                    explanation: "Shows your scanned follow list only — not the entire Bluesky graph."
+                )
             }
 
             if topByFollowers.isEmpty {
@@ -135,6 +152,19 @@ private struct InteractionGraphVizView: View {
     private var likesCount: Int { model.items.filter { $0.contentType == .likes }.count }
     private var repostsCount: Int { model.items.filter { $0.contentType == .reposts }.count }
 
+    @ViewBuilder
+    private func persistedFooter(kind: GraphSnapshotKind, explanation: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(explanation)
+            if let raw = model.graphSnapshotSummaries[kind.rawValue] {
+                Text(raw)
+                    .font(.caption2.monospaced())
+                    .textSelection(.enabled)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
     var body: some View {
         List {
             Section {
@@ -143,7 +173,10 @@ private struct InteractionGraphVizView: View {
                 LabeledContent("Reposts", value: "\(repostsCount)")
                 LabeledContent("Completeness", value: model.items.isEmpty ? "Unknown" : "Partial")
             } footer: {
-                Text("Counts come from your downloaded archive only — not live thread fetches.")
+                persistedFooter(
+                    kind: .interactionGraph,
+                    explanation: "Counts come from your downloaded archive only — not live thread fetches."
+                )
             }
         }
         .navigationTitle("Interactions")
@@ -157,6 +190,7 @@ private struct InteractionGraphVizView: View {
 private struct TimelineHeatmapVizView: View {
 
     let items: [ContentItem]
+    @Environment(AppModel.self) private var model
 
     private var snapshot: AnalyticsSnapshot {
         AnalyticsService.buildSnapshot(from: items)
@@ -167,6 +201,19 @@ private struct TimelineHeatmapVizView: View {
         cal.locale = Locale.current
         return cal.shortWeekdaySymbols
     }()
+
+    @ViewBuilder
+    private func persistedFooter(explanation: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(explanation)
+            if let raw = model.graphSnapshotSummaries[GraphSnapshotKind.timelineHeatmap.rawValue] {
+                Text(raw)
+                    .font(.caption2.monospaced())
+                    .textSelection(.enabled)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
 
     var body: some View {
         List {
@@ -185,7 +232,7 @@ private struct TimelineHeatmapVizView: View {
             Section {
                 LabeledContent("Completeness", value: items.isEmpty ? "Unknown" : "Partial")
             } footer: {
-                Text("Same buckets as Insights — posts and replies with timestamps only.")
+                persistedFooter(explanation: "Same buckets as Insights — posts and replies with timestamps only.")
             }
         }
         .navigationTitle("Heatmap")
