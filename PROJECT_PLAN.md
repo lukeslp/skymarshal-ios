@@ -81,9 +81,17 @@ Completed:
 - Reconciled drift across listing/paste-session/review-note docs with a canonical hierarchy in `app-store/PUBLIC_RELEASE_PACK.md`.
 - Updated `README.md` with direct links to the release pack.
 
-Remaining:
+Remaining (status as of 2026-05-14):
 
-- Confirm final screenshot exports for required iPhone size classes.
-- Verify marketing, support, and privacy pages are live and consistent with listing language.
-- Execute paste session and submit release build.
-- Prepare 72-hour post-launch support and review-response cadence.
+- **Bundle ID + App Store Connect record creation** at developer.apple.com / appstoreconnect.apple.com (see `app-store/SUBMISSION_NOTES.md` lines 195–216 checklist).
+- **Capture screenshots** per `app-store/SCREENSHOTS.md` (7 frames × 6.9" + 6.1"). Storyboard is detailed; no PNGs exist yet under `app-store/`. ~30 min once a populated test account is signed in.
+- **Demo account for App Review.** `app-store/SUBMISSION_NOTES.md` currently declines to provide one; recommend creating `skymarshal-review.bsky.social` + app password and pasting into the App Review Information block to avoid one rejection cycle.
+- **Soak protocol artifact** per `docs/SOAK_PROTOCOL.md` — physical device, ≥10k-post account, full screen-recorded session. Required before promoting from TestFlight to public.
+- **Paste session execution** per `app-store/APP_STORE_CONNECT_PASTE_SESSION.md`.
+- **72-hour post-launch support + review-response cadence** prepared from `app-store/PUBLIC_RELEASE_RUNBOOK.md`.
+
+Already verified (2026-05-14):
+
+- `https://skymarshal.blue`, `/support`, `/privacy` all resolve HTTP 200.
+- Build 4 (auth-refresh + Keychain) tested at 185 / 185 green; `CFBundleVersion` + `MARKETING_VERSION` now aligned on 1.0.0.
+- Required-Reason API audit: only `UserDefaults` is directly used by app code; declared with CA92.1 in `PrivacyInfo.xcprivacy`. No file-timestamp / boot-time / disk-space / active-keyboard usages.

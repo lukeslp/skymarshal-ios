@@ -8,7 +8,7 @@ This is the iOS app. Native SwiftUI, iOS 17+. No third-party dependencies. App p
 
 ## Status
 
-Pre-TestFlight v1.0.0, build 3. **185** XCTest cases in `SkymarshalTests` pass (`-only-testing:SkymarshalTests`). Tagged `v1.0.1-pre-testflight` (most recent rollback anchor).
+Pre-TestFlight v1.0.0, build 4 (session refresh + Keychain persistence). **185** XCTest cases in `SkymarshalTests` pass (`-only-testing:SkymarshalTests`). Tagged `v1.0.1-pre-testflight` (most recent rollback anchor).
 
 TestFlight Public Link goes here once the current build clears Beta App Review.
 
