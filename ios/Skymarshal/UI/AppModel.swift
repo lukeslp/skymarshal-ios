@@ -56,6 +56,11 @@ final class AppModel {
     var errorMessage: String?
     /// Set when a multi-item delete may have been interrupted before completion.
     var deleteInterruptionNotice: String?
+    /// Set when the session refresh path can't recover the user's tokens
+    /// and the UI has been flipped back to LoginView. Distinct from
+    /// ``errorMessage`` so a stale "ExpiredToken" toast from an in-flight
+    /// scan doesn't smother the actionable "please sign in again" copy.
+    var sessionExpiredNotice: String?
 
     private var loadTask: Task<Void, Never>?
     private var scanTask: Task<Void, Never>?
@@ -75,6 +80,84 @@ final class AppModel {
         self.interactions = interactions
         self.profileGraph = profileGraph
         self.container = container
+        observeSessionInvalidation()
+    }
+
+    /// Subscribe to ``Notification.Name.skymarshalSessionInvalidated`` —
+    /// posted by ``ATProtoClient`` when the refresh-and-retry path runs
+    /// out of road (refresh JWT expired/revoked, account locked, PDS
+    /// rejection). Flips the app to a signed-out state with an actionable
+    /// banner instead of letting bare `ATProtoError` toasts pile up on
+    /// every in-flight request.
+    ///
+    /// No deinit cleanup: `AppModel.liveDefault()` is held in `@State`
+    /// on the root `WindowGroup`, lives for the whole app, and the
+    /// observer closure captures `[weak self]` so there's no retain
+    /// cycle even if the @State did somehow tear down. Avoiding the
+    /// deinit also dodges the MainActor-isolated-property-in-deinit
+    /// compile error that Swift 5.9 raises on this `@MainActor` class.
+    private func observeSessionInvalidation() {
+        NotificationCenter.default.addObserver(
+            forName: .skymarshalSessionInvalidated,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.handleSessionInvalidatedFromBackground()
+            }
+        }
+    }
+
+    private func handleSessionInvalidatedFromBackground() {
+        cancelLoad()
+        cancelScan()
+        Task {
+            await content.logout()
+        }
+        isAuthenticated = false
+        currentHandle = nil
+        currentDid = nil
+        loadProgress = nil
+        scanProgress = nil
+        // Clear in-memory snapshots so RootView's gating drops the
+        // user back to LoginView. SwiftData cache stays intact — the
+        // next successful sign-in re-hydrates from disk in milliseconds.
+        // Without this, the TabView would stick around with cached data
+        // while every authenticated tap silently 401s — the exact
+        // failure mode the user reported.
+        items = []
+        summary = [:]
+        accounts = []
+        scanSummary = ScanSummary()
+        hydratedFromCache = false
+        hydratedOwnerHandle = nil
+        sessionExpiredNotice =
+            "Your Bluesky session expired. Please sign in again with your app password to keep going."
+        // Clear the generic errorMessage so a stale ExpiredToken
+        // toast doesn't double up with the more useful banner copy.
+        errorMessage = nil
+    }
+
+    /// Attempt to restore a previously-persisted session from the
+    /// Keychain. Called from ``RootView``'s cold-start `.task`. On
+    /// success the UI shows the cached data and continues authenticated
+    /// flows; on failure (no stored session or refresh JWT also
+    /// expired) the user lands on the LoginView with no surprise toast.
+    func tryRestoreSession() async {
+        let restored = await content.tryRestoreSession()
+        guard restored else { return }
+        isAuthenticated = await content.isAuthenticated
+        currentHandle = await content.currentHandle
+        currentDid = await content.currentDID
+        sessionExpiredNotice = nil
+    }
+
+    /// One-shot dismissal for the session-expired banner. Tapping the
+    /// "Sign in" affordance also clears this so the LoginView surface
+    /// stays focused on the form.
+    func dismissSessionExpiredNotice() {
+        sessionExpiredNotice = nil
     }
 
     static func liveDefault() -> AppModel {
@@ -104,6 +187,7 @@ final class AppModel {
 
     func login(handle: String, password: String) async {
         errorMessage = nil
+        sessionExpiredNotice = nil
         isLoading = true
         defer { isLoading = false }
         do {
@@ -236,6 +320,7 @@ final class AppModel {
         items = []; summary = [:]; loadProgress = nil
         accounts = []; scanSummary = ScanSummary(); scanProgress = nil
         deleteInterruptionNotice = nil
+        sessionExpiredNotice = nil
         DeleteBatchRecovery.clear()
     }
 

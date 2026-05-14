@@ -31,7 +31,18 @@ Shipped in-repo: on-device **Insights** analytics, **saved search presets**, **c
 
 - **Reliability + review docs:** Archive load checkpoints ([`docs/ARCHIVE_LOAD_CHECKPOINTS.md`](docs/ARCHIVE_LOAD_CHECKPOINTS.md)), device soak gate ([`docs/SOAK_PROTOCOL.md`](docs/SOAK_PROTOCOL.md)), consensus implementation delta ([`docs/archive/consensus-skymarshal-ios-delta-2026-05-14.md`](docs/archive/consensus-skymarshal-ios-delta-2026-05-14.md)), Scope IA placeholder ([`docs/archive/scope-ia-decision-2026-05-14.md`](docs/archive/scope-ia-decision-2026-05-14.md)).
 - Row min-height: **ContentRow** / **AccountRow** use **56 pt** minimum (see [`docs/CONTRIBUTOR_UX.md`](docs/CONTRIBUTOR_UX.md)); further density polish remains non-blocking.
-- Keep README test counts / build numbers aligned with CI or manual verification after substantive changes (current `SkymarshalTests`: **162** `func test_` methods).
+- Keep README test counts / build numbers aligned with CI or manual verification after substantive changes (current `SkymarshalTests`: **185** `func test_` methods).
+
+## Session refresh & Keychain persistence (2026-05-13)
+
+Reliability fix landed in response to the in-the-wild report: "after a time, it loses auth and then throws atproto errors everywhere unless the user logs out and back in manually." Root cause was a two-part gap — the AT Protocol access JWT expires after ~2 hours but [`ATProtoClient`](ios/SkymarshalCore/Network/ATProtoClient.swift) never called `com.atproto.server.refreshSession`, and the session lived only in memory so a cold start always landed on LoginView. The fix:
+
+- New [`SessionStore`](ios/SkymarshalCore/Standards/SessionStore.swift) persists the rotating `(accessJwt, refreshJwt)` pair to the iOS Keychain (`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`, no iCloud sync). The app password is never written to disk.
+- [`ATProtoError`](ios/SkymarshalCore/Standards/RateLimit.swift) now parses the structured XRPC error envelope so `isExpiredToken` is reliable across the `ExpiredToken` / `InvalidToken` / `AuthenticationRequired` codes the PDS returns on 400 and 401.
+- [`ATProtoClient.perform(_:)`](ios/SkymarshalCore/Network/ATProtoClient.swift) catches the expired-token error, refreshes once via `com.atproto.server.refreshSession`, and replays the original request with the new bearer. Concurrent refreshes are coalesced through a single `refreshTask`.
+- When refresh itself fails (refresh JWT expired/revoked) the client clears local + Keychain state and posts `Notification.Name.skymarshalSessionInvalidated`. [`AppModel`](ios/Skymarshal/UI/AppModel.swift) observes that signal, clears the in-memory snapshots so RootView flips back to LoginView, and surfaces a one-shot `sessionExpiredNotice` banner there instead of letting the bare ATProtoError reach the user.
+- [`RootView`](ios/Skymarshal/UI/RootView.swift) calls `AppModel.tryRestoreSession()` in its cold-start `.task` so the LoginView is skipped whenever a valid refresh JWT (3-month TTL) is on disk.
+- 18 new XCTest cases in `SkymarshalTests/SessionRefreshTests.swift` cover XRPC error parsing, `isExpiredToken` detection across statuses, and a Keychain round-trip.
 
 ## Parity + visualization (on main, 2026-05)
 

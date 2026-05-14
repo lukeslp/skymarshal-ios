@@ -44,6 +44,19 @@ public actor ContentService {
         loadedHandle = nil
     }
 
+    /// Resume a session persisted by ``SessionStore`` on a previous
+    /// run. Validates the stored tokens against the PDS by issuing a
+    /// refresh — on failure the store is cleared and the caller falls
+    /// back to the LoginView. Returns true if the session is live.
+    @discardableResult
+    public func tryRestoreSession() async -> Bool {
+        let resumed = await client.tryResumePersistedSession()
+        if resumed {
+            loadedHandle = await client.currentHandle
+        }
+        return resumed
+    }
+
     public var isAuthenticated: Bool {
         get async { await client.isAuthenticated }
     }

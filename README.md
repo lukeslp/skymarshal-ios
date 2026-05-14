@@ -8,7 +8,7 @@ This is the iOS app. Native SwiftUI, iOS 17+. No third-party dependencies. App p
 
 ## Status
 
-Pre-TestFlight v1.0.0, build 3. **162** XCTest cases in `SkymarshalTests` pass (`-only-testing:SkymarshalTests`). Tagged `v1.0.1-pre-testflight` (most recent rollback anchor).
+Pre-TestFlight v1.0.0, build 3. **185** XCTest cases in `SkymarshalTests` pass (`-only-testing:SkymarshalTests`). Tagged `v1.0.1-pre-testflight` (most recent rollback anchor).
 
 TestFlight Public Link goes here once the current build clears Beta App Review.
 
@@ -30,7 +30,7 @@ TestFlight Public Link goes here once the current build clears Beta App Review.
 
 Data Not Collected. Your handle, posts, and follows stay on this device. The only server Skymarshal talks to is Bluesky itself (`bsky.social` and `public.api.bsky.app`) — no analytics, no third-party SDKs, no telemetry.
 
-App password is held in iOS Keychain on your device. Bluesky communications go directly from your device to Bluesky's public XRPC endpoints.
+Your app password is **never persisted** — it's used once to obtain an AT Protocol session and then discarded. The rotating session tokens (`accessJwt` + `refreshJwt`) issued by Bluesky are stored in the iOS Keychain (`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`, no iCloud sync). When the access token expires the app refreshes it transparently against `com.atproto.server.refreshSession`; only an expired or revoked refresh token returns you to the sign-in screen. Bluesky communications go directly from your device to Bluesky's public XRPC endpoints.
 
 ## Accessibility
 
@@ -61,16 +61,16 @@ Architecture overview (iOS layers, services, reference provenance): [`docs/ARCHI
 ios/
   SkymarshalCore/          # Framework — models, services, network, storage
     Models/                # AnalyzedAccount, ContentItem, Interaction, FollowerFilters
-    Network/               # ATProtoClient, ATProtoTypes
+    Network/               # ATProtoClient (refresh-and-retry, Keychain-backed sessions), ATProtoTypes
     Services/              # ContentService, FollowerService, InteractionService, ProfileService, AnalyticsService, DeletePreflight, WordPatternsService, ContentBackupImport, GraphSnapshotWriter, …
-    Standards/             # Theme, ReduceMotion, BluescreenAnalyzer, Exporter, RateLimit, FeatureFlags
+    Standards/             # Theme, ReduceMotion, BluescreenAnalyzer, Exporter, RateLimit, FeatureFlags, SessionStore
     Storage/               # SwiftData models (ContentItemRecord, AnalyzedAccountRecord, …)
   Skymarshal/              # App — SwiftUI views, AppModel
     UI/                    # 30+ SwiftUI views (ContentListView, BluescreenView, …)
     Assets.xcassets/       # AppIcon, LaunchBird, DotBird, EasterAlf, ColorSets
     Info.plist
     PrivacyInfo.xcprivacy
-  SkymarshalTests/         # XCTest — 162 unit test methods
+  SkymarshalTests/         # XCTest — 185 unit test methods
   SkymarshalUITests/       # XCUITest — 2 AX5 regression cases
   project.yml              # xcodegen spec
 docs/                      # README hub, ARCHITECTURE, CONTRIBUTOR_UX, GAP, review artifacts

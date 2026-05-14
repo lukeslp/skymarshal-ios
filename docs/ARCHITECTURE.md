@@ -37,6 +37,7 @@ Companion services:
 ## Network and storage
 
 - **HTTP:** [`ATProtoClient`](../ios/SkymarshalCore/Network/ATProtoClient.swift) — `URLSession` only, no third-party ATProto SDK; Bluesky hosts `bsky.social` / `public.api.bsky.app`.
+- **Session lifecycle:** [`ATProtoClient`](../ios/SkymarshalCore/Network/ATProtoClient.swift) persists the rotating `(accessJwt, refreshJwt)` pair via [`SessionStore`](../ios/SkymarshalCore/Standards/SessionStore.swift) (Keychain, `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`). When an XRPC call returns the structured `ExpiredToken` / `InvalidToken` / `AuthenticationRequired` envelope, `perform(_:)` calls `com.atproto.server.refreshSession`, replays the request once with the new bearer, and posts `Notification.Name.skymarshalSessionInvalidated` if the refresh JWT itself is dead. Concurrent in-flight requests share one refresh via `refreshTask`. `RootView` calls `AppModel.tryRestoreSession()` at cold start so a valid refresh JWT (3-month TTL) skips the LoginView; an invalidated session flips the UI back with a one-shot banner instead of an opaque toast.
 - **Persistence:** SwiftData schemas in [`Storage/`](../ios/SkymarshalCore/Storage/StorageModels.swift); per-account isolation via composite keys (see [`AGENTS.md`](../AGENTS.md)).
 - **Background tasks:** [`BackgroundTaskCoordinator`](../ios/Skymarshal/App/BackgroundTaskCoordinator.swift) — registers `BGAppRefreshTask` / `BGProcessingTask` and runs bounded [`GraphSnapshotWriter.refreshPersistedSummariesFromCache`](../ios/SkymarshalCore/Services/GraphSnapshotWriter.swift) (SwiftData only; no full archive fetch in background).
 - **Rate limits:** [`RateLimit.withBackoff`](../ios/SkymarshalCore/Standards/RateLimit.swift) preserves the Python deletion backoff schedule — do not simplify.
@@ -48,6 +49,8 @@ Companion services:
 | Status colors | [`Theme`](../ios/SkymarshalCore/Standards/Theme.swift) — no raw `.red` / ad hoc RGB for semantic states. |
 | Motion | [`ReduceMotion.shouldReduce`](../ios/SkymarshalCore/Standards/ReduceMotion.swift) at animation sites. |
 | Follower automation signals | [`BluescreenAnalyzer`](../ios/SkymarshalCore/Standards/BluescreenAnalyzer.swift). |
+| Session tokens | [`SessionStore`](../ios/SkymarshalCore/Standards/SessionStore.swift) — Keychain-only, device-only, never the app password itself. |
+| Rate-limit retries | [`RateLimit.withBackoff`](../ios/SkymarshalCore/Standards/RateLimit.swift) (`[1,2,4,8,15,30,60,120]`), separate from the refresh-and-retry path on [`ATProtoClient`](../ios/SkymarshalCore/Network/ATProtoClient.swift). |
 
 ## Contributor UX (SwiftUI)
 

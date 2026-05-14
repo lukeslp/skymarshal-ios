@@ -82,9 +82,11 @@
 		ADCA9CC796BC67C18828E53B /* ATProtoTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4244BF8F79091B71A048DF70 /* ATProtoTypes.swift */; };
 		AEB39AA5C6426D1883174790 /* ActiveFilterChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEA5E5F56D11FF95180F9AC1 /* ActiveFilterChips.swift */; };
 		AF0F18F68D79EAA35ECAE0FE /* MutualFollow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D1E6AD0A4FC785E23F6A4EE /* MutualFollow.swift */; };
+		B0B97AB9E5171CB4E6136960 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A7AB9A30F903C51ACDB147 /* SessionStore.swift */; };
 		B19D3E66A006DFA37D2E9904 /* MutualFollowsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957F0B3FA214607A9F4D4013 /* MutualFollowsTests.swift */; };
 		B2BE03AF8B77BD2712A8A946 /* EngagementCacheTTL.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33CEEA494ABBF59FFC62725 /* EngagementCacheTTL.swift */; };
 		B2FC3293128DA0A039ADA88B /* LinkCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEF4AB6F390008D3FB71D87 /* LinkCardView.swift */; };
+		B3BC76B14519AA0B2393CE20 /* SessionRefreshTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59DFA8101407C9EB6EDD1F0D /* SessionRefreshTests.swift */; };
 		B6FB371111B20491DDAFD234 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0F8271000345A37AE8AF04A /* Theme.swift */; };
 		BADF5ED9A3712DB4263BB595 /* ProfileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB0D52229313DC878B0D50 /* ProfileService.swift */; };
 		BEE518BCE2CD7EA854F7C262 /* SearchKeywordGrammarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1350FD107E0B743F0F8F9542 /* SearchKeywordGrammarTests.swift */; };
@@ -196,6 +198,7 @@
 		56D4F4DCBE34D86617C44084 /* InteractionHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionHistoryView.swift; sourceTree = "<group>"; };
 		591EFE5B5256E743546ADE2B /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
 		597EBB35805CA48660EC7399 /* BackgroundTaskCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundTaskCoordinator.swift; sourceTree = "<group>"; };
+		59DFA8101407C9EB6EDD1F0D /* SessionRefreshTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionRefreshTests.swift; sourceTree = "<group>"; };
 		5D69506A66905671965DC4E5 /* AnalyticsServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsServiceTests.swift; sourceTree = "<group>"; };
 		5E30699ACD9FBA95746DC78E /* ScanSummaryStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanSummaryStrip.swift; sourceTree = "<group>"; };
 		5F3349AFD3577BD6BAAA9C6C /* SkymarshalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkymarshalApp.swift; sourceTree = "<group>"; };
@@ -256,6 +259,7 @@
 		D8A27D872B1C9A8E2FA1A409 /* BskyProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BskyProfile.swift; sourceTree = "<group>"; };
 		DE52A5ED10F0358A1ADFDE59 /* SearchKeywordGrammar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchKeywordGrammar.swift; sourceTree = "<group>"; };
 		E0F8271000345A37AE8AF04A /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		E1A7AB9A30F903C51ACDB147 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		E4FD7762E826AE71D79366DC /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		E51117D9318AC829BC60ECFA /* TypedConfirmSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypedConfirmSheet.swift; sourceTree = "<group>"; };
 		E5473889BD7929C3288FF1B2 /* Skymarshal.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Skymarshal.entitlements; sourceTree = "<group>"; };
@@ -460,6 +464,7 @@
 				7DA92FE9C953C159FD63460E /* RateLimit.swift */,
 				9F9F29B67CBCC9B0D7EF82B3 /* ReduceMotion.swift */,
 				A613CF3556C8B2315EE1AD39 /* ScopeExperimentTelemetry.swift */,
+				E1A7AB9A30F903C51ACDB147 /* SessionStore.swift */,
 				E0F8271000345A37AE8AF04A /* Theme.swift */,
 				E617CED88B3942F17AB3AC3D /* Timeout.swift */,
 			);
@@ -487,6 +492,7 @@
 				733F6A0A35A5F7F8F5287E46 /* ReduceMotionTests.swift */,
 				AC1C886B8184F15CA15F3F32 /* SearchAndScoreTests.swift */,
 				1350FD107E0B743F0F8F9542 /* SearchKeywordGrammarTests.swift */,
+				59DFA8101407C9EB6EDD1F0D /* SessionRefreshTests.swift */,
 				2C63DDD72BCB5341FA0A17C6 /* SmokeTests.swift */,
 				0FEAFFB7DCD5B92072BFB691 /* StorageRoundTripTests.swift */,
 				767DA2535F626B04AD215C22 /* WordPatternsServiceTests.swift */,
@@ -672,6 +678,7 @@
 				91D52DC6A9651C42C22C2FE4 /* ScopeExperimentTelemetry.swift in Sources */,
 				434292D3EDF0E95C11CD627F /* SearchKeywordGrammar.swift in Sources */,
 				ACB555D481671D0C0E15BC35 /* SearchRequest.swift in Sources */,
+				B0B97AB9E5171CB4E6136960 /* SessionStore.swift in Sources */,
 				01804EFE9494B0A0017495BB /* SkymarshalCore.swift in Sources */,
 				F27CE9228345BE86F36E04A7 /* StorageModels.swift in Sources */,
 				B6FB371111B20491DDAFD234 /* Theme.swift in Sources */,
@@ -702,6 +709,7 @@
 				972EAF84DBB71E1A81A5B73E /* ReduceMotionTests.swift in Sources */,
 				1E17874CFF06F47B8EC2FC59 /* SearchAndScoreTests.swift in Sources */,
 				BEE518BCE2CD7EA854F7C262 /* SearchKeywordGrammarTests.swift in Sources */,
+				B3BC76B14519AA0B2393CE20 /* SessionRefreshTests.swift in Sources */,
 				61FAC6C736986FA6DCF8368C /* SmokeTests.swift in Sources */,
 				97F1D3F12033D1EE9F93530B /* StorageRoundTripTests.swift in Sources */,
 				24DDBD565DDA40DA1A180F45 /* WordPatternsServiceTests.swift in Sources */,

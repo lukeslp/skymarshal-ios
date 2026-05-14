@@ -70,14 +70,76 @@ public enum RateLimit {
 
 /// Lightweight error type for HTTP failures from AT Protocol XRPC calls.
 /// Network code raises this; ``ContentService`` catches it.
-public struct ATProtoError: Error, Sendable, Equatable {
+///
+/// `error` is the structured XRPC error code parsed out of the JSON body
+/// (e.g. `"ExpiredToken"`, `"InvalidToken"`, `"RateLimitExceeded"`).
+/// `HTTPURLResponse.localizedString(forStatusCode:)` returns generic
+/// phrases like "bad request" for the 400 the PDS returns on an expired
+/// access JWT — without the parsed code we can't tell expiry apart from
+/// a real client error, which is the root of the "atproto errors
+/// everywhere after a while" failure mode.
+public struct ATProtoError: Error, Sendable, Equatable, LocalizedError {
     public let status: Int
     public let message: String
     public let body: String?
+    public let error: String?
 
-    public init(status: Int, message: String, body: String? = nil) {
+    public init(status: Int, message: String, body: String? = nil, error: String? = nil) {
         self.status = status
         self.message = message
         self.body = body
+        self.error = error ?? Self.parseErrorCode(from: body)
+    }
+
+    /// Surface the structured PDS message ("Token has been expired" rather
+    /// than `localizedString(forStatusCode: 400) == "bad request"`) so
+    /// `error.localizedDescription` is actually useful in UI toasts.
+    public var errorDescription: String? {
+        if let parsedMessage = Self.parseErrorMessage(from: body), !parsedMessage.isEmpty {
+            return parsedMessage
+        }
+        if let error, !error.isEmpty {
+            return "\(error) (HTTP \(status))"
+        }
+        return "\(message) (HTTP \(status))"
+    }
+
+    /// True for the two error codes that mean "your access token isn't
+    /// good anymore, get a new one". Bluesky returns these on different
+    /// statuses depending on path — `400 ExpiredToken` on most XRPC
+    /// reads/writes, occasional `401 AuthenticationRequired` /
+    /// `400 InvalidToken` on edge cases. We pattern-match codes, not
+    /// statuses, to keep the detector robust to PDS behavior drift.
+    public var isExpiredToken: Bool {
+        guard let error else { return false }
+        return Self.expiredTokenCodes.contains(error)
+    }
+
+    /// XRPC error codes that should trigger a refresh-and-retry path.
+    public static let expiredTokenCodes: Set<String> = [
+        "ExpiredToken",
+        "InvalidToken",
+        "AuthenticationRequired",
+    ]
+
+    private static func parseErrorCode(from body: String?) -> String? {
+        parseJSONField(named: "error", body: body)
+    }
+
+    private static func parseErrorMessage(from body: String?) -> String? {
+        parseJSONField(named: "message", body: body)
+    }
+
+    /// Single-field JSON peek used to pull `"error"` and `"message"` out
+    /// of an XRPC error envelope without committing to a Codable shape
+    /// (some error bodies have extra fields we don't model).
+    private static func parseJSONField(named name: String, body: String?) -> String? {
+        guard let body, !body.isEmpty,
+              let data = body.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data),
+              let dict = json as? [String: Any] else {
+            return nil
+        }
+        return dict[name] as? String
     }
 }

@@ -10,6 +10,15 @@ import Foundation
 /// Two timeout layers: URLSession's `timeoutIntervalForRequest = 30` plus
 /// a `withTimeout` wrapper at every call site. Without both, a wedged PDS
 /// locks the UI in `isLoading = true` forever.
+///
+/// Session lifecycle: the client holds the active ``Session`` in memory
+/// and persists it to ``SessionStore`` (Keychain) on every set / refresh
+/// so a cold start can resume without a re-prompt. When the access JWT
+/// expires (~2h TTL) any authenticated XRPC call returns an
+/// ``ATProtoError`` with `isExpiredToken == true`; ``perform(_:)``
+/// transparently calls ``refreshSession()`` and retries once. Refreshes
+/// are coalesced through ``refreshTask`` so a burst of in-flight calls
+/// don't each kick off their own refresh.
 public actor ATProtoClient {
 
     private let baseURL: URL
@@ -19,14 +28,25 @@ public actor ATProtoClient {
     private let publicURL: URL
     private let session: URLSession
     private var currentSession: Session?
+    /// Coalesces concurrent refresh attempts so a burst of expired-token
+    /// errors from N parallel XRPC calls produces ONE refresh, not N.
+    /// Each caller awaits the same task and gets the same new Session.
+    /// Cleared on success/failure so the next expiration starts fresh.
+    private var refreshTask: Task<Session, Error>?
+    /// When true, ``setSession``/``clearSession`` write through to
+    /// ``SessionStore``. Disabled by tests that don't want to touch the
+    /// device keychain.
+    private let persistSessionToKeychain: Bool
 
     public init(
         baseURL: URL = URL(string: "https://bsky.social")!,
         publicURL: URL = URL(string: "https://public.api.bsky.app")!,
-        session: URLSession? = nil
+        session: URLSession? = nil,
+        persistSessionToKeychain: Bool = true
     ) {
         self.baseURL = baseURL
         self.publicURL = publicURL
+        self.persistSessionToKeychain = persistSessionToKeychain
         if let session {
             self.session = session
         } else {
@@ -45,10 +65,35 @@ public actor ATProtoClient {
 
     public func setSession(_ session: Session) {
         self.currentSession = session
+        if persistSessionToKeychain {
+            SessionStore.save(session)
+        }
     }
 
     public func clearSession() {
         self.currentSession = nil
+        refreshTask?.cancel()
+        refreshTask = nil
+        if persistSessionToKeychain {
+            SessionStore.clear()
+        }
+    }
+
+    /// Optimistic resume of a previously-persisted session. Loads the
+    /// Keychain-backed tokens and primes ``currentSession`` without
+    /// pre-validating against the network — the first authenticated
+    /// XRPC call will refresh as needed via ``perform(_:requiresAuth:allowRefresh:)``,
+    /// and the refresh-and-retry path clears state on failure. This
+    /// avoids killing a perfectly good session at cold start just
+    /// because the user is briefly offline. Returns `true` when tokens
+    /// were loaded; `false` only when no session is persisted.
+    @discardableResult
+    public func tryResumePersistedSession() async -> Bool {
+        guard persistSessionToKeychain, let stored = SessionStore.load() else {
+            return false
+        }
+        self.currentSession = stored
+        return true
     }
 
     // MARK: - Auth
@@ -64,7 +109,71 @@ public actor ATProtoClient {
             )
         }
         self.currentSession = result
+        if persistSessionToKeychain {
+            SessionStore.save(result)
+        }
         return result
+    }
+
+    /// `com.atproto.server.refreshSession` — exchange the current refresh
+    /// JWT for a fresh `(accessJwt, refreshJwt)` pair. Bluesky rotates
+    /// the refresh token on every call, so we must persist the new pair
+    /// or the next refresh will fail with "RefreshTokenExpired" against
+    /// a token that's already been consumed.
+    ///
+    /// Concurrent callers share one Task via ``refreshTask`` — N
+    /// in-flight XRPC calls that all 401 at once trigger ONE refresh,
+    /// not N. The deduplication is correctness as much as politeness:
+    /// each refresh invalidates the prior refresh token, so racing
+    /// refreshes mutually kill each other.
+    @discardableResult
+    public func refreshSession() async throws -> Session {
+        if let inFlight = refreshTask {
+            return try await inFlight.value
+        }
+        guard let session = currentSession else {
+            throw ATProtoError(status: 401, message: "No session to refresh")
+        }
+        let baseURL = self.baseURL
+        let urlSession = self.session
+        let refreshJwt = session.refreshJwt
+        let persist = self.persistSessionToKeychain
+        let task = Task<Session, Error> { () -> Session in
+            try await withTimeout(seconds: 30) {
+                var request = URLRequest(
+                    url: baseURL.appendingPathComponent("xrpc/com.atproto.server.refreshSession")
+                )
+                request.httpMethod = "POST"
+                request.setValue("Bearer \(refreshJwt)", forHTTPHeaderField: "Authorization")
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                let (data, response) = try await urlSession.data(for: request)
+                guard let http = response as? HTTPURLResponse else {
+                    throw ATProtoError(status: 0, message: "Non-HTTP response")
+                }
+                guard 200..<300 ~= http.statusCode else {
+                    throw ATProtoError(
+                        status: http.statusCode,
+                        message: HTTPURLResponse.localizedString(forStatusCode: http.statusCode),
+                        body: String(data: data, encoding: .utf8)
+                    )
+                }
+                let new = try JSONDecoder().decode(Session.self, from: data)
+                if persist {
+                    SessionStore.save(new)
+                }
+                return new
+            }
+        }
+        refreshTask = task
+        do {
+            let new = try await task.value
+            refreshTask = nil
+            self.currentSession = new
+            return new
+        } catch {
+            refreshTask = nil
+            throw error
+        }
     }
 
     // MARK: - Reads
@@ -281,7 +390,7 @@ public actor ATProtoClient {
         if requireAuth, let token = currentSession?.accessJwt {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
-        return try await perform(request)
+        return try await perform(request, requiresAuth: requireAuth)
     }
 
     private func post<Body: Encodable, T: Decodable>(
@@ -296,21 +405,46 @@ public actor ATProtoClient {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
         request.httpBody = try JSONEncoder().encode(body)
-        return try await perform(request)
+        return try await perform(request, requiresAuth: requireAuth)
     }
 
-    private func perform<T: Decodable>(_ request: URLRequest) async throws -> T {
-        let (data, response) = try await performRaw(request)
-        if T.self == EmptyResponse.self {
-            // Endpoints that return no body still need to satisfy the
-            // generic. Decode empty JSON object — works because the
-            // marker has no fields. Avoids the unsafe `as! T` cast that
-            // crashed if a caller ever asked for a non-EmptyResponse
-            // type from an empty endpoint.
-            return try JSONDecoder().decode(T.self, from: Data("{}".utf8))
+    private func perform<T: Decodable>(
+        _ request: URLRequest,
+        requiresAuth: Bool = true,
+        allowRefresh: Bool = true
+    ) async throws -> T {
+        do {
+            let (data, response) = try await performRaw(request)
+            if T.self == EmptyResponse.self {
+                // Endpoints that return no body still need to satisfy the
+                // generic. Decode empty JSON object — works because the
+                // marker has no fields. Avoids the unsafe `as! T` cast that
+                // crashed if a caller ever asked for a non-EmptyResponse
+                // type from an empty endpoint.
+                return try JSONDecoder().decode(T.self, from: Data("{}".utf8))
+            }
+            _ = response
+            return try JSONDecoder().decode(T.self, from: data)
+        } catch let error as ATProtoError where allowRefresh
+            && requiresAuth
+            && error.isExpiredToken
+            && currentSession != nil {
+            // Access JWT expired (or got revoked). Refresh once and
+            // replay with the new bearer; second failure bubbles up
+            // and triggers a session-invalidated notification so the
+            // UI can drop back to the LoginView instead of spamming
+            // identical "ExpiredToken" toasts at the user.
+            let newSession: Session
+            do {
+                newSession = try await refreshSession()
+            } catch {
+                handleRefreshFailure()
+                throw error
+            }
+            var retried = request
+            retried.setValue("Bearer \(newSession.accessJwt)", forHTTPHeaderField: "Authorization")
+            return try await perform(retried, requiresAuth: requiresAuth, allowRefresh: false)
         }
-        _ = response
-        return try JSONDecoder().decode(T.self, from: data)
     }
 
     /// Returns raw `(Data, HTTPURLResponse)` after status-code validation.
@@ -331,6 +465,23 @@ public actor ATProtoClient {
         return (data, http)
     }
 
+    /// Tear down a session that can't be refreshed. Clears in-memory +
+    /// Keychain state and broadcasts ``Notification.Name.skymarshalSessionInvalidated``
+    /// so observers (``AppModel``) can flip the UI back to LoginView
+    /// with a useful "Session expired — please sign in again." message
+    /// instead of letting the bare ATProtoError reach the user.
+    private func handleRefreshFailure() {
+        self.currentSession = nil
+        self.refreshTask = nil
+        if persistSessionToKeychain {
+            SessionStore.clear()
+        }
+        NotificationCenter.default.post(
+            name: .skymarshalSessionInvalidated,
+            object: nil
+        )
+    }
+
     private func parseATURI(_ uri: String) -> (did: String?, collection: String?, rkey: String?) {
         // at://<did>/<collection>/<rkey>
         guard uri.hasPrefix("at://") else { return (nil, nil, nil) }
@@ -344,4 +495,14 @@ public actor ATProtoClient {
 /// Marker for endpoints that return no body.
 public struct EmptyResponse: Decodable, Sendable {
     public init() {}
+}
+
+extension Notification.Name {
+    /// Posted by ``ATProtoClient`` when a session refresh attempt fails
+    /// and the locally-held tokens have been cleared. Observers should
+    /// switch the UI back to a signed-out state and surface a copy
+    /// banner asking the user to re-authenticate.
+    public static let skymarshalSessionInvalidated = Notification.Name(
+        "blue.skymarshal.ios.SessionInvalidated"
+    )
 }

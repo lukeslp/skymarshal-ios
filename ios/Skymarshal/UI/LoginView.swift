@@ -41,6 +41,17 @@ struct LoginView: View {
                     .padding(.bottom, 8)
 
                 Form {
+                    if let notice = model.sessionExpiredNotice {
+                        Section {
+                            Label(notice, systemImage: "clock.arrow.circlepath")
+                                .foregroundStyle(Theme.caution)
+                                .symbolRenderingMode(.hierarchical)
+                                .accessibilityElement(children: .combine)
+                                .accessibilityLabel("Session expired: \(notice)")
+                                .accessibilityAddTraits(.isStaticText)
+                        }
+                    }
+
                     Section {
                         TextField("yourname.bsky.social", text: $handle)
                             .textContentType(.username)
