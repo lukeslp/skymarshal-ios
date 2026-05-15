@@ -63,38 +63,43 @@ extension Theme {
         }
     }
 
+    /// Returns a list of human-readable strings describing every face
+    /// Skymarshal expects to resolve at runtime that did NOT resolve
+    /// against the bundled `UIAppFonts`. Empty array = all good.
+    ///
+    /// Build-time verification path. Called from `xcodebuild test` via
+    /// `ThemeFontRegistrationTests` so a Plex Mono PostScript-vs-filename
+    /// mismatch fails CI **before** archive instead of silently falling
+    /// back to `Font.system(.monospaced)` in production.
+    ///
+    /// Greybeard's ship-blocker for v1.0.1: this exists because the
+    /// DEBUG-only `audit()` precondition can't catch a font registration
+    /// regression on the archive build that actually goes to TestFlight.
+    public static func verifyFontsRegistered() -> [String] {
+        var missing: [String] = []
+
+        let faces: [(label: String, candidates: [String])] = [
+            ("IBM Plex Mono Regular",  ["IBMPlexMono"]),
+            ("IBM Plex Mono Medium",   ["IBMPlexMono-Medm",  "IBMPlexMono-Medium"]),
+            ("IBM Plex Mono SemiBold", ["IBMPlexMono-SmBld", "IBMPlexMono-SemiBold"]),
+        ]
+        let resolved = Set(UIFont.fontNames(forFamilyName: "IBM Plex Mono"))
+        for face in faces where !face.candidates.contains(where: resolved.contains) {
+            missing.append("\(face.label) (expected one of \(face.candidates), resolved: \(resolved))")
+        }
+        return missing
+    }
+
     #if DEBUG
     /// Crash early if a bundled font family failed to register. Wire from
     /// the app's `init` behind `#if DEBUG`. Release builds skip this so a
     /// freshly-installed app doesn't crash on someone's iPhone because of
     /// a font shipping miss — production failures fall back to the system
-    /// monospaced face and surface in TestFlight screenshots before they
-    /// hit the store.
+    /// monospaced face. The RELEASE-safe verification path is
+    /// `verifyFontsRegistered()` above, wired into `xcodebuild test`.
     public static func audit() {
-        let expected: [String: [String]] = [
-            "IBM Plex Mono": [
-                "IBMPlexMono",
-                "IBMPlexMono-Medm", "IBMPlexMono-Medium",
-                "IBMPlexMono-SmBld", "IBMPlexMono-SemiBold",
-            ],
-        ]
-        for (family, candidates) in expected {
-            let resolved = Set(UIFont.fontNames(forFamilyName: family))
-            let missing = candidates.filter { !resolved.contains($0) }
-            // Every family must resolve at least one of each face's
-            // candidate spellings — the Mono.psNames map above pairs
-            // canonical name first, fallback second. If neither is
-            // present, the bundle is broken.
-            let coverage: [Bool] = [
-                resolved.contains("IBMPlexMono"),
-                resolved.contains("IBMPlexMono-Medm") || resolved.contains("IBMPlexMono-Medium"),
-                resolved.contains("IBMPlexMono-SmBld") || resolved.contains("IBMPlexMono-SemiBold"),
-            ]
-            precondition(
-                coverage.allSatisfy({ $0 }),
-                "Theme.audit: \(family) coverage failed. Resolved: \(resolved). Missing candidates from expected list: \(missing)."
-            )
-        }
+        let missing = verifyFontsRegistered()
+        precondition(missing.isEmpty, "Theme.audit failed: \(missing.joined(separator: " | "))")
     }
     #endif
 }

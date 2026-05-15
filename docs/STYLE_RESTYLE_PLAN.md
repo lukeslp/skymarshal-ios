@@ -860,9 +860,64 @@ What Move #2 *does* touch on `LoginView` is one button. The rest of the screen s
   stand in for `Theme.paper` + `Theme.hairlineStrong` until Move #3 lands.
 - `ScopePill` extended with an optional `leading: Image` parameter so
   `BotScoreBadge` could collapse into it without a second component.
-- Marketing/`CFBundleVersion` not bumped in this commit. Build 5 / 1.0.1
-  cuts in a separate `release: bump to build 5` commit when the next
-  TestFlight upload is queued.
+- `MARKETING_VERSION` bumped to `1.0.1` and `CURRENT_PROJECT_VERSION` to `5`
+  in a follow-up commit alongside the team-review janitor pass.
+- OFL §2 attribution exposed to the end user via a new `AboutView` Link
+  ("Typography: IBM Plex Mono · SIL OFL 1.1"). The bundled
+  `IBMPlexMono-OFL.txt` was unreachable on-device; the App Review reading
+  of OFL §2 "easily viewable" is now satisfied.
+- `Theme.audit()` refactored: the same coverage logic exposes a
+  RELEASE-safe `Theme.verifyFontsRegistered() -> [String]` that the new
+  `ThemeFontRegistrationTests` invokes inside `xcodebuild test`. The
+  DEBUG-only `audit()` precondition stays as the foreground tripwire;
+  the test is the ship-blocker tripwire.
+
+### Move #3 backlog additions from the 2026-05-14 team review
+
+The `/team` council (see [`TEAM_REVIEW_2026-05-14.md`](TEAM_REVIEW_2026-05-14.md))
+surfaced four architectural follow-ups that should land *with or before* the
+v1.0.2 Saturn pass:
+
+1. **Relocate `SaturnButton` + `ScopePill` to `SkymarshalCore`** (architect).
+   Current placement in `Skymarshal/UI/Components/` blocks any future Share
+   Extension / Watch / iPad-specific surface reuse. The "no SwiftUI in
+   `SkymarshalCore`" rule is misstated — the real invariant is *"no SwiftUI
+   **views** in `SkymarshalCore`"*. The framework already imports SwiftUI
+   for `Theme`. Migration cost ~2 hours; do this before the App Group
+   entitlement work.
+2. **Empty `Theme.paper` / `Theme.hairline` tokens land first** so the
+   `SaturnButton` v1.0.2 shim becomes a one-line swap. Drop the two
+   `// v1.0.2 shim ↓` lines in a single commit.
+3. **5-consecutive-failure circuit breaker in `ContentService.delete(itemIDs:)`**
+   (safety, <2 hours). Mid-bulk-delete network drops currently burn 30+
+   minutes on per-item `URLSession` timeouts. The breaker aborts on offline
+   conditions while preserving the existing `DeleteBatchRecovery` breadcrumb.
+4. **AX5 sweep on iPhone SE 3rd gen** added to the destination list
+   (breaker). Plex Mono is wider than SF Pro at the same point size; the
+   existing `AccessibilityRegressionTests` only run on iPhone 17 today.
+
+### v1.1+ backlog (greybeard's golden-signals readiness)
+
+- Delete-loop circuit breaker on consecutive 429s (separate from safety's
+  network-drop breaker — this is the *rate-limit-saturated* path).
+- `@Index` on `ContentItemRecord.ownerHandle` to keep launch-time hydration
+  sub-second past 10K active accounts.
+- Move `runBoundedGraphSync` off the main queue.
+- Minimal latency / traffic / errors / saturation surface in the debug menu.
+- `DeletionResumabilityTests` (~90 min) — end-to-end XCUITest interrupting a
+  mid-batch delete and asserting recovery via `DeleteBatchRecovery`.
+- `AX5_TypedConfirmSheet` (~25 min) — assert the ≥100-item gate is operable
+  at the largest Dynamic Type setting.
+
+### v1.0.1 → TestFlight kill criteria (preserved verbatim from the review)
+
+- **Ship-blocker (any of):** `Theme.verifyFontsRegistered` test red,
+  OFL attribution missing from `AboutView`, `xcodebuild test` not green.
+- **Pivot-trigger (Day 60):** < 75 paid conversions OR > 60% of TestFlight
+  tester asks reference a free tier → flip to free-core + one-time unlock
+  framing (cynic's dissent).
+- **Sunset-trigger (Day 180):** < $1k ARR + no App Store featuring +
+  Bluesky ships first-party bulk delete → wind down or MIT-open-source.
 
 ---
 

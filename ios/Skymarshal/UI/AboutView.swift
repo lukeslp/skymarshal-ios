@@ -173,10 +173,20 @@ struct AboutView: View {
                 row(icon: "doc.text", text: "MIT License")
             }
             .accessibilityHint("Opens license file in Safari")
+
+            // SIL OFL 1.1 §2 — the OFL copyright + license must be
+            // "easily viewable by the user" of the embedded font. The
+            // bundled `IBMPlexMono-OFL.txt` sits in the app bundle but
+            // is not user-reachable on iOS; this Link surface satisfies
+            // the obligation against App Review.
+            Link(destination: URL(string: "https://github.com/IBM/plex/blob/master/LICENSE.txt")!) {
+                row(icon: "textformat", text: "Typography: IBM Plex Mono · SIL OFL 1.1")
+            }
+            .accessibilityHint("Opens IBM Plex Mono Open Font License in Safari")
         } header: {
             Text("Source").font(.subheadline.weight(.semibold))
         } footer: {
-            Text("Open-source. Free. Not for sale. Skymarshal is not affiliated with Bluesky Social PBC.")
+            Text("Open-source. Free. Not for sale. Skymarshal is not affiliated with Bluesky Social PBC. IBM Plex Mono © 2017 IBM Corp., bundled under SIL OFL 1.1.")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
         }
