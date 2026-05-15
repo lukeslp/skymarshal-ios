@@ -162,7 +162,7 @@ struct ContentListView: View {
                             .foregroundStyle(.tertiary)
                         Text(String(format: "avg engagement %.0f", filteredAverageEngagement))
                     }
-                    .font(.caption2)
+                    .font(Theme.Mono.tabular(11))
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
@@ -638,15 +638,15 @@ struct ContentRow: View {
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(item.contentType.stripeColor)
                     Text(item.contentType.label.uppercased())
-                        .font(.caption2.weight(.semibold))
-                        .tracking(0.4)
+                        .font(Theme.Mono.kicker(11))
+                        .tracking(0.15)
                         .foregroundStyle(.secondary)
                     if let date = item.createdAt {
                         Text("·")
-                            .font(.caption2)
+                            .font(Theme.Mono.caption(11))
                             .foregroundStyle(.tertiary)
                         Text(date, style: .date)
-                            .font(.caption2)
+                            .font(Theme.Mono.tabular(11))
                             .foregroundStyle(.tertiary)
                     }
                     Spacer()
@@ -670,7 +670,7 @@ struct ContentRow: View {
                     metric(count: item.repostCount, symbol: "arrow.2.squarepath")
                     metric(count: item.replyCount, symbol: "bubble.left")
                 }
-                .font(.caption2)
+                .font(Theme.Mono.tabular(11))
                 .foregroundStyle(.secondary)
                 .padding(.top, 1)
             }
@@ -697,15 +697,19 @@ struct EngagementBadge: View {
     var body: some View {
         HStack(spacing: 2) {
             Image(systemName: "flame.fill")
-                .font(.caption2.weight(.semibold))
+                .font(Theme.Mono.kicker(11))
+                .symbolRenderingMode(.monochrome)
                 .accessibilityHidden(true)
             Text("\(score)")
-                .font(.caption2.weight(.semibold).monospacedDigit())
+                .font(Theme.Mono.tabular(11))
         }
         .foregroundStyle(.tint)
         .padding(.horizontal, 6)
         .padding(.vertical, 2)
-        .background(.tint.opacity(0.12), in: .capsule)
+        .background(
+            RoundedRectangle(cornerRadius: 3, style: .continuous)
+                .fill(.tint.opacity(0.18))
+        )
         .accessibilityLabel("Engagement score \(score)")
     }
 }

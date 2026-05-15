@@ -125,18 +125,17 @@ private struct Pill: View {
     private var content: some View {
         HStack(spacing: 4) {
             Text(value)
-                .font(.caption.weight(.semibold).monospacedDigit())
+                .font(Theme.Mono.tabular(13))
                 .foregroundStyle(isActive ? .white : color)
             Text(label)
-                .font(.caption2)
+                .font(Theme.Mono.caption(10))
+                .tracking(0.1)
                 .foregroundStyle(isActive ? .white.opacity(0.85) : .secondary)
         }
         .padding(.horizontal, 8).padding(.vertical, 4)
         .background(
-            isActive
-                ? AnyShapeStyle(color)
-                : AnyShapeStyle(Theme.chipTint(color)),
-            in: .capsule
+            RoundedRectangle(cornerRadius: 3, style: .continuous)
+                .fill(isActive ? AnyShapeStyle(color) : AnyShapeStyle(Theme.chipTint(color)))
         )
     }
 }

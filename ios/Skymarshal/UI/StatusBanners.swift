@@ -28,7 +28,7 @@ struct LoadProgressBannerLite: View {
                 .foregroundStyle(.tint)
                 .symbolEffect(.pulse, options: reduceMotion ? .nonRepeating : .repeating, value: pulse)
             Text(title)
-                .font(.footnote)
+                .font(Theme.Mono.body(13))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
             Spacer(minLength: 4)

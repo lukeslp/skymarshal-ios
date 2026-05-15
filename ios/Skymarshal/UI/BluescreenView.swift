@@ -235,7 +235,7 @@ struct BluescreenView: View {
                         Text("Pull up everyone you follow and score each one for bot patterns, inactivity, and mutuality.")
                     } actions: {
                         Button("Begin scan") { model.startScan() }
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(SaturnButton(emphasis: .primary))
                     }
                 } else if model.accounts.isEmpty && model.isScanning {
                     ScanInFlightView(

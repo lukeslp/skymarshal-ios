@@ -61,11 +61,10 @@ struct VisualizationHubView: View {
                 Text(title)
                     .font(.headline)
                 Spacer()
-                Text(completeness)
-                    .font(.caption.weight(.semibold))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Theme.chipTint(Theme.scope), in: .capsule)
+                ScopePill(
+                    value: completeness,
+                    emphasis: completeness == "Unknown" ? .muted : .scope
+                )
             }
             Text(subtitle)
                 .font(.caption)

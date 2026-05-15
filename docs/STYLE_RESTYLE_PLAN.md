@@ -845,8 +845,24 @@ What Move #2 *does* touch on `LoginView` is one button. The rest of the screen s
 ## Status
 
 - [x] Move #1 — diagnose first ([`STYLE_DIAGNOSIS_2026-05-14.md`](STYLE_DIAGNOSIS_2026-05-14.md)).
-- [ ] Move #2 — Plex Mono + Saturn buttons on tabular surfaces (v1.0.1 — this plan §§2–6, 7.1).
-- [ ] Move #3 — paper-bone + Fraunces pass (v1.0.2 — this plan §7.3).
+- [x] Move #2 — Plex Mono + Saturn buttons on tabular surfaces (v1.0.1 — this plan §§2–6, 7.1). Delivered 2026-05-14, see [`screenshots/2026-05-14-roll2/`](screenshots/2026-05-14-roll2/) for the eyeball delta.
+- [ ] Move #3 — paper-bone + Fraunces pass (v1.0.2 — this plan §7.3). Gate on one TestFlight soak cycle of Move #2.
+
+### Move #2 delivery notes
+
+- IBM Plex Mono 1.1.0 shipped (Regular/Medium/SemiBold) under SIL OFL 1.1.
+  PostScript names resolved at runtime: `IBMPlexMono`, `IBMPlexMono-Medm`,
+  `IBMPlexMono-SmBld` (the 6.0+ abbreviated spellings). `Theme.audit()`
+  accepts the legacy long names too so a future Plex re-release that
+  restores them won't fire the DEBUG precondition.
+- `SaturnButton` ships with a one-line v1.0.2 shim documented inline:
+  `Color(.systemBackground)` fill + `Color.primary.opacity(0.32)` border
+  stand in for `Theme.paper` + `Theme.hairlineStrong` until Move #3 lands.
+- `ScopePill` extended with an optional `leading: Image` parameter so
+  `BotScoreBadge` could collapse into it without a second component.
+- Marketing/`CFBundleVersion` not bumped in this commit. Build 5 / 1.0.1
+  cuts in a separate `release: bump to build 5` commit when the next
+  TestFlight upload is queued.
 
 ---
 

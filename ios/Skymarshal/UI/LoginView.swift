@@ -94,14 +94,13 @@ struct LoginView: View {
                                     ProgressView().controlSize(.small)
                                 }
                                 Text(model.isLoading ? "Signing in…" : "Sign in")
-                                    .font(.headline)
                                     .frame(maxWidth: .infinity)
                             }
-                            .padding(.vertical, 4)
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(SaturnButton(emphasis: .primary))
                         .disabled(!canSubmit)
                     }
+                    .listRowBackground(Color.clear)
                 }
                 .scrollContentBackground(.hidden)
             }

@@ -77,6 +77,10 @@ targets:
         UIBackgroundModes:
           - fetch
           - processing
+        UIAppFonts:
+          - IBMPlexMono-Regular.otf
+          - IBMPlexMono-Medium.otf
+          - IBMPlexMono-SemiBold.otf
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: blue.skymarshal.ios

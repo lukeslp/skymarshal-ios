@@ -35,21 +35,22 @@ struct LoadProgressBanner: View {
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 4) {
                     Text(progress.itemsLoaded.formatted())
-                        .font(.subheadline.weight(.semibold).monospacedDigit())
+                        .font(Theme.Mono.tabular(15))
+                        .foregroundStyle(.primary)
                     Text("loaded")
-                        .font(.subheadline)
+                        .font(Theme.Mono.body(13))
                         .foregroundStyle(.secondary)
                     Text("·")
-                        .font(.subheadline)
+                        .font(Theme.Mono.body(13))
                         .foregroundStyle(.tertiary)
                     Text("scanning \(progress.phase.rawValue.lowercased())")
-                        .font(.subheadline)
+                        .font(Theme.Mono.body(13))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .truncationMode(.tail)
                 }
                 Text("Search and filters work on what's loaded so far.")
-                    .font(.caption2)
+                    .font(Theme.Mono.caption(11))
                     .foregroundStyle(.tertiary)
             }
 

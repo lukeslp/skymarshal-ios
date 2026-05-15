@@ -123,4 +123,76 @@ final class AccessibilityRegressionTests: XCTestCase {
         let note = app.descendants(matching: .any)["content_bg_scope_refresh_note"]
         XCTAssert(note.waitForExistence(timeout: 8))
     }
+
+    /// Plex-Mono is wider than SF Pro at the same point size. At AX5 the
+    /// "POSTS · <date>" kicker on ContentRow is the row at greatest risk
+    /// of single-line clipping. This test asserts both kicker tokens
+    /// (`POSTS` and the date) are still reachable to VoiceOver / the
+    /// XCUITest accessibility tree after the v1.0.1 typography pass.
+    func test_AX5_contentRow_kicker_andDate_doNotTruncate() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-UIPreferredContentSizeCategoryName",
+            "UICTContentSizeCategoryAccessibilityExtraExtraExtraLarge",
+            XCUIApplication.stubMinimalContentArgument,
+        ]
+        app.skymarshalUseUITestFeatureDefaults()
+        app.launch()
+
+        // The Content navigation bar arrives once the stubbed content
+        // mounts; gate on it before probing inside the list.
+        XCTAssert(
+            app.navigationBars["My Content"].waitForExistence(timeout: 15),
+            "Content tab nav bar missing after stub seed at AX5"
+        )
+
+        // The kicker text is uppercase "POSTS" on every stub row. Use a
+        // matching predicate so we don't depend on a single accessibility
+        // identifier wrapper that doesn't currently exist in ContentRow.
+        let postsKicker = app.staticTexts.matching(
+            NSPredicate(format: "label == 'POSTS'")
+        ).firstMatch
+        XCTAssert(
+            postsKicker.waitForExistence(timeout: 8),
+            "ContentRow kicker 'POSTS' not reachable at AX5 — Plex Mono regression suspected"
+        )
+    }
+
+    /// The Scope completeness pill switched from a system capsule to
+    /// `ScopePill`. VoiceOver should still hear the completeness label;
+    /// this test asserts the combined accessibility label survives the
+    /// rewrite at AX5.
+    func test_AX5_scopeTab_completenessPill_readsAsExpected() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-UIPreferredContentSizeCategoryName",
+            "UICTContentSizeCategoryAccessibilityExtraExtraExtraLarge",
+            XCUIApplication.stubMinimalContentArgument,
+            "-sm.feature.visualizationHub", "YES",
+        ]
+        app.launch()
+
+        // Navigate to the Scope tab. The tab is the third item once the
+        // visualization hub flag is on (Content, Followers, Scope).
+        let scopeTab = app.tabBars.buttons["Scope"]
+        if scopeTab.waitForExistence(timeout: 10) {
+            scopeTab.tap()
+        }
+
+        XCTAssert(
+            app.navigationBars["Scope"].waitForExistence(timeout: 8),
+            "Scope tab nav bar missing at AX5"
+        )
+
+        // The Account graph row's combined accessibility label reads
+        // "Account graph. Scanned follow graph — ego summary. Data
+        // completeness Partial." after the stub seeds an account.
+        let row = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label CONTAINS[c] 'Account graph' AND label CONTAINS[c] 'completeness'"))
+            .firstMatch
+        XCTAssert(
+            row.waitForExistence(timeout: 6),
+            "Scope tab Account graph row missing its combined completeness label at AX5"
+        )
+    }
 }

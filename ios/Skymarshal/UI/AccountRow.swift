@@ -33,7 +33,7 @@ struct AccountRow: View {
                             .font(.subheadline.weight(.semibold))
                             .lineLimit(1)
                         Text("@\(account.handle)")
-                            .font(.caption2.monospaced())
+                            .font(Theme.Mono.caption(11))
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
@@ -59,10 +59,10 @@ struct AccountRow: View {
                     metric(ratioLabel, "arrow.left.arrow.right")
                     Spacer(minLength: 4)
                     Text(account.influenceTier.label.lowercased())
-                        .font(.caption2.monospaced())
+                        .font(Theme.Mono.caption(11))
                         .foregroundStyle(.tertiary)
                 }
-                .font(.caption2)
+                .font(Theme.Mono.tabular(11))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
             }
@@ -167,15 +167,19 @@ private struct StatusPills: View {
         var body: some View {
             HStack(spacing: 2) {
                 Image(systemName: systemImage)
-                    .font(.caption2.weight(.semibold))
+                    .font(Theme.Mono.kicker(11))
                     .symbolRenderingMode(.monochrome)
-                Text(text)
-                    .font(.caption2.weight(.semibold))
+                Text(text.uppercased())
+                    .font(Theme.Mono.kicker(11))
+                    .tracking(0.1)
             }
             .foregroundStyle(color)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
-            .background(Theme.chipTint(color), in: .capsule)
+            .background(
+                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                    .fill(Theme.chipTint(color))
+            )
         }
     }
 }
@@ -185,28 +189,19 @@ struct BotScoreBadge: View {
     let score: Double
 
     var body: some View {
-        HStack(spacing: 2) {
-            // .monochrome locks the SF Symbol rendering — iOS 26's
-            // dynamic color system was auto-selecting a fallback that
-            // rendered ant.fill as an emoji-like glyph (real-device
-            // screenshot at v1.0.1).
-            Image(systemName: "ant.fill")
-                .font(.caption2.weight(.semibold))
-                .symbolRenderingMode(.monochrome)
-            Text("\(Int(score * 100))")
-                .font(.caption2.weight(.semibold).monospacedDigit())
-        }
-        .foregroundStyle(color)
-        .padding(.horizontal, 6)
-        .padding(.vertical, 2)
-        .background(Theme.chipTint(color), in: .capsule)
+        ScopePill(
+            value: "\(Int(score * 100))",
+            label: nil,
+            emphasis: emphasis,
+            leading: Image(systemName: "ant.fill")
+        )
         .accessibilityLabel("Automation signals: \(Int(score * 100)) of 100")
     }
 
-    private var color: Color {
-        if score >= 0.6 { return Theme.danger }
-        if score >= 0.3 { return Theme.caution }
-        return .secondary
+    private var emphasis: ScopePill.Emphasis {
+        if score >= 0.6 { return .danger }
+        if score >= 0.3 { return .caution }
+        return .muted
     }
 }
 
