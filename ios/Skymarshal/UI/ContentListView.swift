@@ -162,7 +162,7 @@ struct ContentListView: View {
                             .foregroundStyle(.tertiary)
                         Text(String(format: "avg engagement %.0f", filteredAverageEngagement))
                     }
-                    .font(Theme.Mono.tabular(11))
+                    .font(Theme.Display.metricRegular(.caption))
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
@@ -639,15 +639,15 @@ struct ContentRow: View {
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(item.contentType.stripeColor)
                     Text(item.contentType.label.uppercased())
-                        .font(Theme.Mono.kicker(11))
-                        .tracking(0.15)
+                        .font(Theme.Display.metric(.caption2).weight(.semibold))
+                        .tracking(0.12)
                         .foregroundStyle(.secondary)
                     if let date = item.createdAt {
                         Text("·")
-                            .font(Theme.Mono.caption(11))
+                            .font(Theme.Display.metricRegular(.caption2))
                             .foregroundStyle(.tertiary)
                         Text(date, style: .date)
-                            .font(Theme.Mono.tabular(11))
+                            .font(Theme.Display.metricRegular(.caption2))
                             .foregroundStyle(.tertiary)
                     }
                     Spacer()
@@ -671,7 +671,7 @@ struct ContentRow: View {
                     metric(count: item.repostCount, symbol: "arrow.2.squarepath")
                     metric(count: item.replyCount, symbol: "bubble.left")
                 }
-                .font(Theme.Mono.tabular(11))
+                .font(Theme.Display.metricRegular(.caption2))
                 .foregroundStyle(.secondary)
                 .padding(.top, 1)
             }
@@ -698,17 +698,17 @@ struct EngagementBadge: View {
     var body: some View {
         HStack(spacing: 2) {
             Image(systemName: "flame.fill")
-                .font(Theme.Mono.kicker(11))
+                .font(Theme.Display.metric(.caption2).weight(.semibold))
                 .symbolRenderingMode(.monochrome)
                 .accessibilityHidden(true)
             Text("\(score)")
-                .font(Theme.Mono.tabular(11))
+                .font(Theme.Display.metricRegular(.caption2))
         }
         .foregroundStyle(.tint)
         .padding(.horizontal, 6)
         .padding(.vertical, 2)
         .background(
-            RoundedRectangle(cornerRadius: 3, style: .continuous)
+            RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous)
                 .fill(.tint.opacity(0.18))
         )
         .accessibilityLabel("Engagement score \(score)")

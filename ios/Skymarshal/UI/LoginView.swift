@@ -31,80 +31,34 @@ struct LoginView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                DotBirdHeader(
-                    reduceMotion: reduceMotion,
-                    secretHoldEnabled: easterEggEnabled,
-                    onSecretHold: { showEasterEgg = true }
-                )
-                    .padding(.top, 24)
-                    .padding(.bottom, 8)
+            ZStack {
+                LoginBackground()
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        DotBirdHeader(
+                            reduceMotion: reduceMotion,
+                            secretHoldEnabled: easterEggEnabled,
+                            onSecretHold: { showEasterEgg = true }
+                        )
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 8)
 
-                Form {
-                    if let notice = model.sessionExpiredNotice {
-                        Section {
-                            Label(notice, systemImage: "clock.arrow.circlepath")
-                                .foregroundStyle(Theme.caution)
-                                .symbolRenderingMode(.hierarchical)
-                                .accessibilityElement(children: .combine)
-                                .accessibilityLabel("Session expired: \(notice)")
-                                .accessibilityAddTraits(.isStaticText)
+                        if let notice = model.sessionExpiredNotice {
+                            sessionNoticeCard(notice)
                         }
-                    }
 
-                    Section {
-                        TextField("yourname.bsky.social", text: $handle)
-                            .textContentType(.username)
-                            .keyboardType(.emailAddress)
-                            .autocorrectionDisabled()
-                            .textInputAutocapitalization(.never)
-                            .accessibilityLabel("Bluesky handle")
-                        SecureField("app password", text: $appPassword)
-                            .textContentType(.password)
-                            .accessibilityLabel("App password")
-                    } header: {
-                        Text("Climb aboard")
-                            .font(.subheadline.weight(.semibold))
-                            .tracking(0.3)
-                    } footer: {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Use an **app password**, not your main one. Skymarshal never sees your real password — generate a disposable app password at bsky.app under Settings → App Passwords and bring that.")
-                            Link("Open Bluesky settings", destination: URL(string: "https://bsky.app/settings/app-passwords")!)
-                                .font(.footnote)
-                        }
-                    }
+                        climbAboardDeck
 
-                    if let error = model.errorMessage {
-                        Section {
-                            Label(error, systemImage: "exclamationmark.triangle.fill")
-                                .foregroundStyle(Theme.danger)
-                                .symbolRenderingMode(.hierarchical)
-                                .accessibilityElement(children: .combine)
-                                .accessibilityLabel("Sign-in error: \(error)")
-                                .accessibilityAddTraits(.isStaticText)
+                        if let error = model.errorMessage {
+                            errorCard(error)
                         }
-                    }
 
-                    Section {
-                        Button {
-                            Task { await model.login(handle: handle, password: appPassword) }
-                        } label: {
-                            HStack {
-                                if model.isLoading {
-                                    ProgressView().controlSize(.small)
-                                }
-                                Text(model.isLoading ? "Signing in…" : "Sign in")
-                                    .frame(maxWidth: .infinity)
-                            }
-                        }
-                        .buttonStyle(SaturnButton(emphasis: .primary))
-                        .disabled(!canSubmit)
+                        signInButton
                     }
-                    .listRowBackground(Color.clear)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 32)
                 }
-                .scrollContentBackground(.hidden)
             }
-            .background(LoginBackground())
             .toolbar(.hidden, for: .navigationBar)
             .overlay {
                 if showEasterEgg {
@@ -115,8 +69,6 @@ struct LoginView: View {
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: showEasterEgg)
             .onChange(of: model.errorMessage) { _, newValue in
                 if let msg = newValue, !msg.isEmpty {
-                    // WCAG 4.1.3 — announce the error so VoiceOver
-                    // users hear it without re-navigating to the form.
                     UIAccessibility.post(
                         notification: .announcement,
                         argument: "Sign-in error: \(msg)"
@@ -124,6 +76,88 @@ struct LoginView: View {
                 }
             }
         }
+    }
+
+    @ViewBuilder
+    private func sessionNoticeCard(_ notice: String) -> some View {
+        Label(notice, systemImage: "clock.arrow.circlepath")
+            .foregroundStyle(Theme.caution)
+            .symbolRenderingMode(.hierarchical)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Session expired: \(notice)")
+            .accessibilityAddTraits(.isStaticText)
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                    .fill(.ultraThinMaterial)
+            }
+    }
+
+    private var climbAboardDeck: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Climb aboard")
+                .font(.subheadline.weight(.semibold))
+                .tracking(0.3)
+                .foregroundStyle(.secondary)
+
+            TextField("yourname.bsky.social", text: $handle)
+                .textContentType(.username)
+                .keyboardType(.emailAddress)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+                .accessibilityLabel("Bluesky handle")
+
+            SecureField("app password", text: $appPassword)
+                .textContentType(.password)
+                .accessibilityLabel("App password")
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text(LocalizedStringKey("Use an **app password**, not your main one. Skymarshal never sees your real password — generate a disposable app password at bsky.app under Settings → App Passwords and bring that."))
+                Link("Open Bluesky settings", destination: URL(string: "https://bsky.app/settings/app-passwords")!)
+                    .font(.footnote)
+            }
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background {
+            RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                .fill(.ultraThinMaterial)
+        }
+    }
+
+    @ViewBuilder
+    private func errorCard(_ message: String) -> some View {
+        Label(message, systemImage: "exclamationmark.triangle.fill")
+            .foregroundStyle(Theme.danger)
+            .symbolRenderingMode(.hierarchical)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Sign-in error: \(message)")
+            .accessibilityAddTraits(.isStaticText)
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                    .fill(.ultraThinMaterial)
+            }
+    }
+
+    private var signInButton: some View {
+        Button {
+            Task { await model.login(handle: handle, password: appPassword) }
+        } label: {
+            HStack {
+                if model.isLoading {
+                    ProgressView().controlSize(.small)
+                }
+                Text(model.isLoading ? "Signing in…" : "Sign in")
+                    .frame(maxWidth: .infinity)
+            }
+        }
+        .buttonStyle(SaturnButton(emphasis: .primaryCinematic))
+        .disabled(!canSubmit)
     }
 }
 
@@ -136,6 +170,8 @@ private struct DotBirdHeader: View {
     let reduceMotion: Bool
     let secretHoldEnabled: Bool
     let onSecretHold: () -> Void
+
+    @Environment(\.colorSchemeContrast) private var colorSchemeContrast
 
     @State private var appear = false
 
@@ -151,18 +187,23 @@ private struct DotBirdHeader: View {
                 .accessibilityHidden(true)
 
             VStack(spacing: 4) {
-                Text("Skymarshal")
-                    .font(.system(.largeTitle, design: .default).weight(.semibold))
+                Group {
+                    if colorSchemeContrast == .increased {
+                        Text("Skymarshal")
+                            .font(Theme.Display.title())
+                            .foregroundStyle(Theme.cinematicTitleSolid)
+                    } else {
+                        Text("Skymarshal")
+                            .font(Theme.Display.title())
+                            .foregroundStyle(Theme.cinematicTitleGradient)
+                    }
+                }
                 Text("Air-traffic control for your Bluesky.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .italic()
             }
             .contentShape(Rectangle())
-            // 6-second minimum and gated on assistive-tech off. Dwell /
-            // Switch Control / VoiceOver users routinely hold focus on
-            // elements for far longer than typical touch press; the
-            // gate prevents this from firing on every sign-in for them.
             .gesture(
                 secretHoldEnabled
                     ? LongPressGesture(minimumDuration: 6.0)
@@ -217,16 +258,31 @@ private struct EasterEggOverlay: View {
 
 @available(iOS 17, *)
 private struct LoginBackground: View {
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
-        LinearGradient(
-            colors: [
-                Color(.systemBackground),
-                Color.accentColor.opacity(0.08),
-                Color(.systemBackground),
-            ],
-            startPoint: .top,
-            endPoint: .bottom
-        )
+        Group {
+            if colorScheme == .dark {
+                LinearGradient(
+                    colors: [
+                        Color.black,
+                        Color(red: 0.05, green: 0.05, blue: 0.09),
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            } else {
+                LinearGradient(
+                    colors: [
+                        Color(.systemBackground),
+                        Theme.cinematicAccentA.opacity(0.06),
+                        Color(.secondarySystemBackground),
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+        }
         .ignoresSafeArea()
     }
 }

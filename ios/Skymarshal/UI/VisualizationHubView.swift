@@ -94,7 +94,7 @@ private struct AccountGraphVizView: View {
             Text(explanation)
             if let raw = model.graphSnapshotSummaries[kind.rawValue] {
                 Text(raw)
-                    .font(.caption2.monospaced())
+                    .font(Theme.Display.metricRegular(.caption2))
                     .textSelection(.enabled)
                     .foregroundStyle(.secondary)
             }
@@ -161,7 +161,7 @@ private struct InteractionGraphVizView: View {
             Text(explanation)
             if let raw = model.graphSnapshotSummaries[kind.rawValue] {
                 Text(raw)
-                    .font(.caption2.monospaced())
+                    .font(Theme.Display.metricRegular(.caption2))
                     .textSelection(.enabled)
                     .foregroundStyle(.secondary)
             }
@@ -211,7 +211,7 @@ private struct TimelineHeatmapVizView: View {
             Text(explanation)
             if let raw = model.graphSnapshotSummaries[GraphSnapshotKind.timelineHeatmap.rawValue] {
                 Text(raw)
-                    .font(.caption2.monospaced())
+                    .font(Theme.Display.metricRegular(.caption2))
                     .textSelection(.enabled)
                     .foregroundStyle(.secondary)
             }
@@ -248,7 +248,7 @@ private struct TimelineHeatmapVizView: View {
             HStack(spacing: 4) {
                 ForEach(0..<24, id: \.self) { h in
                     let v = snapshot.postsByHourLocal[h]
-                    RoundedRectangle(cornerRadius: 3)
+                    RoundedRectangle(cornerRadius: Theme.Radius.sm)
                         .fill(Theme.scope.opacity(0.12 + 0.88 * Double(v) / Double(maxH)))
                         .frame(height: 28)
                         .accessibilityLabel("Hour \(h), \(v) posts")

@@ -1,5 +1,16 @@
 # Style restyle plan — Move #2 + Move #3
 
+**2026-05-15 — Cinematic OLED chosen for v1.0.2+ chrome:** After `/team`
+review, the primary visual direction is **cinematic** (rounded display
+wordmark + accent gradient, system sans + `monospacedDigit()` for dense
+metrics, 6–10pt radii, glass limited to hero/nav panels — not list rows).
+Implementation lives in `Theme+Cinematic.swift`, gradient-aware
+`LoginView` + `SaturnButton(emphasis: .primaryCinematic)`, and sans
+metric fonts on `ContentListView` / Scope hub surfaces. **Outfit** (HTML
+pixel-match) is deferred — SF Pro Rounded + gradient ships first. The
+brutalist / paper HTML samples remain archive references under
+`docs/aesthetic-samples/`. See [`AESTHETIC_CINEMATIC_2026-05-15.md`](AESTHETIC_CINEMATIC_2026-05-15.md).
+
 **Predecessor:** [`STYLE_DIAGNOSIS_2026-05-14.md`](STYLE_DIAGNOSIS_2026-05-14.md) (Move #1)
 **Owners:** `ios/Skymarshal/UI/*` + `ios/SkymarshalCore/Standards/*`
 **Releases this plan spans:** v1.0.1 (rows 1, 2, 5) and v1.0.2 (rows 3, 4, 6, 7)
@@ -846,7 +857,7 @@ What Move #2 *does* touch on `LoginView` is one button. The rest of the screen s
 
 - [x] Move #1 — diagnose first ([`STYLE_DIAGNOSIS_2026-05-14.md`](STYLE_DIAGNOSIS_2026-05-14.md)).
 - [x] Move #2 — Plex Mono + Saturn buttons on tabular surfaces (v1.0.1 — this plan §§2–6, 7.1). Delivered 2026-05-14, see [`screenshots/2026-05-14-roll2/`](screenshots/2026-05-14-roll2/) for the eyeball delta.
-- [ ] Move #3 — paper-bone + Fraunces pass (v1.0.2 — this plan §7.3). Gate on one TestFlight soak cycle of Move #2.
+- [ ] Move #3 — paper-bone + Fraunces pass (v1.0.2 — this plan §7.3). **Re-baselined 2026-05-15:** cinematic OLED chrome ships first (gradient wordmark, sans metrics, radius tokens); Fraunces / `Theme+Saturn` paper-bone remain optional follow-ups once cinematic soaks clean on device.
 
 ### Move #2 delivery notes
 

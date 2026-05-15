@@ -34,6 +34,7 @@ final class TokenCoverageTests: XCTestCase {
         let allowedFiles: Set<String> = [
             "Theme.swift",
             "Theme+Fonts.swift",
+            "Theme+Cinematic.swift",
             "Theme+Saturn.swift",
         ]
 

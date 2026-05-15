@@ -35,6 +35,7 @@
 		324F8E95CA7FAA44AAF63B77 /* BackgroundTaskCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 597EBB35805CA48660EC7399 /* BackgroundTaskCoordinator.swift */; };
 		3368CC6B067A75D8AF38217A /* AnalyticsInsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0F3607A281A22A96499B601 /* AnalyticsInsightsView.swift */; };
 		336A90028344612C57587F46 /* HydrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9793630CD39119B8A0A7A3AA /* HydrationTests.swift */; };
+		3559D243746B447C26FAB4C5 /* Theme+Cinematic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C43CECAE8105DE9B520DC0B /* Theme+Cinematic.swift */; };
 		3650D0656ADC47AE98137B7D /* TokenCoverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CCAE84030525BCAADF9DCEC /* TokenCoverageTests.swift */; };
 		38F8AAEE9C83AF2876B0E3E8 /* SkymarshalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3349AFD3577BD6BAAA9C6C /* SkymarshalApp.swift */; };
 		3B2B051276F10B0F8994B2AC /* DeletePreflight.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A188BF054FDE138866AFD32 /* DeletePreflight.swift */; };
@@ -50,6 +51,7 @@
 		509594E1EB937F8CA7F775DC /* BskyProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A27D872B1C9A8E2FA1A409 /* BskyProfile.swift */; };
 		517D616A6293804967DAD73E /* AttributedPostText.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF98F227B9CFB208A593B891 /* AttributedPostText.swift */; };
 		5223D5CF36EE78FD5F5EB1A1 /* LoadProgressBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E3E7AB5E618B4270B2AE779 /* LoadProgressBanner.swift */; };
+		53929B6833280F388DD72629 /* FeatureFlagsLaunchArgumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38BA3F2DA4E33CF8C791DF85 /* FeatureFlagsLaunchArgumentTests.swift */; };
 		567E3817AB615DED83295BA1 /* ProfileExplorerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B70D176924BD351312836A75 /* ProfileExplorerView.swift */; };
 		57BF2760C6EEEE9AC74A54B7 /* FollowerFilters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FAC32C76753E6DF41BB9650 /* FollowerFilters.swift */; };
 		58984BC979A322BC77A1FD46 /* IBMPlexMono-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 83797EBB79535A3971F9B295 /* IBMPlexMono-Medium.otf */; };
@@ -198,12 +200,14 @@
 		2C63DDD72BCB5341FA0A17C6 /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
 		2F256F22E3C66AFA83B34CC3 /* ATProtoClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ATProtoClient.swift; sourceTree = "<group>"; };
 		3786F0727744BDFB53F1DD6C /* FollowerFiltersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowerFiltersTests.swift; sourceTree = "<group>"; };
+		38BA3F2DA4E33CF8C791DF85 /* FeatureFlagsLaunchArgumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlagsLaunchArgumentTests.swift; sourceTree = "<group>"; };
 		3BADB0EE3694F892FAFE6D5C /* ContentTypeStyling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentTypeStyling.swift; sourceTree = "<group>"; };
 		3BCF557820B8A037D8BC173A /* PostDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostDetailView.swift; sourceTree = "<group>"; };
 		4244BF8F79091B71A048DF70 /* ATProtoTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ATProtoTypes.swift; sourceTree = "<group>"; };
 		442C0D8F71C940230AC527A1 /* FollowerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowerService.swift; sourceTree = "<group>"; };
 		491804997851E0480E3B7194 /* ContentType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentType.swift; sourceTree = "<group>"; };
 		492C6423D774D0DA3429DE09 /* InteractionRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionRow.swift; sourceTree = "<group>"; };
+		4C43CECAE8105DE9B520DC0B /* Theme+Cinematic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Theme+Cinematic.swift"; sourceTree = "<group>"; };
 		4D0AE03980941621244D8E81 /* ThemeFontRegistrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeFontRegistrationTests.swift; sourceTree = "<group>"; };
 		4D1E6AD0A4FC785E23F6A4EE /* MutualFollow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MutualFollow.swift; sourceTree = "<group>"; };
 		4EB48E9C25EE90822DDAFDCB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -530,6 +534,7 @@
 				A613CF3556C8B2315EE1AD39 /* ScopeExperimentTelemetry.swift */,
 				E1A7AB9A30F903C51ACDB147 /* SessionStore.swift */,
 				E0F8271000345A37AE8AF04A /* Theme.swift */,
+				4C43CECAE8105DE9B520DC0B /* Theme+Cinematic.swift */,
 				CE6FEF289F401090DD0C852C /* Theme+Fonts.swift */,
 				E617CED88B3942F17AB3AC3D /* Timeout.swift */,
 			);
@@ -548,6 +553,7 @@
 				7F523D8D9B7C0B04B797CD44 /* DeletePreflightTests.swift */,
 				FD14FDBAE5516851968240DC /* DeleteURIMappingTests.swift */,
 				79485208079763B89F328C49 /* ExporterTests.swift */,
+				38BA3F2DA4E33CF8C791DF85 /* FeatureFlagsLaunchArgumentTests.swift */,
 				3786F0727744BDFB53F1DD6C /* FollowerFiltersTests.swift */,
 				D24A27C7FA698A7BA34C14ED /* GraphSchemaTests.swift */,
 				92EE1827BCD7CF75E33B5123 /* GraphSnapshotWriterTests.swift */,
@@ -753,6 +759,7 @@
 				B0B97AB9E5171CB4E6136960 /* SessionStore.swift in Sources */,
 				01804EFE9494B0A0017495BB /* SkymarshalCore.swift in Sources */,
 				F27CE9228345BE86F36E04A7 /* StorageModels.swift in Sources */,
+				3559D243746B447C26FAB4C5 /* Theme+Cinematic.swift in Sources */,
 				6129BC884E436355F5F5F381 /* Theme+Fonts.swift in Sources */,
 				B6FB371111B20491DDAFD234 /* Theme.swift in Sources */,
 				5B66047E3E1901033B6BFCAF /* Timeout.swift in Sources */,
@@ -773,6 +780,7 @@
 				30522E9F9D11B1F73C73B238 /* DeletePreflightTests.swift in Sources */,
 				00E78D483E5D877449E93B3D /* DeleteURIMappingTests.swift in Sources */,
 				78CD18D426387960001ED4AC /* ExporterTests.swift in Sources */,
+				53929B6833280F388DD72629 /* FeatureFlagsLaunchArgumentTests.swift in Sources */,
 				C7C0BF6AFF715DB2189F5EEC /* FollowerFiltersTests.swift in Sources */,
 				5E4FE849C04F2AD9BFB0F3B6 /* GraphSchemaTests.swift in Sources */,
 				D4F3F7579C857803789DB481 /* GraphSnapshotWriterTests.swift in Sources */,

@@ -1,9 +1,11 @@
 // SaturnButton.swift
 //
-// Skymarshal's primary CTA button style — sharp 3pt corner radius,
+// Skymarshal's primary CTA button style — 6pt continuous corner radius,
 // 1pt ink-toned border, paper-toned fill on idle, scope-blue tint on
-// press. Replaces `.borderedProminent` on Sign in / Begin scan so
-// those surfaces stop reading as generic iOS first-launch flows.
+// press. Optional `.primaryCinematic` uses the OLED accent gradient for
+// hero surfaces (Login). Replaces `.borderedProminent` on Sign in /
+// Begin scan so those surfaces stop reading as generic iOS first-launch
+// flows.
 //
 // Inputs:   SwiftUI `ButtonStyle.Configuration` (label + isPressed).
 // Outputs:  a `View` rendering the configured button.
@@ -20,7 +22,7 @@ import SkymarshalCore
 @available(iOS 17, *)
 public struct SaturnButton: ButtonStyle {
 
-    public enum Emphasis { case primary, ghost, destructive }
+    public enum Emphasis { case primary, primaryCinematic, ghost, destructive }
 
     public var emphasis: Emphasis = .primary
 
@@ -40,14 +42,24 @@ private struct SaturnButtonBody: View {
 
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.colorSchemeContrast) private var colorSchemeContrast
+
+    private var corner: CGFloat { Theme.Radius.sm }
+
+    private var cinematicSolidForAccessibility: Bool {
+        emphasis == .primaryCinematic && colorSchemeContrast == .increased
+    }
 
     private var fill: Color {
         if !isEnabled { return Color(.tertiarySystemBackground) }
         if configuration.isPressed {
             switch emphasis {
-            case .primary:     return Theme.chipTint(Theme.scope)
-            case .ghost:       return Theme.chipTint(Theme.scope).opacity(0.6)
-            case .destructive: return Theme.chipTint(Theme.danger)
+            case .primary, .primaryCinematic:
+                return Theme.chipTint(Theme.scope)
+            case .ghost:
+                return Theme.chipTint(Theme.scope).opacity(0.6)
+            case .destructive:
+                return Theme.chipTint(Theme.danger)
             }
         }
         // v1.0.2 shim ↓
@@ -57,20 +69,41 @@ private struct SaturnButtonBody: View {
     private var stroke: Color {
         if !isEnabled { return Color.primary.opacity(0.18) }
         switch emphasis {
-        case .primary:     return configuration.isPressed ? Theme.scope : Color.primary.opacity(0.32)
-        case .ghost:       return configuration.isPressed ? Theme.scope : Color.primary.opacity(0.32)
-        case .destructive: return Theme.danger
+        case .primaryCinematic where !cinematicSolidForAccessibility:
+            return Color.white.opacity(configuration.isPressed ? 0.55 : 0.38)
+        case .primaryCinematic:
+            return configuration.isPressed ? Theme.scope.opacity(0.85) : Color.primary.opacity(0.28)
+        case .primary:
+            return configuration.isPressed ? Theme.scope : Color.primary.opacity(0.32)
+        case .ghost:
+            return configuration.isPressed ? Theme.scope : Color.primary.opacity(0.32)
+        case .destructive:
+            return Theme.danger
         }
     }
 
     private var textColor: Color {
         if !isEnabled { return .secondary }
         switch emphasis {
-        case .primary:     return configuration.isPressed ? Theme.scope : .primary
-        case .ghost:       return configuration.isPressed ? Theme.scope : .primary
-        case .destructive: return Theme.danger
+        case .primaryCinematic:
+            if cinematicSolidForAccessibility {
+                return configuration.isPressed ? Theme.scope : .white
+            }
+            return .white
+        case .primary:
+            return configuration.isPressed ? Theme.scope : .primary
+        case .ghost:
+            return configuration.isPressed ? Theme.scope : .primary
+        case .destructive:
+            return Theme.danger
         }
     }
+
+    private var labelFont: Font {
+        .system(.body, design: .rounded, weight: .semibold)
+    }
+
+    private var tracking: CGFloat { 0.28 }
 
     private var reduceMotion: Bool {
         ReduceMotion.shouldReduce(systemReduceMotion: systemReduceMotion)
@@ -78,23 +111,45 @@ private struct SaturnButtonBody: View {
 
     var body: some View {
         configuration.label
-            .font(Theme.Mono.body(15).weight(.medium))
-            .tracking(0.6)
+            .font(labelFont)
+            .tracking(tracking)
             .foregroundStyle(textColor)
             .padding(.vertical, 12)
             .padding(.horizontal, 18)
             .frame(maxWidth: .infinity)
-            .background(
-                RoundedRectangle(cornerRadius: 3, style: .continuous)
-                    .fill(fill)
-            )
+            .background {
+                RoundedRectangle(cornerRadius: corner, style: .continuous)
+                    .fill(backgroundShapeStyle(configuration: configuration))
+            }
             .overlay(
-                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                RoundedRectangle(cornerRadius: corner, style: .continuous)
                     .strokeBorder(stroke, lineWidth: 1)
             )
-            .contentShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
             .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: configuration.isPressed)
             .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: isEnabled)
+    }
+
+    private func backgroundShapeStyle(configuration: ButtonStyle.Configuration) -> AnyShapeStyle {
+        if emphasis == .primaryCinematic, isEnabled {
+            if cinematicSolidForAccessibility {
+                return AnyShapeStyle(configuration.isPressed ? Theme.chipTint(Theme.scope) : Theme.scope)
+            }
+            if configuration.isPressed {
+                return AnyShapeStyle(
+                    LinearGradient(
+                        colors: [
+                            Theme.cinematicAccentA.opacity(0.82),
+                            Theme.cinematicAccentB.opacity(0.82),
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+            }
+            return AnyShapeStyle(Theme.cinematicTitleGradient)
+        }
+        return AnyShapeStyle(fill)
     }
 }
 
@@ -103,6 +158,8 @@ private struct SaturnButtonBody: View {
     VStack(spacing: 16) {
         Button("Sign in") {}
             .buttonStyle(SaturnButton(emphasis: .primary))
+        Button("Sign in") {}
+            .buttonStyle(SaturnButton(emphasis: .primaryCinematic))
         Button("Sign in") {}
             .buttonStyle(SaturnButton(emphasis: .primary))
             .disabled(true)

@@ -169,7 +169,7 @@ struct BluescreenView: View {
                                     .tag(0.4)
                             }
                             Text("Loose flags more real humans by mistake. Bulk actions require an extra confirmation.")
-                                .font(.caption2)
+                                .font(Theme.Display.metricRegular(.caption2))
                         } label: {
                             HStack(spacing: 4) {
                                 Image(systemName: botSensitivityRaw < 0.5
