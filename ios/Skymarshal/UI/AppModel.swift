@@ -145,12 +145,14 @@ final class AppModel {
     /// flows; on failure (no stored session or refresh JWT also
     /// expired) the user lands on the LoginView with no surprise toast.
     func tryRestoreSession() async {
-        let restored = await content.tryRestoreSession()
-        guard restored else { return }
-        isAuthenticated = await content.isAuthenticated
-        currentHandle = await content.currentHandle
-        currentDid = await content.currentDID
-        sessionExpiredNotice = nil
+        await ColdLaunchSignposts.runAsyncInterval("session_restore") {
+            let restored = await content.tryRestoreSession()
+            guard restored else { return }
+            isAuthenticated = await content.isAuthenticated
+            currentHandle = await content.currentHandle
+            currentDid = await content.currentDID
+            sessionExpiredNotice = nil
+        }
     }
 
     /// One-shot dismissal for the session-expired banner. Tapping the
@@ -161,26 +163,28 @@ final class AppModel {
     }
 
     static func liveDefault() -> AppModel {
-        // Disk container first; fall back to in-memory; preconditionFailure
-        // only if even in-memory schema fails to instantiate.
-        let container: ModelContainer = {
-            if let onDisk = try? SkymarshalSchema.makeContainer() { return onDisk }
-            do { return try SkymarshalSchema.makeContainer(inMemory: true) }
-            catch {
-                preconditionFailure(
-                    "SwiftData container failed to initialize even in memory — schema is malformed. \(error)"
-                )
+        ColdLaunchSignposts.runSyncInterval("live_default_total") {
+            // Disk container first; fall back to in-memory; preconditionFailure
+            // only if even in-memory schema fails to instantiate.
+            let container: ModelContainer = ColdLaunchSignposts.runSyncInterval("model_container_open") {
+                if let onDisk = try? SkymarshalSchema.makeContainer() { return onDisk }
+                do { return try SkymarshalSchema.makeContainer(inMemory: true) }
+                catch {
+                    preconditionFailure(
+                        "SwiftData container failed to initialize even in memory — schema is malformed. \(error)"
+                    )
+                }
             }
-        }()
-        let client = ATProtoClient()
-        return AppModel(
-            client: client,
-            content: ContentService(client: client, container: container),
-            followers: FollowerService(client: client, container: container),
-            interactions: InteractionService(client: client),
-            profileGraph: ProfileService(client: client),
-            container: container
-        )
+            let client = ATProtoClient()
+            return AppModel(
+                client: client,
+                content: ContentService(client: client, container: container),
+                followers: FollowerService(client: client, container: container),
+                interactions: InteractionService(client: client),
+                profileGraph: ProfileService(client: client),
+                container: container
+            )
+        }
     }
 
     // MARK: - Auth
@@ -238,47 +242,49 @@ final class AppModel {
     /// the cache is the truth until they Refresh.
     func hydrateFromCache() async {
         guard let container, !hydratedFromCache else { return }
-        let context = ModelContext(container)
+        await ColdLaunchSignposts.runAsyncInterval("hydrate_from_cache") {
+            let context = ModelContext(container)
 
-        // Followers — pick the owner with the most recent scannedAt
-        let analyzedDescriptor = FetchDescriptor<AnalyzedAccountRecord>(
-            sortBy: [SortDescriptor(\.scannedAt, order: .reverse)]
-        )
-        if let allAccounts = try? context.fetch(analyzedDescriptor),
-           let lastOwner = allAccounts.first?.ownerHandle {
-            let mine = allAccounts.filter { $0.ownerHandle == lastOwner }
-            if !mine.isEmpty {
-                let restored = mine.map { $0.toAnalyzedAccount() }
-                self.accounts = restored
-                self.scanSummary = BluescreenAnalyzer.summarize(restored)
-                self.lastFollowerScannedAt = mine.map(\.scannedAt).max()
-                self.hydratedOwnerHandle = lastOwner
-                await followers.setLoaded(restored)
+            // Followers — pick the owner with the most recent scannedAt
+            let analyzedDescriptor = FetchDescriptor<AnalyzedAccountRecord>(
+                sortBy: [SortDescriptor(\.scannedAt, order: .reverse)]
+            )
+            if let allAccounts = try? context.fetch(analyzedDescriptor),
+               let lastOwner = allAccounts.first?.ownerHandle {
+                let mine = allAccounts.filter { $0.ownerHandle == lastOwner }
+                if !mine.isEmpty {
+                    let restored = mine.map { $0.toAnalyzedAccount() }
+                    self.accounts = restored
+                    self.scanSummary = BluescreenAnalyzer.summarize(restored)
+                    self.lastFollowerScannedAt = mine.map(\.scannedAt).max()
+                    self.hydratedOwnerHandle = lastOwner
+                    await followers.setLoaded(restored)
+                }
             }
-        }
 
-        // Content — same pattern, sorted by scannedAt
-        let contentDescriptor = FetchDescriptor<ContentItemRecord>(
-            sortBy: [SortDescriptor(\.scannedAt, order: .reverse)]
-        )
-        if let allItems = try? context.fetch(contentDescriptor),
-           let lastOwner = allItems.first?.ownerHandle {
-            let mine = allItems.filter { $0.ownerHandle == lastOwner }
-            if !mine.isEmpty {
-                let restored = mine.map { $0.toContentItem() }
-                self.items = restored
-                self.summary = Self.computeContentSummary(restored)
-                self.lastContentScannedAt = mine.map(\.scannedAt).max()
-                self.currentHandle = self.currentHandle ?? lastOwner
-                self.hydratedOwnerHandle = lastOwner
-                await content.setLoadedContent(restored)
+            // Content — same pattern, sorted by scannedAt
+            let contentDescriptor = FetchDescriptor<ContentItemRecord>(
+                sortBy: [SortDescriptor(\.scannedAt, order: .reverse)]
+            )
+            if let allItems = try? context.fetch(contentDescriptor),
+               let lastOwner = allItems.first?.ownerHandle {
+                let mine = allItems.filter { $0.ownerHandle == lastOwner }
+                if !mine.isEmpty {
+                    let restored = mine.map { $0.toContentItem() }
+                    self.items = restored
+                    self.summary = Self.computeContentSummary(restored)
+                    self.lastContentScannedAt = mine.map(\.scannedAt).max()
+                    self.currentHandle = self.currentHandle ?? lastOwner
+                    self.hydratedOwnerHandle = lastOwner
+                    await content.setLoadedContent(restored)
+                }
             }
-        }
 
-        if !accounts.isEmpty || !items.isEmpty {
-            hydratedFromCache = true
+            if !accounts.isEmpty || !items.isEmpty {
+                hydratedFromCache = true
+            }
+            evaluateDeleteInterruptionRecovery()
         }
-        evaluateDeleteInterruptionRecovery()
     }
 
     /// UI-testing only: forces one in-memory row so TabView + Insights can load without auth or network.
@@ -295,6 +301,23 @@ final class AppModel {
         items = [stub]
         summary = Self.computeContentSummary([stub])
         await content.setLoadedContent([stub])
+
+        // One analyzed account so Scope / viz surfaces have non-empty completeness
+        // (XCUITest `test_AX5_scopeTab_completenessPill_readsAsExpected`).
+        let createdAt = ISO8601DateFormatter().string(from: Date().addingTimeInterval(-365 * 86_400))
+        let stubProfile = BskyProfile(
+            did: "did:plc:uitestfixturefollow",
+            handle: "uitestfollow.bsky.social",
+            displayName: "UI Test Follow",
+            followersCount: 120,
+            followsCount: 200,
+            postsCount: 50,
+            createdAt: createdAt
+        )
+        let stubAccount = BluescreenAnalyzer.analyze(profile: stubProfile)
+        accounts = [stubAccount]
+        scanSummary = BluescreenAnalyzer.summarize([stubAccount])
+        await followers.setLoaded([stubAccount])
     }
 
     /// Recompute the content-type counts from a list of items.

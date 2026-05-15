@@ -45,4 +45,34 @@ public enum FeatureFlags {
     public static func set(_ value: Bool, for key: String) {
         UserDefaults.standard.set(value, forKey: key)
     }
+
+    /// Applies paired launch arguments of the form `-<UserDefaultsKey> <YES|NO|1|0>`
+    /// for known feature keys. Used by XCUITest (`-sm.feature.*`) and local
+    /// profiling so flags reach `@AppStorage` / ``bool(for:default:)``.
+    ///
+    /// Call **after** any `UITEST_RESET_FEATURE_DEFAULTS` bootstrap so explicit
+    /// `-sm.feature.*` pairs win over the reset template.
+    public static func applyLaunchArgumentOverrides(from arguments: [String] = ProcessInfo.processInfo.arguments) {
+        let keys: Set<String> = [
+            analyticsInsightsKey,
+            savedSearchPresetsKey,
+            cleanupPresetsKey,
+            profileExplorerKey,
+            unfollowDryRunKey,
+            advancedSearchGrammarKey,
+            visualizationHubKey,
+            wordPatternsKey,
+            backupRestoreKey,
+            contentPowerToolsExpandedKey,
+        ]
+        for i in 0..<(arguments.count - 1) {
+            let token = arguments[i]
+            guard token.hasPrefix("-"), token.count > 1 else { continue }
+            let candidateKey = String(token.dropFirst())
+            guard keys.contains(candidateKey) else { continue }
+            let raw = arguments[i + 1].uppercased()
+            let on = raw == "YES" || raw == "1" || raw == "TRUE"
+            UserDefaults.standard.set(on, forKey: candidateKey)
+        }
+    }
 }

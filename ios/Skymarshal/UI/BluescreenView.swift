@@ -415,6 +415,9 @@ struct BluescreenView: View {
             } message: {
                 Text(dryRunBannerMessage ?? "")
             }
+            .onAppear {
+                ColdLaunchSignposts.event("tab_followers_appear")
+            }
         }
     }
 

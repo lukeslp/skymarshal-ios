@@ -49,6 +49,7 @@ struct VisualizationHubView: View {
             .navigationTitle("Scope")
             .navigationBarTitleDisplayMode(.large)
             .onAppear {
+                ColdLaunchSignposts.event("tab_scope_appear")
                 ScopeExperimentTelemetry.recordScopeHubAppearance()
             }
             .task { await model.refreshGraphSnapshots() }

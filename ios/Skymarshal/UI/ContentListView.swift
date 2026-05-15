@@ -450,6 +450,7 @@ struct ContentListView: View {
                 Text(model.deleteInterruptionNotice ?? "")
             }
             .onAppear {
+                ColdLaunchSignposts.event("tab_content_appear")
                 reloadSavedPresets()
                 if ProcessInfo.processInfo.environment["UITEST_FORCE_BG_SCOPE_NOTE"] == "1" {
                     showBackgroundGraphRefreshNote = true

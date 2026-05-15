@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Skymarshal sample — Cinematic OLED</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --void: #000000;
+      --elev: #121218;
+      --accent-a: #3D7CFF;
+      --accent-b: #C44CFF;
+      --muted: #8b90a8;
+      --display: "Outfit", system-ui, sans-serif;
+      --body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      /* Tighter than default “consumer soft” — still not sharp zero */
+      --r-sm: 6px;
+      --r-md: 10px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(180deg, var(--void) 0%, var(--elev) 55%, var(--void) 100%);
+      color: #e8eaf4;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+    }
+    .noise {
+      min-height: 100vh;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+      background-size: 3px 3px;
+    }
+    .phone { max-width: 390px; margin: 0 auto; padding: 32px 20px 40px; }
+    .login h1 {
+      font-family: var(--display);
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0 0 10px;
+      letter-spacing: -0.03em;
+      background: linear-gradient(105deg, var(--accent-a), var(--accent-b));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .login .deck { color: var(--muted); font-size: 0.9375rem; margin: 0 0 28px; }
+    .glass {
+      padding: 18px 16px;
+      border-radius: var(--r-md);
+      background: rgba(18, 18, 24, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .login label { font-size: 0.75rem; color: var(--muted); display: block; margin-bottom: 6px; }
+    .login input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: var(--r-sm);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.35);
+      color: #f0f2fa;
+      font-size: 0.9375rem;
+    }
+    .login input + label { margin-top: 14px; }
+    .btn-signin {
+      margin-top: 20px;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: var(--r-sm);
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 1rem;
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent-a), #5a5ae8 45%, var(--accent-b));
+      cursor: default;
+    }
+    .panel {
+      margin-top: 32px;
+      padding: 16px 18px;
+      border-radius: var(--r-md);
+      background: rgba(18, 18, 24, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    .panel h2 {
+      font-family: var(--display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 0 0 8px;
+      color: #f4f5fb;
+    }
+    .panel .meta {
+      font-family: var(--body);
+      font-size: 0.8125rem;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.35;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+    .pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+    .pill {
+      font-family: var(--body);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.3;
+      padding: 8px 12px;
+      border-radius: var(--r-sm);
+      background: rgba(61, 124, 255, 0.15);
+      border: 1px solid rgba(61, 124, 255, 0.35);
+      color: #c8d8ff;
+    }
+    .pill.hot {
+      background: rgba(196, 76, 255, 0.12);
+      border-color: rgba(196, 76, 255, 0.35);
+      color: #e8d4ff;
+    }
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-top: 28px;
+      padding: 12px 10px;
+      border-radius: var(--r-md);
+      background: rgba(12, 12, 18, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .tabs span {
+      flex: 1;
+      text-align: center;
+      padding: 10px 8px;
+      border-radius: var(--r-sm);
+      font-family: var(--body);
+      font-size: 0.8125rem;
+      line-height: 1.35;
+      color: var(--muted);
+    }
+    .tabs span.active {
+      background: linear-gradient(135deg, rgba(61, 124, 255, 0.35), rgba(196, 76, 255, 0.25));
+      color: #fff;
+    }
+    .footer {
+      margin-top: 28px;
+      text-align: center;
+      font-size: 0.8125rem;
+      line-height: 1.45;
+      color: var(--muted);
+      font-family: var(--body);
+    }
+  </style>
+</head>
+<body>
+  <div class="noise">
+    <div class="phone">
+      <section class="login" aria-label="Login sample">
+        <h1>Skymarshal</h1>
+        <p class="deck">Air-traffic control for your Bluesky</p>
+        <div class="glass">
+          <label for="h">Handle</label>
+          <input id="h" type="text" value="you.bsky.social" readonly>
+          <label for="p">App password</label>
+          <input id="p" type="password" value="············" readonly>
+          <button type="button" class="btn-signin">Sign in</button>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Content header sample">
+        <h2>My Content</h2>
+        <div class="meta">
+          <span>1 item · local</span>
+          <span>avg 0</span>
+        </div>
+        <div class="pills">
+          <span class="pill hot">All 1</span>
+          <span class="pill">Posts 1</span>
+          <span class="pill">Replies 0</span>
+        </div>
+      </section>
+
+      <div class="tabs" role="presentation">
+        <span class="active">Content</span>
+        <span>Followers</span>
+        <span>Scope</span>
+      </div>
+      <p class="footer">Direction C · vector_night · Outfit for display titles · system sans for metrics, tabs, and footer (no monospace) · glass panels · 6–10px radius</p>
+    </div>
+  </div>
+</body>
+</html>

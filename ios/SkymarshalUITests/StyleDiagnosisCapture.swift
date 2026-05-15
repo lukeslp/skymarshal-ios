@@ -28,6 +28,7 @@ final class StyleDiagnosisCapture: XCTestCase {
 
     func test_capture_01_loginView() throws {
         let app = XCUIApplication()
+        app.launchEnvironment["UITEST_RESET_FEATURE_DEFAULTS"] = "1"
         app.launch()
         XCTAssert(
             app.staticTexts["Skymarshal"].waitForExistence(timeout: 8),

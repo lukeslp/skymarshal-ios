@@ -39,18 +39,20 @@ struct RootView: View {
                 }
         }
         .task {
-            // Cold-start cache read. Idempotent — does nothing if
-            // already hydrated this session, or if cache is empty.
-            await model.hydrateFromCache()
-            // Resume the keychain-persisted session before any UI
-            // settles. Keeps the user out of the LoginView when the
-            // refresh JWT is still valid (it lasts ~3 months) — the
-            // root cause of the "logged out after a while" report.
-            await model.tryRestoreSession()
-            await model.seedUITestMinimalContentIfNeeded()
-            presentFeatureLabDiscoveryIfNeeded()
-            BackgroundTaskCoordinator.scheduleProcessingPass()
-            BackgroundTaskCoordinator.scheduleAppRefreshPass()
+            await ColdLaunchSignposts.runAsyncInterval("root_cold_start_task") {
+                // Cold-start cache read. Idempotent — does nothing if
+                // already hydrated this session, or if cache is empty.
+                await model.hydrateFromCache()
+                // Resume the keychain-persisted session before any UI
+                // settles. Keeps the user out of the LoginView when the
+                // refresh JWT is still valid (it lasts ~3 months) — the
+                // root cause of the "logged out after a while" report.
+                await model.tryRestoreSession()
+                await model.seedUITestMinimalContentIfNeeded()
+                presentFeatureLabDiscoveryIfNeeded()
+                BackgroundTaskCoordinator.scheduleProcessingPass()
+                BackgroundTaskCoordinator.scheduleAppRefreshPass()
+            }
         }
     }
 

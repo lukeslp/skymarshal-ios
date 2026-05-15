@@ -41,6 +41,16 @@ Used for merge discipline on large tranches (insights, power-search, cleanup, ex
 | [archive/scope-ia-decision-2026-05-14.md](archive/scope-ia-decision-2026-05-14.md) | Scope tab vs Insights entry — rubric + pending telemetry table. |
 | [ARCHIVE_LOAD_CHECKPOINTS.md](ARCHIVE_LOAD_CHECKPOINTS.md) | `ArchiveLoadCheckpointRecord` schema + `ContentService` resume invariants. |
 | [SOAK_PROTOCOL.md](SOAK_PROTOCOL.md) | Large-account / device soak checklist (screen recording gate). |
+| [PERF_COLDLAUNCH_2026-05-15.md](PERF_COLDLAUNCH_2026-05-15.md) | Cold-launch signposts (`ColdLaunchSignposts`), observation graph, XCTest hydration micro-benchmark. |
+| [ARCH_VERDICT_2026-05-15.md](ARCH_VERDICT_2026-05-15.md) | Architect + Greybeard: god `AppModel`, unbounded hydrate, O(n) view work — **not** a “wrong stack” mistake. |
+| [CONSENSUS_ARCH_PERF_2026-05-15.md](CONSENSUS_ARCH_PERF_2026-05-15.md) | External `/consensus` on perf hypotheses (**Mistral**; OpenAI quota / xAI key blocked for this run). |
+| [AESTHETIC_BRUTALIST_2026-05-15.md](AESTHETIC_BRUTALIST_2026-05-15.md) | Direction A: CRT / radar console moodboard + pseudocode. |
+| [AESTHETIC_PAPER_2026-05-15.md](AESTHETIC_PAPER_2026-05-15.md) | Direction B: paper zine / broadsheet moodboard + pseudocode. |
+| [AESTHETIC_CINEMATIC_2026-05-15.md](AESTHETIC_CINEMATIC_2026-05-15.md) | Direction C: OLED / gradient cinematic moodboard + pseudocode. |
+| [aesthetic-samples/](aesthetic-samples/) | **HTML mockups** (`index.html`, `brutalist.html`, `paper.html`, `cinematic.html`) — open locally in a browser. |
+| [AESTHETIC_DOUBT_PAPER_2026-05-15.md](AESTHETIC_DOUBT_PAPER_2026-05-15.md) | `/doubt` pass on Paper-zine front-runner (failure modes + scope budget). |
+| [PHASE4_DECISION_PACKAGE_2026-05-15.md](PHASE4_DECISION_PACKAGE_2026-05-15.md) | Decision checklist: pick aesthetic + perf gate order. |
+| [ROADMAP_POST_DECISION_2026-05-15.md](ROADMAP_POST_DECISION_2026-05-15.md) | Scoped engineering + design work after you choose a direction. |
 
 ## Contributor UX (SwiftUI)
 

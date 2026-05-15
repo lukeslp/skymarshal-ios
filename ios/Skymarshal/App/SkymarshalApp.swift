@@ -4,6 +4,7 @@ import SkymarshalCore
 @main
 struct SkymarshalApp: App {
     init() {
+        ColdLaunchSignposts.event("app_init_entry")
         #if DEBUG
         // Crash early if a bundled font family failed to register. Catches
         // the "I forgot to add the OTF to Copy Bundle Resources" failure
@@ -14,7 +15,9 @@ struct SkymarshalApp: App {
             UserDefaults.standard.set(true, forKey: FeatureFlags.analyticsInsightsKey)
             UserDefaults.standard.set(false, forKey: FeatureFlags.visualizationHubKey)
         }
+        FeatureFlags.applyLaunchArgumentOverrides()
         BackgroundTaskCoordinator.register()
+        ColdLaunchSignposts.event("app_init_exit")
     }
 
     var body: some Scene {

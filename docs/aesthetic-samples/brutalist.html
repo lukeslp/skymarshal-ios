@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Skymarshal sample — Brutalist / CRT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --void: #000000;
+      --phosphor: #FFB000;
+      --phosphor-dim: #996600;
+      --danger: #FF3300;
+      --grid: #1A1A1A;
+      --font: "IBM Plex Mono", ui-monospace, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--void);
+      color: var(--phosphor);
+      font-family: var(--font);
+      font-size: 14px;
+    }
+    /* subtle CRT grid */
+    .crt-bg {
+      min-height: 100vh;
+      background-color: var(--void);
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 7px, var(--grid) 7px, var(--grid) 8px),
+        repeating-linear-gradient(90deg, transparent, transparent 7px, var(--grid) 7px, var(--grid) 8px),
+        linear-gradient(rgba(255, 176, 0, 0.03) 1px, transparent 1px);
+      background-size: 8px 8px, 8px 8px, 100% 2px;
+    }
+    .phone {
+      max-width: 390px;
+      margin: 0 auto;
+      padding: 24px 16px 32px;
+    }
+    .login h1 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin: 0 0 8px;
+    }
+    .login .tagline { color: var(--phosphor-dim); font-size: 0.75rem; margin-bottom: 24px; }
+    .login label { display: block; font-size: 0.65rem; color: var(--phosphor-dim); margin-bottom: 4px; letter-spacing: 0.08em; }
+    .login input {
+      width: 100%;
+      padding: 10px 10px;
+      background: var(--void);
+      border: 1px solid var(--phosphor);
+      color: var(--phosphor);
+      font-family: var(--font);
+      font-size: 0.875rem;
+      border-radius: 0;
+    }
+    .login input:focus { outline: 2px solid var(--phosphor); outline-offset: 2px; }
+    .btn-primary {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      font-family: var(--font);
+      font-weight: 600;
+      font-size: 0.8125rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      background: var(--phosphor);
+      color: var(--void);
+      border: 2px solid var(--phosphor);
+      border-radius: 0;
+      cursor: default;
+    }
+    .divider {
+      margin: 36px 0 16px;
+      border-top: 1px solid var(--phosphor-dim);
+      padding-top: 16px;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      color: var(--phosphor-dim);
+    }
+    /* content header strip */
+    .content-strip {
+      border: 1px solid var(--phosphor);
+      border-radius: 0;
+      padding: 10px 12px;
+      background: rgba(26, 26, 26, 0.9);
+    }
+    .content-strip h2 { margin: 0 0 6px; font-size: 0.9375rem; font-weight: 600; }
+    .content-strip .meta { font-size: 0.6875rem; color: var(--phosphor-dim); display: flex; justify-content: space-between; }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .chip {
+      padding: 4px 8px;
+      border: 1px solid var(--phosphor-dim);
+      font-size: 0.625rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .chip.on { border-color: var(--phosphor); color: var(--phosphor); }
+    /* fake tab bar */
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin-top: 28px;
+      border-top: 1px solid var(--phosphor-dim);
+      padding-top: 12px;
+      font-size: 0.625rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .tabs span { flex: 1; text-align: center; padding: 8px 4px; color: var(--phosphor-dim); border: 1px solid transparent; }
+    .tabs span.active { color: var(--phosphor); border-color: var(--phosphor); }
+    .footer { margin-top: 24px; font-size: 0.6rem; color: var(--phosphor-dim); text-align: center; }
+    .danger-hint { color: var(--danger); font-size: 0.65rem; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <div class="crt-bg">
+    <div class="phone">
+      <section class="login" aria-label="Login sample">
+        <h1>Skymarshal</h1>
+        <p class="tagline">Air-traffic control for your Bluesky</p>
+        <label for="h">Handle</label>
+        <input id="h" type="text" value="you.bsky.social" readonly>
+        <label for="p" style="margin-top:14px">App password</label>
+        <input id="p" type="password" value="············" readonly>
+        <button type="button" class="btn-primary">Authenticate</button>
+        <p class="danger-hint">Destructive flows stay literal; this sample is read-only.</p>
+      </section>
+
+      <div class="divider">CONTENT · HEADER STRIP</div>
+      <section class="content-strip" aria-label="Content header sample">
+        <h2>My Content</h2>
+        <div class="meta">
+          <span>MODE READ/WRITE</span>
+          <span>POSTS 1 · VISIBLE 1</span>
+        </div>
+        <div class="chips">
+          <span class="chip on">All 1</span>
+          <span class="chip">Posts 1</span>
+          <span class="chip">Replies 0</span>
+          <span class="chip">Reposts 0</span>
+        </div>
+      </section>
+
+      <div class="tabs" role="presentation">
+        <span class="active">Content</span>
+        <span>Followers</span>
+        <span>Scope</span>
+      </div>
+      <p class="footer">Direction A · radar_console · IBM Plex Mono · phosphor on void</p>
+    </div>
+  </div>
+</body>
+</html>

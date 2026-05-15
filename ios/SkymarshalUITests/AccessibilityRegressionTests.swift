@@ -18,6 +18,7 @@ final class AccessibilityRegressionTests: XCTestCase {
 
     func test_launchAtAX5_loginView_inputsReachable_andNotTruncated() throws {
         let app = XCUIApplication()
+        app.launchEnvironment["UITEST_RESET_FEATURE_DEFAULTS"] = "1"
         app.launchArguments = [
             "-UIPreferredContentSizeCategoryName",
             "UICTContentSizeCategoryAccessibilityExtraExtraExtraLarge"
@@ -61,6 +62,7 @@ final class AccessibilityRegressionTests: XCTestCase {
     /// because the layout reflowed to something that obscures defaults.
     func test_launchAtDefaultSize_loginView_smokeTest() throws {
         let app = XCUIApplication()
+        app.launchEnvironment["UITEST_RESET_FEATURE_DEFAULTS"] = "1"
         app.launch()
         XCTAssert(app.staticTexts["Skymarshal"].waitForExistence(timeout: 5))
         XCTAssert(app.textFields["Bluesky handle"].exists)
