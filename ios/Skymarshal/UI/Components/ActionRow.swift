@@ -80,7 +80,7 @@ struct ActionRow: View {
 
                 if !isBusy {
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(.footnote, weight: .semibold))
                         .foregroundStyle(.secondary)
                         .accessibilityHidden(true)
                 }
@@ -101,8 +101,14 @@ struct ActionRow: View {
         .buttonStyle(.plain)
         .disabled(isBusy || isDisabled)
         .opacity(isDisabled && !isBusy ? 0.55 : 1)
-        .accessibilityElement(children: .combine)
-        .accessibilityHint(caption ?? "")
+        // Button auto-combines its child Text views into a single
+        // accessibility label, so we don't add `.accessibilityElement(children:)`.
+        // We DO override the label to be just the title, and route the
+        // caption into the hint slot — VoiceOver reads label first,
+        // hint after a pause (when the user lingers on the row). That's
+        // less repetitive than letting both texts land in the label.
+        .accessibilityLabel(Text(title))
+        .accessibilityHint(Text(caption ?? ""))
         .accessibilityAddTraits(isBusy ? .updatesFrequently : [])
     }
 
@@ -118,7 +124,7 @@ struct ActionRow: View {
                     .tint(puckSymbol)
             } else {
                 Image(systemName: systemImage)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(.subheadline, weight: .semibold))
                     .symbolRenderingMode(.monochrome)
                     .foregroundStyle(puckSymbol)
                     .accessibilityHidden(true)

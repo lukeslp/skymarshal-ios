@@ -202,6 +202,81 @@ final class SearchAndScoreTests: XCTestCase {
         XCTAssertTrue(req.hasActiveFilters)
     }
 
+    // MARK: - subjectUriContains (Python parity)
+
+    func test_subjectUriContains_passesThroughPostsAndReplies() {
+        // Python search.py:301-311 — subject_contains is a likes/reposts-only
+        // filter; for posts and replies the predicate returns True regardless
+        // of the URI substring. Without this gating an iOS user with the
+        // filter set would unexpectedly hide their own posts.
+        let post = ContentItem(uri: "at://did:plc:alice/app.bsky.feed.post/abc", cid: "p", contentType: .posts)
+        let reply = ContentItem(uri: "at://did:plc:alice/app.bsky.feed.post/def", cid: "r", contentType: .replies)
+        var req = SearchRequest()
+        req.subjectUriContains = "did:plc:bob"
+        let out = req.apply(to: [post, reply])
+        XCTAssertEqual(Set(out.map(\.uri)), Set([post.uri, reply.uri]))
+    }
+
+    func test_subjectUriContains_filtersLikesByDisplaySubjectUri() {
+        let likeOfBob = ContentItem(
+            uri: "at://did:plc:bob/app.bsky.feed.post/xxx",
+            cid: "p1",
+            deletionURI: "at://did:plc:me/app.bsky.feed.like/aaa",
+            contentType: .likes
+        )
+        let likeOfCharlie = ContentItem(
+            uri: "at://did:plc:charlie/app.bsky.feed.post/yyy",
+            cid: "p2",
+            deletionURI: "at://did:plc:me/app.bsky.feed.like/bbb",
+            contentType: .likes
+        )
+        var req = SearchRequest()
+        req.subjectUriContains = "did:plc:bob"
+        let out = req.apply(to: [likeOfBob, likeOfCharlie])
+        XCTAssertEqual(out.map(\.uri), [likeOfBob.uri])
+    }
+
+    func test_subjectUriContains_filtersRepostsByDisplaySubjectUri() {
+        let repostOfBob = ContentItem(
+            uri: "at://did:plc:bob/app.bsky.feed.post/xxx",
+            cid: "p1",
+            deletionURI: "at://did:plc:me/app.bsky.feed.repost/aaa",
+            contentType: .reposts
+        )
+        let repostOfCharlie = ContentItem(
+            uri: "at://did:plc:charlie/app.bsky.feed.post/yyy",
+            cid: "p2",
+            deletionURI: "at://did:plc:me/app.bsky.feed.repost/bbb",
+            contentType: .reposts
+        )
+        var req = SearchRequest()
+        req.subjectUriContains = "did:plc:bob"
+        let out = req.apply(to: [repostOfBob, repostOfCharlie])
+        XCTAssertEqual(out.map(\.uri), [repostOfBob.uri])
+    }
+
+    func test_subjectUriContains_mixedSet_keepsPostsAndFiltersLikes() {
+        // The realistic case: a user has loaded posts + likes and adds the
+        // subject filter. Posts must pass through; only likes get filtered.
+        let myPost = ContentItem(uri: "at://did:plc:me/app.bsky.feed.post/own", cid: "p", contentType: .posts)
+        let likeBob = ContentItem(
+            uri: "at://did:plc:bob/app.bsky.feed.post/x",
+            cid: "p1",
+            deletionURI: "at://did:plc:me/app.bsky.feed.like/aaa",
+            contentType: .likes
+        )
+        let likeCharlie = ContentItem(
+            uri: "at://did:plc:charlie/app.bsky.feed.post/y",
+            cid: "p2",
+            deletionURI: "at://did:plc:me/app.bsky.feed.like/bbb",
+            contentType: .likes
+        )
+        var req = SearchRequest()
+        req.subjectUriContains = "did:plc:bob"
+        let out = req.apply(to: [myPost, likeBob, likeCharlie])
+        XCTAssertEqual(Set(out.map(\.uri)), Set([myPost.uri, likeBob.uri]))
+    }
+
     // MARK: - Engagement cache TTL tiers
 
     func test_engagementCacheTTL_tiersFollowPython() {
@@ -231,5 +306,25 @@ final class SearchAndScoreTests: XCTestCase {
 
     func test_normalizeHandle_keepsFullDomainAsIs() {
         XCTAssertEqual(ContentService.normalizeHandle("luke.example.com"), "luke.example.com")
+    }
+
+    func test_normalizeHandle_rewritesEmailStyleAtToDot() {
+        // Mirrors Python `auth.py:140-142`: AT Protocol uses dots, not `@`,
+        // so "adam@blacksky.com" → "adam.blacksky.com". A user pasting a
+        // mid-string `@` would otherwise hit a "no such handle" auth
+        // failure on the iOS app while it works on the Python CLI.
+        XCTAssertEqual(
+            ContentService.normalizeHandle("adam@blacksky.com"),
+            "adam.blacksky.com"
+        )
+    }
+
+    func test_normalizeHandle_stripsLeadingAtAndRewritesMidString() {
+        // Both treatments compose: leading `@` removed, then any
+        // remaining `@` rewritten to `.`.
+        XCTAssertEqual(
+            ContentService.normalizeHandle("@adam@blacksky.com"),
+            "adam.blacksky.com"
+        )
     }
 }

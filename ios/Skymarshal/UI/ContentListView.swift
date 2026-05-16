@@ -48,6 +48,12 @@ struct ContentListView: View {
     /// path entirely.
     @State private var showExportSheet: Bool = false
     @State private var sharePayload: SharePayload?
+    /// Buffered share payload — set by `ExportSheet`'s `onShare`
+    /// callback, then promoted to `sharePayload` inside the export
+    /// sheet's `.onDismiss` so we never have two sheets racing in the
+    /// same MainActor tick. iPad form sheets in particular dropped the
+    /// second presentation when both bindings flipped together.
+    @State private var pendingSharePayload: SharePayload?
 
     /// Threshold for routing through TypedConfirmSheet instead of the
     /// standard confirmationDialog. Set high enough that single-post and
@@ -401,7 +407,12 @@ struct ContentListView: View {
                 AnalyticsInsightsView(items: model.items)
                     .environment(model)
             }
-            .sheet(isPresented: $showExportSheet) {
+            .sheet(isPresented: $showExportSheet, onDismiss: {
+                if let payload = pendingSharePayload {
+                    pendingSharePayload = nil
+                    sharePayload = payload
+                }
+            }) {
                 ExportSheet(
                     title: "My content",
                     subtitleHeader: model.currentHandle.map { "Signed in as @\($0)" },
@@ -413,7 +424,7 @@ struct ContentListView: View {
                         Exporter.contentCSV(items)
                     },
                     onShare: { payload in
-                        sharePayload = payload
+                        pendingSharePayload = payload
                     }
                 )
             }

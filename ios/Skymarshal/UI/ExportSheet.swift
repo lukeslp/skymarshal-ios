@@ -55,8 +55,15 @@ struct ExportSheet: View {
     /// Tracks which format is being prepared so only the corresponding
     /// row spins. `nil` = idle.
     @State private var preparing: Format?
-    @State private var lastError: String?
+    /// Per-format error captions. Keying by Format avoids a stale JSON
+    /// failure leaking into the CSV row's caption (and vice versa).
+    @State private var errorByFormat: [Format: String] = [:]
     @State private var lastReady: ReadyInfo?
+    /// Holds the in-flight prepare task so `.onDisappear` can cancel it
+    /// — otherwise a fire-and-forget Task would resume after the sheet
+    /// dismissed and surprise-present the share sheet to a user who
+    /// already swiped away.
+    @State private var prepareTask: Task<Void, Never>?
 
     @AppStorage("sm.lastExportFormat") private var lastExportFormat: String = "json"
 
@@ -89,6 +96,14 @@ struct ExportSheet: View {
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         .presentationBackground(.regularMaterial)
+        .onDisappear {
+            // Cancel any in-flight encoding so the user dismissing the
+            // sheet mid-prepare doesn't get a surprise share sheet a
+            // beat later. The Task itself swallows cancellation in
+            // `prepare(_:)` and skips the `onShare` hand-off.
+            prepareTask?.cancel()
+            prepareTask = nil
+        }
     }
 
     // MARK: - Header
@@ -130,7 +145,7 @@ struct ExportSheet: View {
             isBusy: preparing == .json,
             isDisabled: itemCount == 0
         ) {
-            Task { await prepare(.json) }
+            prepareTask = Task { await prepare(.json) }
         }
     }
 
@@ -143,7 +158,7 @@ struct ExportSheet: View {
             isBusy: preparing == .csv,
             isDisabled: itemCount == 0
         ) {
-            Task { await prepare(.csv) }
+            prepareTask = Task { await prepare(.csv) }
         }
     }
 
@@ -157,7 +172,7 @@ struct ExportSheet: View {
 
     private func rowCaption(for format: Format, fallback: String) -> String {
         if preparing == format { return "Preparing…" }
-        if let err = lastError, lastReady == nil { return err }
+        if let err = errorByFormat[format] { return err }
         if let ready = lastReady, ready.format == format {
             return "\(byteString(ready.bytes)) · \(ready.filename)"
         }
@@ -175,7 +190,10 @@ struct ExportSheet: View {
                 meta: itemCount.formatted(),
                 subtitle: "Encoding off the main thread."
             )
-        } else if let err = lastError {
+        } else if let err = errorByFormat.values.first {
+            // The most recent failure is good-enough surface for the
+            // footer; the per-row caption already discriminates which
+            // format failed.
             StatusLine(
                 style: .danger,
                 title: "Couldn't prepare export",
@@ -201,7 +219,7 @@ struct ExportSheet: View {
 
     private func prepare(_ format: Format) async {
         preparing = format
-        lastError = nil
+        errorByFormat[format] = nil
         // Capture the closures we need so the detached Task isn't holding
         // a reference to `self`'s SwiftUI state.
         let jsonClosure = jsonProducer
@@ -223,16 +241,28 @@ struct ExportSheet: View {
         }.value
 
         preparing = nil
+        // If the user dismissed the sheet while the encoder was running,
+        // skip the parent hand-off entirely. The temp file would just
+        // sit on disk; clean it up to keep `tmp` from drifting.
+        guard !Task.isCancelled else {
+            if case .success(let (url, _, _)) = result {
+                try? FileManager.default.removeItem(at: url)
+            }
+            return
+        }
         switch result {
         case .success(let (url, bytes, name)):
             lastReady = ReadyInfo(format: format, bytes: bytes, filename: name)
             lastExportFormat = (format == .json) ? "json" : "csv"
-            // Tell the parent to present the share sheet, then dismiss
-            // self so the iPad popover can re-anchor cleanly.
+            // Hand the prepared payload to the parent, then dismiss
+            // self. The parent buffers the payload and only opens the
+            // share sheet AFTER our `.onDisappear` completes — that
+            // ordering is the conservative path past a known SwiftUI
+            // dismiss-then-present race on iPad form sheets.
             onShare(SharePayload(urls: [url]))
             dismiss()
         case .failure(let err):
-            lastError = err.localizedDescription
+            errorByFormat[format] = err.localizedDescription
         }
     }
 

@@ -77,25 +77,21 @@ struct StatusLine: View {
 
     @ViewBuilder
     private var dot: some View {
-        switch style {
-        case .progress:
-            // Tiny inline progress puck — pulses with .updatesFrequently
-            // accessibility trait so VoiceOver re-reads on change.
-            Circle()
-                .fill(dotColor)
-                .frame(width: 8, height: 8)
-                .symbolEffect(
-                    .pulse,
-                    options: reduceMotion ? .nonRepeating : .repeating,
-                    value: title
-                )
-                .accessibilityHidden(true)
-        default:
-            Circle()
-                .fill(dotColor)
-                .frame(width: 8, height: 8)
-                .accessibilityHidden(true)
-        }
+        // Rendered as an SF Symbol (`circle.fill`) rather than a
+        // `Circle()` shape so `.symbolEffect(.pulse, ...)` actually
+        // animates — `symbolEffect` is a no-op on plain shapes. The
+        // `.font` size keeps the dot at ~8pt while still scaling with
+        // Dynamic Type. `.updatesFrequently` accessibility trait on
+        // the parent gives VoiceOver a re-read cue regardless.
+        Image(systemName: "circle.fill")
+            .font(.system(size: 8, weight: .bold))
+            .foregroundStyle(dotColor)
+            .symbolEffect(
+                .pulse,
+                options: reduceMotion ? .nonRepeating : .repeating,
+                isActive: style == .progress
+            )
+            .accessibilityHidden(true)
     }
 
     private var dotColor: Color {

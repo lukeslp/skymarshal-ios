@@ -31,6 +31,21 @@ struct BluescreenView: View {
     /// preserved indirectly via `ExportSheet`.
     @State private var showExportSheet: Bool = false
     @State private var sharePayload: SharePayload?
+    /// Same buffer-then-promote pattern as ContentListView. The
+    /// ExportSheet's `onShare` callback puts the prepared payload
+    /// here, then our `.onDismiss` for the export sheet promotes it
+    /// to `sharePayload` so the share sheet only opens after the
+    /// export sheet has fully torn down.
+    @State private var pendingSharePayload: SharePayload?
+
+    /// Same race-with-Menu-teardown guard used in ContentListView —
+    /// presenting a sheet from inside a toolbar `Menu`'s tap closure
+    /// while UIKit is still dismissing the context menu has been
+    /// observed to crash and to leave the menu in a stuck state. Hop
+    /// to the next main-queue pass before mutating presentation state.
+    private func presentAfterMenuDismisses(_ work: @escaping () -> Void) {
+        DispatchQueue.main.async(execute: work)
+    }
 
     /// Single source of truth for the trim-fakes filter UI: the pill
     /// taps in ScanSummaryStrip AND the full BluescreenFilterSheet
@@ -307,7 +322,7 @@ struct BluescreenView: View {
                         Toggle("Dry-run unfollow (preview only)", isOn: $unfollowDryRun)
                         if !model.accounts.isEmpty {
                             Button {
-                                showExportSheet = true
+                                presentAfterMenuDismisses { showExportSheet = true }
                             } label: {
                                 Label("Export…", systemImage: "square.and.arrow.up")
                             }
@@ -341,7 +356,12 @@ struct BluescreenView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showExportSheet) {
+            .sheet(isPresented: $showExportSheet, onDismiss: {
+                if let payload = pendingSharePayload {
+                    pendingSharePayload = nil
+                    sharePayload = payload
+                }
+            }) {
                 ExportSheet(
                     title: "Followers scan",
                     subtitleHeader: model.currentHandle.map { "Signed in as @\($0)" },
@@ -353,7 +373,7 @@ struct BluescreenView: View {
                         Exporter.followersCSV(accounts)
                     },
                     onShare: { payload in
-                        sharePayload = payload
+                        pendingSharePayload = payload
                     }
                 )
             }

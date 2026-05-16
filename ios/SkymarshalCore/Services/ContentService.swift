@@ -336,6 +336,11 @@ public actor ContentService {
     public static func normalizeHandle(_ raw: String) -> String {
         var handle = raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         if handle.hasPrefix("@") { handle.removeFirst() }
+        // Email-style custom domains (e.g. `adam@blacksky.com`) are a real
+        // user-visible mistake — AT Protocol uses dots, not @ symbols, so
+        // rewrite any remaining `@` to `.`. Mirrors Python at
+        // `reference/python/auth.py:140-142`.
+        handle = handle.replacingOccurrences(of: "@", with: ".")
         if !handle.contains(".") { handle += ".bsky.social" }
         return handle
     }

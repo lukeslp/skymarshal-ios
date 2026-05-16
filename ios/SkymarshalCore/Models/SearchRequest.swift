@@ -28,8 +28,12 @@ public struct SearchRequest: Hashable, Sendable, Codable {
     /// (`+required`, `-excluded`, `"phrase"`, `plain` OR-terms, `\bword\b`).
     /// Optional so older saved presets decode without migration.
     public var advancedKeywordGrammar: Bool?
-    /// Case-insensitive substring match against the item's `at://` URI (e.g.
-    /// filter likes/reposts toward posts whose URI contains a DID fragment).
+    /// Case-insensitive substring match against the *subject* URI of likes
+    /// and reposts (the post being liked / reposted, not the viewer record).
+    /// Posts and replies are passed through — for them the post itself IS
+    /// the subject and applying this filter has no semantic meaning.
+    /// Matches Python `SearchManager.search`'s `subject_contains` gate at
+    /// `reference/python/search.py:301-311`.
     public var subjectUriContains: String?
 
     public init(
@@ -156,7 +160,15 @@ public struct SearchRequest: Hashable, Sendable, Codable {
             guard item.uri.localizedCaseInsensitiveContains(did) else { return false }
         }
         if let sub = subjectUriContains, !sub.isEmpty {
-            guard item.uri.localizedCaseInsensitiveContains(sub) else { return false }
+            // Mirrors Python: pass through for posts/replies (the post IS
+            // the subject — this filter is about likes/reposts toward
+            // posts that contain a DID or path fragment in their URI).
+            // For likes/reposts, `ContentItem.uri` is already the subject
+            // URI (see ContentItem.swift docstring), so the substring
+            // check is direct.
+            if item.contentType == .likes || item.contentType == .reposts {
+                guard item.uri.localizedCaseInsensitiveContains(sub) else { return false }
+            }
         }
         if let start = startDate, let created = item.createdAt, created < start { return false }
         if let end = endDate, let created = item.createdAt, created > end { return false }
