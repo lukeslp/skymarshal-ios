@@ -172,7 +172,8 @@ public actor ContentService {
                     text: base.text, createdAt: base.createdAt,
                     likeCount: base.likeCount, repostCount: base.repostCount,
                     replyCount: base.replyCount, media: base.media,
-                    linkCard: base.linkCard, textLinks: base.textLinks
+                    linkCard: base.linkCard, textLinks: base.textLinks,
+                    subjectAuthorHandle: view.post.author.handle
                 )
             }
             return (items, response.cursor)
@@ -358,6 +359,10 @@ public actor ContentService {
             return nil
         }()
 
+        let subjectHandle: String? = (type == .likes || type == .reposts)
+            ? post.author.handle
+            : nil
+
         return ContentItem(
             uri: post.uri,
             cid: post.cid,
@@ -376,7 +381,8 @@ public actor ContentService {
             // replies to @alice" without extra network calls.
             // FeedViewPost.reply.parent.uri is more reliable than
             // record.reply.parent.uri because the relay enriches it.
-            parentReplyURI: view.reply?.parent?.uri ?? post.record?.reply?.parent?.uri
+            parentReplyURI: view.reply?.parent?.uri ?? post.record?.reply?.parent?.uri,
+            subjectAuthorHandle: subjectHandle
         )
     }
 
@@ -503,6 +509,7 @@ public actor ContentService {
                 existing.hasMedia = item.hasMedia
                 existing.deletionURI = item.deletionURI
                 existing.parentReplyURI = item.parentReplyURI
+                existing.subjectAuthorHandle = item.subjectAuthorHandle
                 existing.scannedAt = now
             } else {
                 context.insert(ContentItemRecord(
@@ -518,7 +525,8 @@ public actor ContentService {
                     hasMedia: item.hasMedia,
                     ownerHandle: owner,
                     scannedAt: now,
-                    parentReplyURI: item.parentReplyURI
+                    parentReplyURI: item.parentReplyURI,
+                    subjectAuthorHandle: item.subjectAuthorHandle
                 ))
             }
         }

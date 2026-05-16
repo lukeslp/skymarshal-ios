@@ -35,6 +35,11 @@ public struct SearchRequest: Hashable, Sendable, Codable {
     /// Matches Python `SearchManager.search`'s `subject_contains` gate at
     /// `reference/python/search.py:301-311`.
     public var subjectUriContains: String?
+    /// Case-insensitive substring match against the subject post author's
+    /// handle for likes and reposts (requires ``ContentItem/subjectAuthorHandle``
+    /// populated at load). Posts and replies pass through. Mirrors Python
+    /// `SearchManager._filter_by_subject_handle` at `search.py:604-642`.
+    public var subjectHandleContains: String?
 
     public init(
         keyword: String? = nil,
@@ -52,6 +57,7 @@ public struct SearchRequest: Hashable, Sendable, Codable {
         includeAltTextInKeyword: Bool = true,
         advancedKeywordGrammar: Bool? = nil,
         subjectUriContains: String? = nil,
+        subjectHandleContains: String? = nil,
         limit: Int = 250
     ) {
         self.keyword = keyword
@@ -69,6 +75,7 @@ public struct SearchRequest: Hashable, Sendable, Codable {
         self.includeAltTextInKeyword = includeAltTextInKeyword
         self.advancedKeywordGrammar = advancedKeywordGrammar
         self.subjectUriContains = subjectUriContains
+        self.subjectHandleContains = subjectHandleContains
         self.limit = limit
     }
 
@@ -101,6 +108,7 @@ public struct SearchRequest: Hashable, Sendable, Codable {
             || mediaFilter != nil
             || advancedKeywordGrammar == true
             || (subjectUriContains?.isEmpty == false)
+            || (subjectHandleContains?.isEmpty == false)
     }
 
     /// Precomputed keyword branch for one batch pass: advanced grammar is parsed at most once
@@ -168,6 +176,14 @@ public struct SearchRequest: Hashable, Sendable, Codable {
             // check is direct.
             if item.contentType == .likes || item.contentType == .reposts {
                 guard item.uri.localizedCaseInsensitiveContains(sub) else { return false }
+            }
+        }
+        if let handleNeedle = subjectHandleContains, !handleNeedle.isEmpty {
+            if item.contentType == .likes || item.contentType == .reposts {
+                guard let handle = item.subjectAuthorHandle,
+                      handle.localizedCaseInsensitiveContains(handleNeedle) else {
+                    return false
+                }
             }
         }
         if let start = startDate, let created = item.createdAt, created < start { return false }

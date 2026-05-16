@@ -30,6 +30,10 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
     /// Nil for non-replies; for likes and reposts, `uri` itself IS
     /// the subject URI so no extra field is needed.
     public var parentReplyURI: String?
+    /// Handle of the author of the liked/reposted post (`post.author.handle`
+    /// at load time). Powers ``SearchRequest``'s `subjectHandleContains`
+    /// filter (Python `subject_handle_contains` at `search.py:604-642`).
+    public var subjectAuthorHandle: String?
 
     public var id: String { "\(contentType.rawValue)|\(uri)" }
 
@@ -78,7 +82,8 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
         media: [MediaPreview] = [],
         linkCard: LinkCard? = nil,
         textLinks: [TextLink] = [],
-        parentReplyURI: String? = nil
+        parentReplyURI: String? = nil,
+        subjectAuthorHandle: String? = nil
     ) {
         self.uri = uri
         self.deletionURI = deletionURI ?? (contentType.isOwnRecord ? uri : nil)
@@ -93,6 +98,7 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
         self.linkCard = linkCard
         self.textLinks = textLinks
         self.parentReplyURI = parentReplyURI
+        self.subjectAuthorHandle = subjectAuthorHandle
     }
 
     /// Engagement score — the same `1L + 2R + 2.5Reply` formula as the

@@ -37,6 +37,9 @@ public final class ContentItemRecord {
     /// extra fetches. Lightweight migration — nil-default for any
     /// existing rows; gets populated on next forceRefresh.
     public var parentReplyURI: String?
+    /// Author handle of the liked/reposted subject at scan time. Nil for
+    /// posts/replies and for rows written before this field existed.
+    public var subjectAuthorHandle: String?
 
     public init(
         uri: String,
@@ -51,7 +54,8 @@ public final class ContentItemRecord {
         hasMedia: Bool = false,
         ownerHandle: String,
         scannedAt: Date = Date(),
-        parentReplyURI: String? = nil
+        parentReplyURI: String? = nil,
+        subjectAuthorHandle: String? = nil
     ) {
         self.compositeKey = Self.makeCompositeKey(
             ownerHandle: ownerHandle,
@@ -72,6 +76,7 @@ public final class ContentItemRecord {
         self.ownerHandle = ownerHandle
         self.scannedAt = scannedAt
         self.parentReplyURI = parentReplyURI
+        self.subjectAuthorHandle = subjectAuthorHandle
     }
 
     public var contentType: ContentType {
@@ -102,7 +107,8 @@ public final class ContentItemRecord {
             repostCount: repostCount,
             replyCount: replyCount,
             media: hasMedia ? [MediaPreview(kind: .image)] : [],
-            parentReplyURI: parentReplyURI
+            parentReplyURI: parentReplyURI,
+            subjectAuthorHandle: subjectAuthorHandle
         )
     }
 }

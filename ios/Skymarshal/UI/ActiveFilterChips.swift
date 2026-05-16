@@ -72,6 +72,9 @@ struct ActiveFilterChips: View {
         if let sub = filters.subjectUriContains, !sub.isEmpty {
             chips.append(Chip(id: "suburi", label: "uri ⊃ \(shortSnippet(sub))") { $0.subjectUriContains = nil })
         }
+        if let handle = filters.subjectHandleContains, !handle.isEmpty {
+            chips.append(Chip(id: "subhandle", label: "handle ⊃ \(shortSnippet(handle))") { $0.subjectHandleContains = nil })
+        }
         if let did = filters.authorDid, !did.isEmpty {
             chips.append(Chip(id: "authordid", label: "author \(shortSnippet(did))") { $0.authorDid = nil })
         }

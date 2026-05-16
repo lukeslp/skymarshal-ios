@@ -255,6 +255,48 @@ final class SearchAndScoreTests: XCTestCase {
         XCTAssertEqual(out.map(\.uri), [repostOfBob.uri])
     }
 
+    func test_subjectHandleContains_passesThroughPostsAndReplies() {
+        let post = ContentItem(uri: "at://did:plc:me/app.bsky.feed.post/own", cid: "p", contentType: .posts)
+        let reply = ContentItem(uri: "at://did:plc:me/app.bsky.feed.post/r", cid: "r", contentType: .replies)
+        var req = SearchRequest()
+        req.subjectHandleContains = "bob"
+        let out = req.apply(to: [post, reply])
+        XCTAssertEqual(Set(out.map(\.uri)), Set([post.uri, reply.uri]))
+    }
+
+    func test_subjectHandleContains_filtersLikesByStoredHandle() {
+        let likeBob = ContentItem(
+            uri: "at://did:plc:bob/app.bsky.feed.post/x",
+            cid: "p1",
+            deletionURI: "at://did:plc:me/app.bsky.feed.like/aaa",
+            contentType: .likes,
+            subjectAuthorHandle: "bob.bsky.social"
+        )
+        let likeCharlie = ContentItem(
+            uri: "at://did:plc:charlie/app.bsky.feed.post/y",
+            cid: "p2",
+            deletionURI: "at://did:plc:me/app.bsky.feed.like/bbb",
+            contentType: .likes,
+            subjectAuthorHandle: "charlie.bsky.social"
+        )
+        var req = SearchRequest()
+        req.subjectHandleContains = "bob"
+        let out = req.apply(to: [likeBob, likeCharlie])
+        XCTAssertEqual(out.map(\.uri), [likeBob.uri])
+    }
+
+    func test_subjectHandleContains_excludesLikesWithoutStoredHandle() {
+        let likeNoHandle = ContentItem(
+            uri: "at://did:plc:bob/app.bsky.feed.post/x",
+            cid: "p1",
+            deletionURI: "at://did:plc:me/app.bsky.feed.like/aaa",
+            contentType: .likes
+        )
+        var req = SearchRequest()
+        req.subjectHandleContains = "bob"
+        XCTAssertTrue(req.apply(to: [likeNoHandle]).isEmpty)
+    }
+
     func test_subjectUriContains_mixedSet_keepsPostsAndFiltersLikes() {
         // The realistic case: a user has loaded posts + likes and adds the
         // subject filter. Posts must pass through; only likes get filtered.

@@ -245,35 +245,30 @@ final class AppModel {
         await ColdLaunchSignposts.runAsyncInterval("hydrate_from_cache") {
             let context = ModelContext(container)
 
-            // Followers — pick the owner with the most recent scannedAt
-            let analyzedDescriptor = FetchDescriptor<AnalyzedAccountRecord>(
-                sortBy: [SortDescriptor(\.scannedAt, order: .reverse)]
-            )
-            if let allAccounts = try? context.fetch(analyzedDescriptor),
-               let lastOwner = allAccounts.first?.ownerHandle {
-                let mine = allAccounts.filter { $0.ownerHandle == lastOwner }
-                if !mine.isEmpty {
-                    let restored = mine.map { $0.toAnalyzedAccount() }
+            // Predicate-scoped reads — see `CacheHydration.swift`.
+            if let lastOwner = CacheHydration.latestOwnerHandle(from: context) {
+                let accountRows = CacheHydration.analyzedAccountRecords(
+                    for: lastOwner,
+                    context: context
+                )
+                if !accountRows.isEmpty {
+                    let restored = accountRows.map { $0.toAnalyzedAccount() }
                     self.accounts = restored
                     self.scanSummary = BluescreenAnalyzer.summarize(restored)
-                    self.lastFollowerScannedAt = mine.map(\.scannedAt).max()
+                    self.lastFollowerScannedAt = accountRows.map(\.scannedAt).max()
                     self.hydratedOwnerHandle = lastOwner
                     await followers.setLoaded(restored)
                 }
-            }
 
-            // Content — same pattern, sorted by scannedAt
-            let contentDescriptor = FetchDescriptor<ContentItemRecord>(
-                sortBy: [SortDescriptor(\.scannedAt, order: .reverse)]
-            )
-            if let allItems = try? context.fetch(contentDescriptor),
-               let lastOwner = allItems.first?.ownerHandle {
-                let mine = allItems.filter { $0.ownerHandle == lastOwner }
-                if !mine.isEmpty {
-                    let restored = mine.map { $0.toContentItem() }
+                let contentRows = CacheHydration.contentRecords(
+                    for: lastOwner,
+                    context: context
+                )
+                if !contentRows.isEmpty {
+                    let restored = contentRows.map { $0.toContentItem() }
                     self.items = restored
                     self.summary = Self.computeContentSummary(restored)
-                    self.lastContentScannedAt = mine.map(\.scannedAt).max()
+                    self.lastContentScannedAt = contentRows.map(\.scannedAt).max()
                     self.currentHandle = self.currentHandle ?? lastOwner
                     self.hydratedOwnerHandle = lastOwner
                     await content.setLoadedContent(restored)

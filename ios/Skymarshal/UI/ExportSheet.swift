@@ -278,9 +278,14 @@ struct ExportSheet: View {
 /// (a `@Sendable` closure) can call it without capturing SwiftUI state.
 @available(iOS 17, *)
 private func writeToTemp(_ payload: ExportPayload) throws -> URL {
-    let url = FileManager.default
-        .temporaryDirectory
-        .appendingPathComponent(payload.suggestedFilename)
+    // Per-export subdirectory keeps the suggested filename intact for
+    // the share sheet recipient while the on-disk path stays unique —
+    // same-day re-exports no longer overwrite a URL AirDrop may still
+    // be reading.
+    let dir = FileManager.default.temporaryDirectory
+        .appendingPathComponent("export-\(UUID().uuidString)", isDirectory: true)
+    try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    let url = dir.appendingPathComponent(payload.suggestedFilename)
     try payload.data.write(to: url, options: .atomic)
     return url
 }

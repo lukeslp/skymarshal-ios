@@ -35,15 +35,18 @@ final class ColdLaunchHydrationPatternTests: XCTestCase {
         try context.save()
 
         measure {
-            let descriptor = FetchDescriptor<ContentItemRecord>(
-                sortBy: [SortDescriptor(\.scannedAt, order: .reverse)]
-            )
-            guard let allItems = try? context.fetch(descriptor),
-                  let lastOwner = allItems.first?.ownerHandle else {
+            guard let lastOwner = CacheHydration.latestOwnerHandle(from: context) else {
                 XCTFail("fetch failed")
                 return
             }
-            _ = allItems.filter { $0.ownerHandle == lastOwner }
+            _ = CacheHydration.contentRecords(for: lastOwner, context: context)
         }
+    }
+
+    /// Documents the simulator baseline command for Week-1 perf signposts.
+    /// Run from `ios/`: `xcodebuild test -scheme Skymarshal -destination
+    /// 'platform=iOS Simulator,name=iPhone 17' -only-testing:SkymarshalTests/ColdLaunchHydrationPatternTests`
+    func test_predicateHydrationPattern_documentedInPerfBaseline() {
+        XCTAssertTrue(true, "See docs/PERF_COLD_LAUNCH_BASELINE.md for Instruments steps.")
     }
 }

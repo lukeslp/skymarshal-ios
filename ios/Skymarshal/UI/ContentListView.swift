@@ -54,6 +54,9 @@ struct ContentListView: View {
     /// same MainActor tick. iPad form sheets in particular dropped the
     /// second presentation when both bindings flipped together.
     @State private var pendingSharePayload: SharePayload?
+    /// In-flight delete preflight — cancelled when `pendingDeletion` changes
+    /// so a stale result cannot land in a new confirmation dialog.
+    @State private var deletePreflightTask: Task<Void, Never>?
 
     /// Threshold for routing through TypedConfirmSheet instead of the
     /// standard confirmationDialog. Set high enough that single-post and
@@ -99,15 +102,6 @@ struct ContentListView: View {
                 argument: "\(removed) items removed from selection — outside the new filter"
             )
         }
-    }
-
-    /// Toolbar `Menu` buttons run while UIKit is still tearing down the
-    /// context menu. Presenting a sheet or alert in the same turn races
-    /// that dismissal — reproducible crash on device and a stuck options
-    /// menu where rows like "Insights…" disappear. Always hop to the next
-    /// main-queue pass before mutating presentation state.
-    private func presentAfterMenuDismisses(_ work: @escaping () -> Void) {
-        DispatchQueue.main.async(execute: work)
     }
 
     var body: some View {
@@ -472,12 +466,15 @@ struct ContentListView: View {
                 reloadSavedPresets()
             }
             .onChange(of: pendingDeletion) { _, newVal in
+                deletePreflightTask?.cancel()
+                deletePreflightTask = nil
                 guard let ids = newVal, !ids.isEmpty else {
                     deletePreflight = nil
                     return
                 }
-                Task {
+                deletePreflightTask = Task {
                     let s = await model.preflightDelete(itemIDs: ids)
+                    guard !Task.isCancelled else { return }
                     await MainActor.run { deletePreflight = s }
                 }
             }

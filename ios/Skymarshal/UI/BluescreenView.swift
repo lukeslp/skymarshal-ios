@@ -38,15 +38,6 @@ struct BluescreenView: View {
     /// export sheet has fully torn down.
     @State private var pendingSharePayload: SharePayload?
 
-    /// Same race-with-Menu-teardown guard used in ContentListView —
-    /// presenting a sheet from inside a toolbar `Menu`'s tap closure
-    /// while UIKit is still dismissing the context menu has been
-    /// observed to crash and to leave the menu in a stuck state. Hop
-    /// to the next main-queue pass before mutating presentation state.
-    private func presentAfterMenuDismisses(_ work: @escaping () -> Void) {
-        DispatchQueue.main.async(execute: work)
-    }
-
     /// Single source of truth for the trim-fakes filter UI: the pill
     /// taps in ScanSummaryStrip AND the full BluescreenFilterSheet
     /// both write into this struct. Search keyword is layered on per
@@ -418,7 +409,7 @@ struct BluescreenView: View {
                 Button("Cancel", role: .cancel) { pendingUnfollow = nil }
             } message: { batch in
                 if botSensitivityRaw < 0.5 && batch.count >= 5 {
-                    Text("⚠︎ Loose sensitivity is on — this list almost certainly includes real humans. Unfollows \(batch.count) account\(batch.count == 1 ? "" : "s"). They keep their content; you keep yours. Through the rate-limit safety net.")
+                    Text("⚠︎ Loose sensitivity is on — this list almost certainly includes real humans. Unfollows \(batch.count) account\(batch.count == 1 ? "" : "s"). They keep their content; you keep yours. Unfollows go through the rate-limit safety net.")
                 } else {
                     Text("Removes you as a follower of \(batch.count) account\(batch.count == 1 ? "" : "s"). They keep their content; you keep yours. Unfollows go through the same rate-limit safety net as deletes — bulk runs may pause briefly.")
                 }

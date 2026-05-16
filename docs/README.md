@@ -11,7 +11,8 @@ Skymarshal documentation is split by **job**: ship the app, understand architect
 | **New to the repo** | Root [`README.md`](../README.md) → [`AGENTS.md`](../AGENTS.md) |
 | **Implementing a feature** | [`ARCHITECTURE.md`](ARCHITECTURE.md) → [`CONTRIBUTOR_UX.md`](CONTRIBUTOR_UX.md) → optional flags in [`FeatureFlags`](../ios/SkymarshalCore/Standards/FeatureFlags.swift) |
 | **Comparing to upstream Python/web** | [`UPSTREAM_FEATURE_GAP.md`](UPSTREAM_FEATURE_GAP.md) + [`MIGRATION.md`](../MIGRATION.md) |
-| **Preparing App Store / privacy** | [`../app-store/`](../app-store/) + [`../ios/Skymarshal/PrivacyInfo.xcprivacy`](../ios/Skymarshal/PrivacyInfo.xcprivacy) + soak checklist [`SOAK_PROTOCOL.md`](SOAK_PROTOCOL.md) |
+| **Preparing App Store / privacy** | [`../app-store/`](../app-store/) + [`SUBMISSION_DECISION.md`](SUBMISSION_DECISION.md) + soak [`SOAK_PROTOCOL.md`](SOAK_PROTOCOL.md) + [`soak/`](soak/) artifacts |
+| **Release gates (council 2026-05)** | [`XRPC_DRIFT_RUNBOOK.md`](XRPC_DRIFT_RUNBOOK.md) + [`PUBLIC_RESPONSE_PLAYBOOK.md`](PUBLIC_RESPONSE_PLAYBOOK.md) + [`PERF_COLD_LAUNCH_BASELINE.md`](PERF_COLD_LAUNCH_BASELINE.md) |
 
 ---
 

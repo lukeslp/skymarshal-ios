@@ -9,9 +9,11 @@
 // crash-free path (mirrors the pattern used in screenshat-ios's
 // `ActivityView`).
 //
-// iPad anchors the popover at the screen center as a fallback —
-// `.sheet(item:)` presentations on iPhone get the regular bottom-sheet
-// affordance for free.
+// Hosted inside SwiftUI `.sheet(item:)` as a child view controller, the
+// activity controller fills the form-sheet envelope on iPad — its
+// `popoverPresentationController` is nil at construction time, so
+// popover anchoring below is intentionally omitted (matches
+// screenshat-ios's minimal ActivityView).
 //
 // Inputs:   `activityItems` — `[Any]` of file URLs / Data / Strings.
 // Outputs:  a `View` that hosts a `UIActivityViewController`.
@@ -25,28 +27,10 @@ struct ActivityView: UIViewControllerRepresentable {
     var applicationActivities: [UIActivity]? = nil
 
     func makeUIViewController(context: Context) -> UIActivityViewController {
-        let vc = UIActivityViewController(
+        UIActivityViewController(
             activityItems: activityItems,
             applicationActivities: applicationActivities
         )
-        // iPad: anchor the popover so it doesn't crash the regular size class.
-        // The sheet presentation envelope handles iPhone for us.
-        if let pop = vc.popoverPresentationController {
-            pop.permittedArrowDirections = []
-            if let scene = UIApplication.shared.connectedScenes
-                .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
-               let window = scene.windows.first(where: \.isKeyWindow)
-            {
-                pop.sourceView = window
-                pop.sourceRect = CGRect(
-                    x: window.bounds.midX,
-                    y: window.bounds.midY,
-                    width: 0,
-                    height: 0
-                )
-            }
-        }
-        return vc
     }
 
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}

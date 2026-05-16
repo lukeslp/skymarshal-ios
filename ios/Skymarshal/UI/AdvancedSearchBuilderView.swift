@@ -26,6 +26,13 @@ struct AdvancedSearchBuilderView: View {
         )
     }
 
+    private var subjectHandleBinding: Binding<String> {
+        Binding(
+            get: { filters.subjectHandleContains ?? "" },
+            set: { filters.subjectHandleContains = $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
+        )
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -55,10 +62,13 @@ struct AdvancedSearchBuilderView: View {
                     TextField("Substring in at:// URI", text: subjectUriBinding)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
+                    TextField("Substring in subject handle", text: subjectHandleBinding)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
                 } header: {
-                    Text("Subject URI")
+                    Text("Subject (likes & reposts)")
                 } footer: {
-                    Text("Useful for likes/reposts: match posts whose URI contains a DID or path fragment.")
+                    Text("URI filter matches the liked/reposted post's at:// URI. Handle filter matches the subject author's handle (populated when you load content). Posts and replies are not filtered by these fields.")
                 }
 
                 Section {
