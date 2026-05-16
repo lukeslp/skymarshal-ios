@@ -20,12 +20,18 @@ struct BackupRestoreView: View {
                 Button("Choose JSON backup…") { showImporter = true }
                     .disabled(!model.isAuthenticated)
                 if !model.isAuthenticated {
-                    Text("Sign in to verify handle/DID against the backup envelope.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    StatusLine(
+                        style: .warning,
+                        title: "Sign in required",
+                        subtitle: "Handle/DID must match the backup envelope before import."
+                    )
                 }
                 if let err = importError {
-                    Text(err).foregroundStyle(Theme.danger)
+                    StatusLine(
+                        style: .danger,
+                        title: "Couldn't import that file",
+                        subtitle: err
+                    )
                 }
             } footer: {
                 Text("Exports from this app include handle and optional DID. Import applies only while signed in; handle and DID must match the backup envelope or the import is blocked. Likes/reposts without a viewer delete URI are skipped. Replace all clears cached content rows for this signed-in owner on this device, then writes the import.")
@@ -46,13 +52,26 @@ struct BackupRestoreView: View {
                         Text("Merge by URI").tag(ContentService.BackupImportMode.mergeByURI)
                         Text("Replace all").tag(ContentService.BackupImportMode.replaceAll)
                     }
-                    Button {
+                    // Lifted from a plain `Button` to ActionRow so the
+                    // primary destination of this screen has a touchable
+                    // surface that matches Skymarshal's other action
+                    // surfaces (Export, Scan). Keeps the existing
+                    // disabled-during-apply behavior + ProgressView via
+                    // ActionRow's busy state.
+                    ActionRow(
+                        role: mode == .replaceAll ? .destructive : .scope,
+                        systemImage: mode == .replaceAll ? "arrow.triangle.2.circlepath" : "tray.and.arrow.down",
+                        title: mode == .replaceAll
+                            ? "Replace device archive"
+                            : "Apply to device archive",
+                        caption: applyCaption,
+                        isBusy: isApplying,
+                        isDisabled: outcome.items.isEmpty
+                    ) {
                         Task { await apply() }
-                    } label: {
-                        if isApplying { ProgressView() }
-                        else { Text("Apply to device archive") }
                     }
-                    .disabled(isApplying || outcome.items.isEmpty)
+                    .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+                    .listRowBackground(Color.clear)
                 } header: {
                     Text("Preview")
                 } footer: {
@@ -64,6 +83,20 @@ struct BackupRestoreView: View {
         .navigationBarTitleDisplayMode(.inline)
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json]) { result in
             handleImport(result)
+        }
+    }
+
+    /// Caption for the Apply ActionRow — surfaces the mode's effect in
+    /// plain language so a misclick on the "Replace all" picker reads
+    /// loudly before the user taps. Mirrors the Section footer copy
+    /// but in a tighter, action-adjacent form.
+    private var applyCaption: String {
+        if isApplying { return "Writing rows…" }
+        switch mode {
+        case .mergeByURI:
+            return "Updates overlapping URIs only — adds missing rows."
+        case .replaceAll:
+            return "Clears this owner's cached rows first, then writes the import."
         }
     }
 

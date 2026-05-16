@@ -38,10 +38,16 @@ struct ContentListView: View {
     @State private var showAdvancedSearch: Bool = false
     @State private var showBackgroundGraphRefreshNote: Bool = false
 
-    /// Remember-last-choice for the Export submenu. The format the
-    /// user picked previously shows first; the alternative shows
-    /// second. Both are always reachable — no setting is buried.
-    @AppStorage("sm.lastExportFormat") private var lastExportFormat: String = "json"
+    /// Export sheet presentation. Replaces the previous Menu-embedded
+    /// `ShareLink` + `Transferable` chain that crashed on iOS 26 with
+    /// `EXC_GUARD` / `XPC_EXIT_REASON_FAULT` inside `BSXPCService…` when
+    /// the share sheet tried to materialize a Transferable from the
+    /// toolbar Menu. Now: tap "Export" → open `ExportSheet` → async
+    /// prepare on a detached Task → set `sharePayload` → present
+    /// `ActivityView` (UIActivityViewController). Sidesteps the fault
+    /// path entirely.
+    @State private var showExportSheet: Bool = false
+    @State private var sharePayload: SharePayload?
 
     /// Threshold for routing through TypedConfirmSheet instead of the
     /// standard confirmationDialog. Set high enough that single-post and
@@ -70,18 +76,6 @@ struct ContentListView: View {
 
     private var allFilteredSelected: Bool {
         !filteredItems.isEmpty && selection == Set(filteredItems.map(\.id))
-    }
-
-    /// Build a JSON ExportPayload synchronously for the share menu.
-    /// Throws are unlikely (Encodable on plain structs) — fall back to
-    /// an empty CSV-shaped payload if encoding fails so the share sheet
-    /// never appears with a stale file.
-    private func makeContentJSON() -> ExportPayload {
-        do {
-            return try Exporter.contentJSON(model.items, handle: model.currentHandle, did: model.currentDid)
-        } catch {
-            return Exporter.contentCSV([])
-        }
     }
 
     private func pruneSelectionToVisible() {
@@ -266,46 +260,12 @@ struct ContentListView: View {
                         Button("Refresh") {
                             model.startLoad(forceRefresh: true)
                         }
-                        Section("Export") {
-                            // Last-chosen format shows first. Sheet
-                            // dismissal can't be observed cleanly from
-                            // ShareLink, so we write the choice on tap
-                            // via simultaneousGesture — fires whether
-                            // the share completes or is dismissed.
-                            let jsonLink = ShareLink(
-                                item: ExportItem(payload: makeContentJSON()),
-                                preview: SharePreview(
-                                    "Skymarshal — content (JSON)",
-                                    image: Image(systemName: "doc.text")
-                                )
-                            ) {
-                                Label("As JSON", systemImage: "curlybraces")
-                            }
-                            .simultaneousGesture(TapGesture().onEnded {
-                                lastExportFormat = "json"
-                            })
-
-                            let csvLink = ShareLink(
-                                item: ExportItem(payload: Exporter.contentCSV(model.items)),
-                                preview: SharePreview(
-                                    "Skymarshal — content (CSV)",
-                                    image: Image(systemName: "tablecells")
-                                )
-                            ) {
-                                Label("As CSV", systemImage: "tablecells")
-                            }
-                            .simultaneousGesture(TapGesture().onEnded {
-                                lastExportFormat = "csv"
-                            })
-
-                            if lastExportFormat == "csv" {
-                                csvLink
-                                jsonLink
-                            } else {
-                                jsonLink
-                                csvLink
-                            }
+                        Button {
+                            presentAfterMenuDismisses { showExportSheet = true }
+                        } label: {
+                            Label("Export…", systemImage: "square.and.arrow.up")
                         }
+                        .disabled(model.items.isEmpty)
                         Button {
                             presentAfterMenuDismisses { showAbout = true }
                         } label: {
@@ -440,6 +400,25 @@ struct ContentListView: View {
             .sheet(isPresented: $showInsights) {
                 AnalyticsInsightsView(items: model.items)
                     .environment(model)
+            }
+            .sheet(isPresented: $showExportSheet) {
+                ExportSheet(
+                    title: "My content",
+                    subtitleHeader: model.currentHandle.map { "Signed in as @\($0)" },
+                    itemCount: model.items.count,
+                    jsonProducer: { [items = model.items, handle = model.currentHandle, did = model.currentDid] in
+                        try Exporter.contentJSON(items, handle: handle, did: did)
+                    },
+                    csvProducer: { [items = model.items] in
+                        Exporter.contentCSV(items)
+                    },
+                    onShare: { payload in
+                        sharePayload = payload
+                    }
+                )
+            }
+            .sheet(item: $sharePayload) { payload in
+                ActivityView(activityItems: payload.urls)
             }
             .alert("Save search", isPresented: $showSavePresetAlert) {
                 TextField("Preset name", text: $newPresetName)

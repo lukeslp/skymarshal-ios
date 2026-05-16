@@ -25,9 +25,12 @@ struct BluescreenView: View {
     @AppStorage("sm.botSensitivity") private var botSensitivityRaw: Double = 0.6
     @State private var showLooseUnfollowConfirm: Bool = false
 
-    /// Remember-last-choice for the Export submenu (shared with the
-    /// Content tab via the same UserDefaults key).
-    @AppStorage("sm.lastExportFormat") private var lastExportFormat: String = "json"
+    /// Export sheet presentation. See ContentListView for the full
+    /// rationale — same pattern, same crash class avoided. Sharing a
+    /// single `lastExportFormat` AppStorage with the Content tab is
+    /// preserved indirectly via `ExportSheet`.
+    @State private var showExportSheet: Bool = false
+    @State private var sharePayload: SharePayload?
 
     /// Single source of truth for the trim-fakes filter UI: the pill
     /// taps in ScanSummaryStrip AND the full BluescreenFilterSheet
@@ -72,14 +75,6 @@ struct BluescreenView: View {
     /// scan so `@State filters` bindings stay on one continuous view tree.
     private var showFollowersSummaryAndControls: Bool {
         !model.accounts.isEmpty || model.isScanning
-    }
-
-    private func makeFollowersJSON() -> ExportPayload {
-        do {
-            return try Exporter.followersJSON(model.accounts, handle: model.currentHandle)
-        } catch {
-            return Exporter.followersCSV([])
-        }
     }
 
     var body: some View {
@@ -311,40 +306,10 @@ struct BluescreenView: View {
                         }
                         Toggle("Dry-run unfollow (preview only)", isOn: $unfollowDryRun)
                         if !model.accounts.isEmpty {
-                            Section("Export") {
-                                let jsonLink = ShareLink(
-                                    item: ExportItem(payload: makeFollowersJSON()),
-                                    preview: SharePreview(
-                                        "Skymarshal — followers (JSON)",
-                                        image: Image(systemName: "doc.text")
-                                    )
-                                ) {
-                                    Label("As JSON", systemImage: "curlybraces")
-                                }
-                                .simultaneousGesture(TapGesture().onEnded {
-                                    lastExportFormat = "json"
-                                })
-
-                                let csvLink = ShareLink(
-                                    item: ExportItem(payload: Exporter.followersCSV(model.accounts)),
-                                    preview: SharePreview(
-                                        "Skymarshal — followers (CSV)",
-                                        image: Image(systemName: "tablecells")
-                                    )
-                                ) {
-                                    Label("As CSV", systemImage: "tablecells")
-                                }
-                                .simultaneousGesture(TapGesture().onEnded {
-                                    lastExportFormat = "csv"
-                                })
-
-                                if lastExportFormat == "csv" {
-                                    csvLink
-                                    jsonLink
-                                } else {
-                                    jsonLink
-                                    csvLink
-                                }
+                            Button {
+                                showExportSheet = true
+                            } label: {
+                                Label("Export…", systemImage: "square.and.arrow.up")
                             }
                         }
                     } label: {
@@ -375,6 +340,25 @@ struct BluescreenView: View {
                         }
                     }
                 }
+            }
+            .sheet(isPresented: $showExportSheet) {
+                ExportSheet(
+                    title: "Followers scan",
+                    subtitleHeader: model.currentHandle.map { "Signed in as @\($0)" },
+                    itemCount: model.accounts.count,
+                    jsonProducer: { [accounts = model.accounts, handle = model.currentHandle] in
+                        try Exporter.followersJSON(accounts, handle: handle)
+                    },
+                    csvProducer: { [accounts = model.accounts] in
+                        Exporter.followersCSV(accounts)
+                    },
+                    onShare: { payload in
+                        sharePayload = payload
+                    }
+                )
+            }
+            .sheet(item: $sharePayload) { payload in
+                ActivityView(activityItems: payload.urls)
             }
             .sheet(isPresented: $showFilterSheet) {
                 BluescreenFilterSheet(draft: $draftFilters)
