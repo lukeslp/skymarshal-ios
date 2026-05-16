@@ -62,6 +62,18 @@ struct BluescreenView: View {
         }
     }
 
+    /// FollowerService clears its in-memory list for the **fetching**
+    /// phase before the first hydrated profile batch — `accounts` is
+    /// briefly empty while `isScanning` is still true. If we hide the
+    /// summary strip + Sort/Filter Menus on `accounts.isEmpty`, SwiftUI
+    /// tears those controls down and rebuilds them when the first page
+    /// arrives, which resets open Menus and feels like dropdowns
+    /// "forget" the user's choices. Keep chrome mounted for the whole
+    /// scan so `@State filters` bindings stay on one continuous view tree.
+    private var showFollowersSummaryAndControls: Bool {
+        !model.accounts.isEmpty || model.isScanning
+    }
+
     private func makeFollowersJSON() -> ExportPayload {
         do {
             return try Exporter.followersJSON(model.accounts, handle: model.currentHandle)
@@ -74,7 +86,7 @@ struct BluescreenView: View {
         @Bindable var model = model
         NavigationStack {
             VStack(spacing: 0) {
-                if !model.accounts.isEmpty {
+                if showFollowersSummaryAndControls {
                     ScanSummaryStrip(summary: model.scanSummary, filters: $filters)
                 }
 
@@ -109,7 +121,7 @@ struct BluescreenView: View {
                 // strip and is always visible regardless of search-bar
                 // focus state (the toolbar is dead during .searchable
                 // activation; same trap as ContentListView).
-                if !model.accounts.isEmpty {
+                if showFollowersSummaryAndControls {
                     HStack(spacing: 12) {
                         Menu {
                             Picker("Sort by", selection: $filters.sortField) {

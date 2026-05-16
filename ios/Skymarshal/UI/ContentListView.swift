@@ -101,6 +101,15 @@ struct ContentListView: View {
         }
     }
 
+    /// Toolbar `Menu` buttons run while UIKit is still tearing down the
+    /// context menu. Presenting a sheet or alert in the same turn races
+    /// that dismissal — reproducible crash on device and a stuck options
+    /// menu where rows like "Insights…" disappear. Always hop to the next
+    /// main-queue pass before mutating presentation state.
+    private func presentAfterMenuDismisses(_ work: @escaping () -> Void) {
+        DispatchQueue.main.async(execute: work)
+    }
+
     var body: some View {
         @Bindable var model = model
         NavigationStack {
@@ -298,7 +307,7 @@ struct ContentListView: View {
                             }
                         }
                         Button {
-                            showAbout = true
+                            presentAfterMenuDismisses { showAbout = true }
                         } label: {
                             Label("About Skymarshal", systemImage: "info.circle")
                         }
@@ -313,8 +322,10 @@ struct ContentListView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         Button {
-                            draftFilters = filters
-                            showFilterSheet = true
+                            presentAfterMenuDismisses {
+                                draftFilters = filters
+                                showFilterSheet = true
+                            }
                         } label: {
                             Label("Filters…", systemImage: filters.hasActiveFilters
                                   ? "line.3.horizontal.decrease.circle.fill"
@@ -332,7 +343,7 @@ struct ContentListView: View {
 
                         if featureAnalytics {
                             Button {
-                                showInsights = true
+                                presentAfterMenuDismisses { showInsights = true }
                             } label: {
                                 Label("Insights…", systemImage: "chart.bar.xaxis")
                             }
@@ -340,7 +351,7 @@ struct ContentListView: View {
 
                         if featureAdvancedSearch {
                             Button {
-                                showAdvancedSearch = true
+                                presentAfterMenuDismisses { showAdvancedSearch = true }
                             } label: {
                                 Label("Advanced search…", systemImage: "text.magnifyingglass")
                             }
@@ -349,8 +360,10 @@ struct ContentListView: View {
                         if featureSavedSearch {
                             Section("Saved searches") {
                                 Button {
-                                    newPresetName = ""
-                                    showSavePresetAlert = true
+                                    presentAfterMenuDismisses {
+                                        newPresetName = ""
+                                        showSavePresetAlert = true
+                                    }
                                 } label: {
                                     Label("Save current search…", systemImage: "square.and.arrow.down")
                                 }
@@ -426,6 +439,7 @@ struct ContentListView: View {
             }
             .sheet(isPresented: $showInsights) {
                 AnalyticsInsightsView(items: model.items)
+                    .environment(model)
             }
             .alert("Save search", isPresented: $showSavePresetAlert) {
                 TextField("Preset name", text: $newPresetName)
