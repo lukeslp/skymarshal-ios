@@ -187,9 +187,14 @@ final class SearchAndScoreTests: XCTestCase {
         XCTAssertEqual(results.first?.uri, "at://a/post/2")
     }
 
-    func test_search_respectsLimit() {
+    func test_search_apply_isUnboundedForUIList() {
         var req = SearchRequest(limit: 2)
-        XCTAssertEqual(req.apply(to: sampleItems()).count, 2)
+        XCTAssertEqual(req.apply(to: sampleItems()).count, sampleItems().count)
+    }
+
+    func test_search_respectsLimitWhenCapped() {
+        var req = SearchRequest(limit: 2)
+        XCTAssertEqual(req.apply(to: sampleItems(), maximumResults: 2).count, 2)
     }
 
     func test_hasActiveFilters_falseWhenAllNil() {

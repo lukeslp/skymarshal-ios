@@ -1,21 +1,17 @@
 import SwiftUI
 import SkymarshalCore
 
-/// Filter editor — date range + paired min/max numeric inputs for the
-/// engagement counts. Per the search-UI snippet, NOT range sliders:
-/// engagement counts span 0 to "your most viral post" and sliders are
-/// unusable across that distribution.
+/// Canonical filter editor — dates, engagement, media, advanced keyword
+/// grammar, and likes/reposts subject filters. Keyword text lives in the
+/// main `.searchable` field; this sheet configures how that text is
+/// interpreted plus non-keyword axes.
 @available(iOS 17, *)
 struct FilterSheet: View {
 
     @Binding var draft: SearchRequest
+    @Binding var keyword: String
     @Environment(\.dismiss) private var dismiss
 
-    // Defaults to Date() so flipping the toggle on doesn't show "Dec 31,
-    // year 1" / "Dec 31, 4000" — those are .distantPast/.distantFuture's
-    // literal values rendered by DatePicker. The pickers clamp to ...Date()
-    // so the user can't accidentally select a future date (Bluesky posts
-    // can't be in the future, so a "before tomorrow" filter is nonsense).
     @State private var startDate: Date = Date()
     @State private var endDate: Date = Date()
     @State private var enableStartDate: Bool = false
@@ -28,9 +24,51 @@ struct FilterSheet: View {
     @State private var minReplies: String = ""
     @State private var maxReplies: String = ""
 
+    @State private var parseSummary: String = ""
+
+    private var grammarOn: Binding<Bool> {
+        Binding(
+            get: { draft.advancedKeywordGrammar == true },
+            set: { draft.advancedKeywordGrammar = $0 ? true : nil }
+        )
+    }
+
+    private var subjectUriBinding: Binding<String> {
+        Binding(
+            get: { draft.subjectUriContains ?? "" },
+            set: {
+                let trimmed = $0.trimmingCharacters(in: .whitespacesAndNewlines)
+                draft.subjectUriContains = trimmed.isEmpty ? nil : trimmed
+            }
+        )
+    }
+
+    private var subjectHandleBinding: Binding<String> {
+        Binding(
+            get: { draft.subjectHandleContains ?? "" },
+            set: {
+                let trimmed = $0.trimmingCharacters(in: .whitespacesAndNewlines)
+                draft.subjectHandleContains = trimmed.isEmpty ? nil : trimmed
+            }
+        )
+    }
+
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    Toggle("Advanced keyword grammar", isOn: grammarOn)
+                        .accessibilityHint("When on, the search field uses plus for required terms, minus to exclude, and quotes for phrases.")
+                } header: {
+                    Text("Search field")
+                } footer: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Examples: +cats -dogs \"hot take\" hello world  OR  \\bcat\\b for whole-word match.")
+                        Text(parseSummary)
+                            .foregroundStyle(parseSummary.hasPrefix("Parse error") ? Theme.danger : .secondary)
+                    }
+                }
+
                 Section {
                     Picker("Media", selection: $draft.mediaFilter) {
                         Text("Any").tag(SearchRequest.MediaFilter?.none)
@@ -69,6 +107,33 @@ struct FilterSheet: View {
                 engagementSection(title: "Likes", min: $minLikes, max: $maxLikes)
                 engagementSection(title: "Reposts", min: $minReposts, max: $maxReposts)
                 engagementSection(title: "Replies", min: $minReplies, max: $maxReplies)
+
+                Section {
+                    TextField("Substring in at:// URI", text: subjectUriBinding)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    TextField("Substring in subject handle", text: subjectHandleBinding)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                } header: {
+                    Text("Subject (likes & reposts)")
+                } footer: {
+                    Text("URI filter matches the liked or reposted post. Handle filter matches the subject author. Posts and replies ignore these fields.")
+                }
+
+                Section {
+                    TextField("DID substring in URI", text: Binding(
+                        get: { draft.authorDid ?? "" },
+                        set: {
+                            let trimmed = $0.trimmingCharacters(in: .whitespacesAndNewlines)
+                            draft.authorDid = trimmed.isEmpty ? nil : trimmed
+                        }
+                    ))
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                } header: {
+                    Text("Author DID")
+                }
             }
             .navigationTitle("Filters")
             .navigationBarTitleDisplayMode(.inline)
@@ -80,7 +145,12 @@ struct FilterSheet: View {
                     Button("Apply") { apply() }
                 }
             }
-            .onAppear(perform: prefill)
+            .onAppear {
+                prefill()
+                refreshParseSummary()
+            }
+            .onChange(of: keyword) { _, _ in refreshParseSummary() }
+            .onChange(of: draft.advancedKeywordGrammar) { _, _ in refreshParseSummary() }
         }
     }
 
@@ -126,6 +196,26 @@ struct FilterSheet: View {
         case (let l?, nil):    return l...Int.max
         case (nil, let h?):    return 0...h
         case (let l?, let h?): return l <= h ? l...h : nil
+        }
+    }
+
+    private func refreshParseSummary() {
+        guard draft.advancedKeywordGrammar == true else {
+            parseSummary = "Plain substring search uses the search field above the list."
+            return
+        }
+        let raw = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !raw.isEmpty else {
+            parseSummary = "Enter a search term to preview grammar parsing."
+            return
+        }
+        do {
+            let clauses = try SearchKeywordGrammar.parse(raw)
+            parseSummary = clauses.isEmpty
+                ? "No clauses — other filters still apply."
+                : "\(clauses.count) clause\(clauses.count == 1 ? "" : "s") parsed OK."
+        } catch {
+            parseSummary = "Parse error — fix quotes or \\b…\\b pairs before relying on results."
         }
     }
 }

@@ -23,6 +23,9 @@ public struct SearchRequest: Hashable, Sendable, Codable {
     public var excludedUris: Set<String>?
     public var mediaFilter: MediaFilter?
     public var includeAltTextInKeyword: Bool
+    /// Caps ``apply(to:maximumResults:)`` for programmatic callers (e.g.
+    /// ``ContentService/search(_:)``). The SwiftUI list uses unbounded
+    /// ``apply(to:)`` so large archives are not silently truncated.
     public var limit: Int
     /// When `true`, ``keyword`` is parsed with ``SearchKeywordGrammar``
     /// (`+required`, `-excluded`, `"phrase"`, `plain` OR-terms, `\bword\b`).
@@ -133,10 +136,20 @@ public struct SearchRequest: Hashable, Sendable, Codable {
 
     /// Apply the request as a synchronous filter against an in-memory list.
     /// Server-side search isn't possible against AT Protocol — the user has
-    /// downloaded their own content and we filter locally.
+    /// downloaded their own content and we filter locally. No result cap —
+    /// SwiftUI `List` virtualizes rows.
     public func apply(to items: [ContentItem]) -> [ContentItem] {
+        apply(to: items, maximumResults: nil)
+    }
+
+    /// Same as ``apply(to:)``, optionally truncating. Pass an explicit cap
+    /// for API callers; omit (`nil`) for the full match set.
+    public func apply(to items: [ContentItem], maximumResults: Int?) -> [ContentItem] {
         let kw = keywordFilterState()
-        return items.filter { matches($0, keywordFilterState: kw) }.prefix(limit).map { $0 }
+        let filtered = items.filter { matches($0, keywordFilterState: kw) }
+        guard let cap = maximumResults else { return filtered }
+        if cap <= 0 { return filtered }
+        return Array(filtered.prefix(cap))
     }
 
     /// Filter a single item (parses advanced grammar once per call — prefer ``apply(to:)`` for lists).

@@ -32,10 +32,8 @@ struct ContentListView: View {
 
     @AppStorage(FeatureFlags.analyticsInsightsKey) private var featureAnalytics: Bool = true
     @AppStorage(FeatureFlags.savedSearchPresetsKey) private var featureSavedSearch: Bool = true
-    @AppStorage(FeatureFlags.advancedSearchGrammarKey) private var featureAdvancedSearch: Bool = false
     @AppStorage(FeatureFlags.contentPowerToolsExpandedKey) private var contentPowerToolsExpanded: Bool = false
 
-    @State private var showAdvancedSearch: Bool = false
     @State private var showBackgroundGraphRefreshNote: Bool = false
 
     /// Export sheet presentation. Replaces the previous Menu-embedded
@@ -87,6 +85,15 @@ struct ContentListView: View {
         !filteredItems.isEmpty && selection == Set(filteredItems.map(\.id))
     }
 
+    private var loadProgressAccessibilityLabel: String {
+        var parts = ["\(filteredItems.count) items visible"]
+        if let progress = model.loadProgress, !progress.isComplete {
+            parts.append("\(model.items.count) loaded so far, scan in progress")
+        }
+        parts.append("average engagement \(Int(filteredAverageEngagement))")
+        return parts.joined(separator: ", ")
+    }
+
     private func pruneSelectionToVisible() {
         guard editMode.isEditing, !selection.isEmpty else { return }
         let before = selection.count
@@ -124,13 +131,48 @@ struct ContentListView: View {
                 // 856 Replies" without opening anything.
                 TypeChipsRow(scope: $scope, counts: model.summary)
 
-                HStack {
-                    if let handle = model.currentHandle {
-                        Text(handle)
-                            .font(.caption2.monospaced())
-                            .foregroundStyle(.tertiary)
+                // Inline Sort + Filter — always reachable while `.searchable`
+                // is focused (toolbar menus are not). Mirrors Scope tab layout.
+                HStack(spacing: 12) {
+                    Menu {
+                        Picker("Sort", selection: $sortOrder) {
+                            ForEach(ContentSortOrder.allCases) { order in
+                                Text(order.label).tag(order)
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.up.arrow.down")
+                                .font(.footnote)
+                            Text("Sort")
+                                .font(.footnote.weight(.medium))
+                        }
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
+                        .foregroundStyle(.tint)
                     }
-                    Spacer()
+                    .accessibilityLabel("Sort: \(sortOrder.label)")
+                    .accessibilityHint("Tap to change sort order")
+
+                    Button {
+                        draftFilters = filters
+                        showFilterSheet = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: filters.hasActiveFilters
+                                  ? "line.3.horizontal.decrease.circle.fill"
+                                  : "line.3.horizontal.decrease.circle")
+                                .font(.footnote)
+                            Text("Filter")
+                                .font(.footnote.weight(.medium))
+                        }
+                        .foregroundStyle(.tint)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(filters.hasActiveFilters ? "Filters, active" : "Filters")
+
+                    Spacer(minLength: 8)
+
                     Button {
                         let mutate = {
                             editMode = editMode.isEditing ? .inactive : .active
@@ -158,9 +200,24 @@ struct ContentListView: View {
 
                 ActiveFilterChips(filters: $filters)
 
+                if let progress = model.loadProgress, !progress.isComplete {
+                    Text("Filters search \(model.items.count.formatted()) loaded items — \(progress.phase.rawValue.lowercased()) still running.")
+                        .font(.caption)
+                        .foregroundStyle(Theme.caution)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                        .accessibilityLabel("Archive scan in progress. \(model.items.count) items loaded. Filters apply to loaded items only.")
+                }
+
                 if contentPowerToolsExpanded && !filteredItems.isEmpty {
                     HStack {
                         Text("\(filteredItems.count) visible")
+                        if let progress = model.loadProgress, !progress.isComplete {
+                            Text("·")
+                                .foregroundStyle(.tertiary)
+                            Text("of \(model.items.count) loaded")
+                                .foregroundStyle(Theme.caution)
+                        }
                         Text("·")
                             .foregroundStyle(.tertiary)
                         Text(String(format: "avg engagement %.0f", filteredAverageEngagement))
@@ -170,7 +227,7 @@ struct ContentListView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
                     .accessibilityElement(children: .combine)
-                    .accessibilityLabel("\(filteredItems.count) items visible, average engagement \(Int(filteredAverageEngagement))")
+                    .accessibilityLabel(loadProgressAccessibilityLabel)
                 }
 
                 // "Last scanned 3h ago" — only when no live load is
@@ -281,39 +338,11 @@ struct ContentListView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
-                        Button {
-                            presentAfterMenuDismisses {
-                                draftFilters = filters
-                                showFilterSheet = true
-                            }
-                        } label: {
-                            Label("Filters…", systemImage: filters.hasActiveFilters
-                                  ? "line.3.horizontal.decrease.circle.fill"
-                                  : "line.3.horizontal.decrease.circle")
-                        }
-
-                        Section("Sort") {
-                            Picker("Sort", selection: $sortOrder) {
-                                ForEach(ContentSortOrder.allCases) { order in
-                                    Text(order.label).tag(order)
-                                }
-                            }
-                            .pickerStyle(.inline)
-                        }
-
                         if featureAnalytics {
                             Button {
                                 presentAfterMenuDismisses { showInsights = true }
                             } label: {
                                 Label("Insights…", systemImage: "chart.bar.xaxis")
-                            }
-                        }
-
-                        if featureAdvancedSearch {
-                            Button {
-                                presentAfterMenuDismisses { showAdvancedSearch = true }
-                            } label: {
-                                Label("Advanced search…", systemImage: "text.magnifyingglass")
                             }
                         }
 
@@ -348,12 +377,16 @@ struct ContentListView: View {
                         Section {
                             Toggle("Full Content tools", isOn: $contentPowerToolsExpanded)
                         } footer: {
-                            Text("When on, shows the result stats strip (count and average engagement). Filter chips still appear whenever filters are active.")
+                            Text("When on, shows the result stats strip (count and average engagement). Sort and Filter sit above the list.")
                         }
                     } label: {
-                        Image(systemName: "ellipsis.circle")
+                        HStack(spacing: 4) {
+                            Image(systemName: "ellipsis.circle")
+                            Text("More")
+                                .font(.footnote.weight(.medium))
+                        }
                     }
-                    .accessibilityLabel("View options — filters, sort, insights, saved searches, display")
+                    .accessibilityLabel("More — insights, saved searches, display options")
                 }
                 // EditButton intentionally removed — the inline Select
                 // toggle in the picker row handles entering/exiting
@@ -377,15 +410,10 @@ struct ContentListView: View {
             .onChange(of: filters) { _, _ in pruneSelectionToVisible() }
             .onChange(of: sortOrder) { _, _ in pruneSelectionToVisible() }
             .sheet(isPresented: $showFilterSheet) {
-                FilterSheet(draft: $draftFilters)
+                FilterSheet(draft: $draftFilters, keyword: $keyword)
                     .onDisappear {
-                        // Apply on dismiss only if the apply button was hit
-                        // — FilterSheet mutates its own binding, so we copy.
                         filters = draftFilters
                     }
-            }
-            .sheet(isPresented: $showAdvancedSearch) {
-                AdvancedSearchBuilderView(keyword: $keyword, filters: $filters)
             }
             .sheet(item: $detailItem) { item in
                 PostDetailView(item: item) {

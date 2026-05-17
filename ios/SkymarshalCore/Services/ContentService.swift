@@ -269,9 +269,10 @@ public actor ContentService {
     // MARK: - Search
 
     public func search(_ request: SearchRequest) -> (results: [SearchResult], total: Int) {
-        let filtered = request.apply(to: loadedContent)
-        let results = filtered.map(SearchResult.init(item:))
-        return (results, filtered.count)
+        let allMatches = request.apply(to: loadedContent)
+        let capped = Array(allMatches.prefix(request.limit))
+        let results = capped.map(SearchResult.init(item:))
+        return (results, allMatches.count)
     }
 
     /// Resolves delete targets the same way as ``delete(itemIDs:)`` without XRPC.
