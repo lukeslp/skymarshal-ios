@@ -1,5 +1,7 @@
 # Style diagnosis — 2026-05-14
 
+> **Status note (2026-05-16):** Two of the acceptance criteria below reference a `v1.0.1` working label that has since been retired. The fixes shipped into **v1.0.0 / build 5** — nothing was ever released to the App Store under v1.0.1. Substitute "v1.0.0 / build 5" mentally as you read.
+
 **Purpose:** Move #1 of the visual-restyle plan: before touching tokens or fonts,
 look at every primary surface and label what reads as "default iOS" versus
 what reads as "Skymarshal." Output of this doc decides whether to proceed

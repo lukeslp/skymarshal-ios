@@ -1,6 +1,8 @@
 # Style restyle plan — Move #2 + Move #3
 
-**2026-05-15 — Cinematic OLED chosen for v1.0.2+ chrome:** After `/team`
+> **Status note (2026-05-16):** This plan is structured around a v1.0.1 / v1.0.2 split that has since been retired. The v1.0.1 work in §§2–6 + 7.1 (Plex Mono, Saturn buttons, ScopePill, TokenCoverageTests) shipped into **v1.0.0 / build 5**; nothing was ever released to the App Store under v1.0.1. The v1.0.2 work (Fraunces serif + paper/bone backgrounds + cinematic OLED chrome) is a candidate for **v1.0.1 post-launch** — but the rollback / soak gates described below still apply. Treat "v1.0.1" in the text below as "the typography pass already in build 5" and "v1.0.2" as "the next visual increment, post-App-Store-launch."
+
+**2026-05-15 — Cinematic OLED chosen for the next visual increment:** After `/team`
 review, the primary visual direction is **cinematic** (rounded display
 wordmark + accent gradient, system sans + `monospacedDigit()` for dense
 metrics, 6–10pt radii, glass limited to hero/nav panels — not list rows).

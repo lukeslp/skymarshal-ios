@@ -2,7 +2,7 @@
 
 **Date:** YYYY-MM-DD  
 **Device:** (model, iOS version)  
-**Build:** Skymarshal 1.0.1 (N)  
+**Build:** Skymarshal 1.0.0 (N)  
 **Account:** handle + approximate post count  
 **Tester:** Luke Steuber
 

@@ -8,9 +8,11 @@ This is the iOS app. Native SwiftUI, iOS 17+. No third-party dependencies. App p
 
 ## Status
 
-Pre-TestFlight v1.0.0, build 4 (session refresh + Keychain persistence). **185** XCTest cases in `SkymarshalTests` pass (`-only-testing:SkymarshalTests`). Tagged `v1.0.1-pre-testflight` (most recent rollback anchor).
+Public TestFlight v1.0.0, build 5. Session refresh + Keychain persistence + visual restyle (Plex Mono tabular metrics, Saturn buttons, cinematic OLED chrome) are all in this build. **185** XCTest cases in `SkymarshalTests` pass (`-only-testing:SkymarshalTests`).
 
-TestFlight Public Link goes here once the current build clears Beta App Review.
+A short-lived `v1.0.1` working label was retired in May 2026 — the scope folded back into in-progress 1.0.0 since nothing was ever released to the App Store.
+
+TestFlight Public Link in [`docs/TESTFLIGHT_PUBLIC_LINK.md`](docs/TESTFLIGHT_PUBLIC_LINK.md). App Store submission is gated by the pre-ship checklist in [`PROJECT_PLAN.md`](PROJECT_PLAN.md): a resumable-delete breadcrumb fix, a USPTO TESS check on the name, a "Patterns" rename for the Followers tab heading, and a reviewer-notes file citing `com.atproto.repo.deleteRecord` as a documented public AT Protocol lexicon.
 
 ## What it does
 
@@ -34,7 +36,7 @@ Your app password is **never persisted** — it's used once to obtain an AT Prot
 
 ## Accessibility
 
-Pre-TestFlight v1.0 floor: WCAG 1.4.11 color contrast in both light and dark mode; Reduce Motion respected at every animation site (plus an in-app override); Dynamic Type to AX5 without truncation on primary views; VoiceOver labels on every interactive element; Switch Control reach via `.accessibilityAction(named:)` on every destructive row action; live-region announcements for silent state changes (selection prune, sign-in error). One XCUITest at AX5 catches Dynamic Type regressions.
+v1.0 floor: WCAG 1.4.11 color contrast in both light and dark mode; Reduce Motion respected at every animation site (plus an in-app override); Dynamic Type to AX5 without truncation on primary views; VoiceOver labels on every interactive element; Switch Control reach via `.accessibilityAction(named:)` on every destructive row action; live-region announcements for silent state changes (selection prune, sign-in error). One XCUITest at AX5 catches Dynamic Type regressions.
 
 ## Build
 

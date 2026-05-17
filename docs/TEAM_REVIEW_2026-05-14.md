@@ -1,6 +1,8 @@
 # Team review — 2026-05-14
 
-**Trigger:** Post-`a01876c` (v1.0.1 visual restyle Move #2) council review.
+> **Status note (2026-05-16):** This review was written against a working `v1.0.1` label that was later retired. Nothing was ever released to the App Store under v1.0.1; the scope and fixes described here landed into the in-progress **v1.0.0 / build 5** (commit `9ca2e84` reverts the marketing version). Read the analysis below as historical record — substitute "v1.0.0 / build 5" wherever it says v1.0.1.
+
+**Trigger:** Post-`a01876c` (visual restyle Move #2) council review.
 **Scope:** `--full` (research + business + technical + skeptics + executive).
 **Read-only:** No file edits attributed to the council. Janitor follow-ups land in
 a separate commit (see "First three moves").

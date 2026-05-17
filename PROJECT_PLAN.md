@@ -90,8 +90,24 @@ Remaining (status as of 2026-05-14):
 - **Paste session execution** per `app-store/APP_STORE_CONNECT_PASTE_SESSION.md`.
 - **72-hour post-launch support + review-response cadence** prepared from `app-store/PUBLIC_RELEASE_RUNBOOK.md`.
 
-Already verified (2026-05-14):
+Already verified (2026-05-16):
 
 - `https://skymarshal.blue`, `/support`, `/privacy` all resolve HTTP 200.
-- Build 4 (auth-refresh + Keychain) tested at 185 / 185 green; `CFBundleVersion` + `MARKETING_VERSION` now aligned on 1.0.0.
+- Build 5 (auth-refresh + Keychain + visual restyle) tested at 185 / 185 green. `CFBundleVersion` is 5 and `MARKETING_VERSION` is back at 1.0.0 — the v1.0.1 working label was retired (commit `9ca2e84`) since nothing was ever released. Build 5 carries the cumulative work as the in-progress 1.0.0.
 - Required-Reason API audit: only `UserDefaults` is directly used by app code; declared with CA92.1 in `PrivacyInfo.xcprivacy`. No file-timestamp / boot-time / disk-space / active-keyboard usages.
+
+## Council pre-ship checklist (2026-05-16)
+
+Full action items in [`CLAUDE.md` § Council pre-ship checklist](CLAUDE.md). Summary:
+
+- **Ship-blocker.** `DeleteBatchRecovery` breadcrumb writes once at delete-start and never per-success (`ios/SkymarshalCore/Services/DeleteBatchRecovery.swift:22-30` + `ContentService.swift:289-318`). Fix ~5 LOC + a recovery test.
+- **Ship-blocker.** Pre-flight estimated wall-clock for any bulk delete ≥ 1,000 items. PDS quota math: 50k items = 10+ hours.
+- **Ship-blocker.** 15-min USPTO TESS check on "Skymarshal" in the software-utility class.
+- **Ship-blocker.** Rename user-facing "Bluescreen" → "Patterns" or "Signals" in App Store listing copy + in-app labels. Internal codenames stay.
+- **Ship-blocker.** Reviewer-notes file citing `com.atproto.repo.deleteRecord` as a documented public AT Protocol lexicon (mitigates historical 5.2.2 / 4.3 review risk seen with Twitter cleanup apps).
+- **Parity gap (close before App Store).** Content tab CSV/JSON export. Follow the `Exporter.swift` Bluescreen pattern. Do NOT use `Transferable` / `ShareLink` — commit `5e3e66a` memorializes the crash.
+- **Parity gap.** Alt-text search filter (one optional `altTextContains: String?` field on `SearchRequest`).
+- **Parity gap.** Timeframe quick-filter chips (7d / 30d / 90d / 1y) — UI sugar over existing dates.
+- **v1.1.** Danger Zone bulk-by-category delete; per-item delete parade; `Retry-After` header parse in `ATProtoClient.performRaw:453-466`.
+
+Kill criteria preserved verbatim from cynic seat in [`CLAUDE.md`](CLAUDE.md). Competitive landscape snapshot also in CLAUDE.md.
