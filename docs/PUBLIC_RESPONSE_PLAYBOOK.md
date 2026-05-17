@@ -4,7 +4,7 @@
 
 **Goal:** Respond within **24 hours** with calm, factual, accountable copy. No legal threats, no "AI", no internal tooling names.
 
-**Kill criterion:** Do not submit to the public App Store until this document is committed (council gate, 2026-05-16).
+**Kill criterion:** Do not submit to the public App Store until this document is committed (pre-ship gate, 2026-05-16).
 
 ---
 
@@ -20,16 +20,16 @@
 > - Rough time (timezone)
 > - Whether you were on iOS TestFlight or App Store build [version]
 >
-> I'll investigate and follow up. If we confirm a bug, I'll document the fix and prioritize a TestFlight build.
+> I'll investigate and follow up. If I confirm a bug, I'll document the fix and prioritize a TestFlight build.
 
 **Customize:** Replace bracketed version; do not promise refunds unless applicable.
 
 ## 2. What NOT to say
 
 - "The AI deleted…" / "AI-powered" (product rule: never use AI in user-facing prose)
-- "It's Bluesky's fault" (even if PDS-related — lead with what *we* know)
+- "It's Bluesky's fault" (even if PDS-related; lead with what *I* know)
 - "You must have mis-tapped" (invalidating)
-- Internal codenames, agent names, `/team`, skill names
+- Internal codenames, tool names, slash commands
 
 ## 3. Internal checklist (before replying)
 
@@ -39,13 +39,13 @@
 - [ ] Reproduce filter + delete path if they provide search terms
 - [ ] Log issue in private tracker with `deletion-incident` label
 
-## 4. If we confirm a bug
+## 4. If I confirm a bug
 
 1. Fix + test (`DeleteURIMappingTests`, preflight counts, soak scenario 2).
-2. TestFlight release with literal What's New: what was wrong, what we fixed.
+2. TestFlight release with literal What's New: what was wrong, what I fixed.
 3. Public follow-up on original thread: brief, link to update when live.
 
-## 5. If we cannot reproduce
+## 5. If I can't reproduce
 
 > I wasn't able to reproduce this on my side with the steps you sent, but I'm keeping the report open. If you see it again on build [X], please capture a screen recording starting **before** you tap Delete — that helps enormously.
 

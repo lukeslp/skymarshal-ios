@@ -6,7 +6,7 @@ Use when soak artifacts or cynic runbooks are **not** ready but you want real-us
 
 - Soak Run 1 not complete → **do not** submit to App Store (kill criterion #1)
 - [PUBLIC_RESPONSE_PLAYBOOK.md](PUBLIC_RESPONSE_PLAYBOOK.md) or [XRPC_DRIFT_RUNBOOK.md](XRPC_DRIFT_RUNBOOK.md) missing
-- Council cynic dissent: prefer **30 days** on public TestFlight after soak passes
+- Skeptic gate: prefer **30 days** on public TestFlight after soak passes
 
 ## Steps
 

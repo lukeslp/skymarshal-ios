@@ -2,7 +2,7 @@
 
 Air-traffic control for your Bluesky.
 
-Find old posts you forgot you wrote. Catch the late-night replies you'd rather not look at. Cull the followers you'd never have followed back. Skymarshal scans your own Bluesky archive, scores it, and lets you tidy in bulk — with the kind of confirmations a deletion deserves.
+Find old posts you forgot you wrote. Catch the late-night replies you'd rather not look at. Cull the followers you'd never have followed back. Skymarshal scans your own Bluesky archive, scores it, and lets you tidy in bulk, with confirmations that match the stakes.
 
 This is the iOS app. Native SwiftUI, iOS 17+. No third-party dependencies. App password only — Skymarshal never sees your real Bluesky password.
 
@@ -10,7 +10,7 @@ This is the iOS app. Native SwiftUI, iOS 17+. No third-party dependencies. App p
 
 Public TestFlight v1.0.0, build 5. Session refresh + Keychain persistence + visual restyle (Plex Mono tabular metrics, Saturn buttons, cinematic OLED chrome) are all in this build. **185** XCTest cases in `SkymarshalTests` pass (`-only-testing:SkymarshalTests`).
 
-A short-lived `v1.0.1` working label was retired in May 2026 — the scope folded back into in-progress 1.0.0 since nothing was ever released to the App Store.
+A short-lived `v1.0.1` working label was retired in May 2026. Nothing shipped under it; the scope folded back into the in-progress 1.0.0.
 
 TestFlight Public Link in [`docs/TESTFLIGHT_PUBLIC_LINK.md`](docs/TESTFLIGHT_PUBLIC_LINK.md). App Store submission is gated by the pre-ship checklist in [`PROJECT_PLAN.md`](PROJECT_PLAN.md): a resumable-delete breadcrumb fix, a USPTO TESS check on the name, a "Patterns" rename for the Followers tab heading, and a reviewer-notes file citing `com.atproto.repo.deleteRecord` as a documented public AT Protocol lexicon.
 
@@ -57,7 +57,7 @@ Content rows distinguish between the subject URI being displayed and the record 
 
 **Documentation map** (where to read first): [`docs/README.md`](docs/README.md).
 
-Architecture overview (iOS layers, services, reference provenance): [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). SwiftUI UX guardrails for contributors: [`docs/CONTRIBUTOR_UX.md`](docs/CONTRIBUTOR_UX.md). Upstream vs iOS feature scope (checklist): [`docs/UPSTREAM_FEATURE_GAP.md`](docs/UPSTREAM_FEATURE_GAP.md). Parity + visualization execution roadmap: [`docs/PARITY_VISUALIZATION_PLAN.md`](docs/PARITY_VISUALIZATION_PLAN.md). Expansion UX and design specs: [`docs/UX_SPEC.md`](docs/UX_SPEC.md), [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md). Large-branch review / council synthesis: [`docs/TEAM_CONSENSUS_DECISION_PACKAGE.md`](docs/TEAM_CONSENSUS_DECISION_PACKAGE.md). Migration notes and Python-vs-TS drift rules: [`MIGRATION.md`](MIGRATION.md). Frozen upstream snapshot for parity: [`reference/README.md`](reference/README.md).
+Architecture overview (iOS layers, services, reference provenance): [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). SwiftUI UX guardrails for contributors: [`docs/CONTRIBUTOR_UX.md`](docs/CONTRIBUTOR_UX.md). Upstream vs iOS feature scope (checklist): [`docs/UPSTREAM_FEATURE_GAP.md`](docs/UPSTREAM_FEATURE_GAP.md). Parity + visualization execution roadmap: [`docs/PARITY_VISUALIZATION_PLAN.md`](docs/PARITY_VISUALIZATION_PLAN.md). Expansion UX and design specs: [`docs/UX_SPEC.md`](docs/UX_SPEC.md), [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md). Large-branch review synthesis: [`docs/TEAM_CONSENSUS_DECISION_PACKAGE.md`](docs/TEAM_CONSENSUS_DECISION_PACKAGE.md). Migration notes and Python-vs-TS drift rules: [`MIGRATION.md`](MIGRATION.md). Frozen upstream snapshot for parity: [`reference/README.md`](reference/README.md).
 
 ```
 ios/
