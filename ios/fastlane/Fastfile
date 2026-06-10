@@ -1,0 +1,24 @@
+default_platform(:ios)
+
+# Auth: deliver picks up the App Store Connect API key automatically from
+#   APP_STORE_CONNECT_API_KEY_KEY_ID / _ISSUER_ID / _KEY
+# (export them first — e.g. `source ~/.appstoreconnect/env.sh`). No 2FA,
+# no session expiry. Falls back to interactive Apple ID if none are set.
+
+platform :ios do
+  desc "Upload App Store listing metadata only (no binary, no screenshots)"
+  desc "Copy source of truth: app-store/PUBLIC_RELEASE_COPY.md"
+  lane :upload_listing do
+    deliver(
+      metadata_path: "./fastlane/metadata",
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      skip_app_version_update: true,
+      force: true, # metadata is reviewed in git, not the HTML preview
+      run_precheck_before_submit: false,
+      precheck_include_in_app_purchases: false,
+      submit_for_review: false,
+      automatic_release: false
+    )
+  end
+end

@@ -1,0 +1,34 @@
+Skymarshal is a third-party Bluesky archive-management utility. It is
+not affiliated with Bluesky Social, PBC, and is not a Bluesky client —
+you cannot post or browse the timeline from Skymarshal. The app reads
+the user's own content via the public AT Protocol XRPC endpoints
+(bsky.social and public.api.bsky.app), scores it locally, and lets the
+user delete their own posts/replies/reposts/likes or unfollow accounts
+they currently follow.
+
+There is no server we operate. There is no account on our end. There is
+no analytics or tracking. The user signs in with a Bluesky-issued app
+password (a separate disposable credential, generated at
+bsky.app/settings/app-passwords); their primary password never enters
+our app or our infrastructure.
+
+To test:
+  1. Create or use an existing Bluesky account at bsky.app
+  2. Generate an app password under Settings → App Passwords
+  3. Launch Skymarshal, enter handle (e.g. yourname.bsky.social) and
+     the app password
+  4. The Content tab paginates through the user's own posts, replies,
+     reposts, and likes; filter by content type, date, engagement, or
+     keyword/alt-text
+  5. The Followers tab scans the user's follow list and scores each
+     account; sort, filter, or bulk-unfollow as desired
+  6. Sign out via the account menu (top-left); session token is cleared
+     from Keychain
+
+Demo account is not provided because the product's value is operating
+on the user's own archive — a populated demo account would be testing
+artifacts, not the product. If reviewer would like a demo account
+nonetheless, we will create one and supply credentials within 24 hours
+of request.
+
+Contact for App Review questions: skymarshal@lukesteuber.com

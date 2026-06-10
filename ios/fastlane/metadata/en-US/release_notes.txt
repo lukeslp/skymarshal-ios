@@ -1,0 +1,9 @@
+First flight.
+
+Skymarshal does two things: searches every post, reply, repost, and like
+in your Bluesky archive, and scores your follow list for bots and
+inactive accounts. Bulk delete and bulk unfollow on top, with the
+rate-limit safety nets they deserve.
+
+App password only. No tracking. No server. Your archive stays on your
+phone.

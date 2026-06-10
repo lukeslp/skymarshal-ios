@@ -1,0 +1,4 @@
+app_identifier("blue.skymarshal.ios")
+apple_id("luke@lukesteuber.com")
+team_id("596T7J7FB6")        # Developer Portal (Bridge City Lab)
+itc_team_id("117870543")     # App Store Connect (Bridge City Lab LLC)
