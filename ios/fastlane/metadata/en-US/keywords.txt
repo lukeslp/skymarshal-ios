@@ -1,1 +1,1 @@
-posts,replies,reposts,likes,archive,manage,delete,follower,unfollow,bot,atproto,bulk,clean,filter
+posts,replies,reposts,likes,archive,manage,delete,follower,unfollow,atproto,bulk,clean,filter

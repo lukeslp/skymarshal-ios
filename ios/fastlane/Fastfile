@@ -22,21 +22,38 @@ platform :ios do
     staging = File.expand_path("screenshots/en-US", __dir__)
     FileUtils.rm_rf(staging)
     FileUtils.mkdir_p(staging)
+    staged = {}
     {
       "iphone-6.9" => "iphone69",
       "ipad-13"    => "ipad13",
     }.each do |src, prefix|
-      Dir[File.expand_path("../screenshots-appstore/#{src}/0[1-9]-*.png", __dir__)].each do |f|
-        FileUtils.cp(f, File.join(staging, "#{prefix}-#{File.basename(f)}"))
-      end
+      # [0-9][0-9]- matches 10- and above; the old 0[1-9]- glob silently
+      # dropped any tenth screenshot from the upload.
+      files = Dir[File.expand_path("../screenshots-appstore/#{src}/[0-9][0-9]-*.png", __dir__)]
+      files.each { |f| FileUtils.cp(f, File.join(staging, "#{prefix}-#{File.basename(f)}")) }
+      staged[prefix] = files
     end
     # overwrite_screenshots wipes EVERY device class in the locale, not just
     # the ones staged — uploading an iPhone-only set deletes the iPad set
     # that lives only in ASC (this happened 2026-06-10). Refuse partial
-    # uploads unless explicitly forced.
-    %w[iphone69 ipad13].each do |prefix|
-      if Dir[File.join(staging, "#{prefix}-*.png")].empty? && ENV["SKY_ALLOW_PARTIAL"] != "1"
-        UI.user_error!("No #{prefix} screenshots staged — a partial upload would delete the other device class in ASC. Capture both sets, or set SKY_ALLOW_PARTIAL=1 to override.")
+    # uploads unless explicitly forced. "Partial" means any of: a missing
+    # class, unequal shot counts between classes (one capture run failed
+    # midway), or one class's captures much older than the other's (stale
+    # leftovers from a previous run would overwrite current ASC state).
+    unless ENV["SKY_ALLOW_PARTIAL"] == "1"
+      staged.each do |prefix, files|
+        UI.user_error!("No #{prefix} screenshots staged — a partial upload would delete the other device class in ASC. Capture both sets, or set SKY_ALLOW_PARTIAL=1 to override.") if files.empty?
+      end
+      counts = staged.transform_values(&:length)
+      if counts.values.uniq.length > 1
+        UI.user_error!("Unequal screenshot counts #{counts} — one capture run looks incomplete. Re-capture, or set SKY_ALLOW_PARTIAL=1 to override.")
+      end
+      if (expected = ENV["SKY_EXPECTED_SHOTS"]&.to_i) && counts.values.any? { |c| c != expected }
+        UI.user_error!("Expected #{expected} screenshots per device class, staged #{counts}.")
+      end
+      newest = staged.transform_values { |files| files.map { |f| File.mtime(f) }.max }
+      if (newest.values.max - newest.values.min) > 24 * 3600
+        UI.user_error!("Screenshot sets were captured more than 24h apart (#{newest}) — one looks stale. Re-capture both, or set SKY_ALLOW_PARTIAL=1 to override.")
       end
     end
     deliver(

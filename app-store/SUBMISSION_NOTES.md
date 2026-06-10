@@ -22,6 +22,13 @@ password (a separate disposable credential, generated at
 bsky.app/settings/app-passwords); their primary password never enters
 our app or our infrastructure.
 
+Deletion uses com.atproto.repo.deleteRecord, a documented public
+lexicon in the AT Protocol specification:
+https://docs.bsky.app/docs/api/com-atproto-repo-delete-record
+The app only ever deletes records in the signed-in user's own
+repository, the same operation the official Bluesky app performs when
+a user deletes a post; Skymarshal adds search and batching on top.
+
 To test:
   1. Create or use an existing Bluesky account at bsky.app
   2. Generate an app password under Settings → App Passwords
@@ -35,11 +42,12 @@ To test:
   6. Sign out via the account menu (top-left); session token is cleared
      from Keychain
 
-Demo account is not provided because the product's value is operating
-on the user's own archive — a populated demo account would be testing
-artifacts, not the product. If reviewer would like a demo account
-nonetheless, we will create one and supply credentials within 24 hours
-of request.
+A demo account is provided in the App Review Information sign-in
+fields (handle + app password) — see DEMO_ACCOUNT.md for setup. It is
+populated with sample posts, replies, reposts, and likes so every
+Content and Followers flow can be exercised end to end. After sign-in,
+open the Content tab and tap Refresh if the list is empty; the
+Followers tab populates after tapping Scan.
 
 Contact for App Review questions: skymarshal@lukesteuber.com
 ```

@@ -4,7 +4,8 @@ Living snapshot of objectives and boundaries. Product copy and build commands st
 
 ## Current milestone
 
-- **Distribution:** Pre–public TestFlight; public link pending Beta App Review ([`README.md` Status](README.md)).
+- **Distribution:** Public TestFlight at v1.0.0 / build 5; App Store submission gated on the 2026-06-10 adversarial-review fixes (see council log below).
+- **Launch pricing (decided 2026-06-10):** Free, no IAP at launch. Supersedes the 2026-05-14 tiering ($2.99/mo / $19.99/yr / $49.99 lifetime). A paywall is a v1.1 decision; early adopters get grandfathered if one ships.
 - **Quality bar:** Full `xcodebuild test` green before release-worthy changes; preserve 429 backoff and deletion URI semantics ([`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)).
 
 ## Expansion plan (approved for planning)
@@ -111,3 +112,24 @@ Full action items in [`CLAUDE.md` § Council pre-ship checklist](CLAUDE.md). Sum
 - **v1.1.** Danger Zone bulk-by-category delete; per-item delete parade; `Retry-After` header parse in `ATProtoClient.performRaw:453-466`.
 
 Kill criteria preserved verbatim from cynic seat in [`CLAUDE.md`](CLAUDE.md). Competitive landscape snapshot also in CLAUDE.md.
+
+## Adversarial review (2026-06-10) — pre-submission gates
+
+Full findings in the session plan (cynic + breaker + executive council). Status updates to the 2026-05-16 checklist:
+
+- **CLOSED:** Bluescreen→Patterns rename (zero user-facing "Bluescreen" strings remain; tab is "Followers", audit copy says "Patterns we noticed"). Content CSV/JSON export (`Exporter.swift`). Alt-text search (covered by `includeAltTextInKeyword`; the dedicated `altTextContains` field is dropped).
+- **REOPENED then fixed 2026-06-10:** reviewer-notes lexicon citation (`com.atproto.repo.deleteRecord`) — was missing from both `app-store/SUBMISSION_NOTES.md` and `ios/fastlane/metadata/review_information/notes.txt`; both now carry it. Demo-account decline replaced with provided-credentials copy; the account itself still needs creating (manual).
+- **NEW ship-blockers from the breaker pass (all in flight 2026-06-10):** tolerant `createdAt` parsing + fail-closed date filters (bare `ISO8601DateFormatter` rejected the fractional-second timestamps the official client writes, so nil-dated items passed date filters — a date-scoped bulk delete could select the whole archive); delete-loop survivability (cancellation, `Retry-After` parsing, pacing, circuit breaker, idle-timer hold); refresh-failure triage (network blips no longer wipe the Keychain session); 20k-load truncation honesty; SwiftData duplicate-key crash guard; chunked breadcrumb recovery.
+
+### Kill criteria (restated measurably, 2026-06-10)
+
+- **Ship-blocker (unchanged):** two App Store rejections citing 5.0/4.3 on content-deletion grounds → do not appeal a third time; pivot to PWA at skymarshal.blue.
+- **Pivot-trigger (now owned):** Bluesky official app ships or announces native bulk-delete-by-filter → reposition around Patterns + alt-text audit within 30 days. Checked monthly against the Bluesky changelog/roadmap; next check 2026-07-10, owner Luke.
+- **Sunset-trigger (replaces the unmeasurable MAU/conversion version):** by 2026-12-10, fewer than 300 App Analytics opt-in downloads AND fewer than 25 ratings AND (only if an IAP has shipped) fewer than 30 unlocks → archive the iOS target, maintain the Python CLI only.
+
+### Manual items (Luke, off-repo)
+
+- Create + populate the `skymarshal-review.bsky.social` demo account; paste credentials into the ASC App Review sign-in fields (`app-store/DEMO_ACCOUNT.md`).
+- 15-min USPTO TESS check on "Skymarshal" (software-utility class); log the result here.
+- Pull 4 weeks of TestFlight installs/sessions/crash data from App Store Connect before submission; it is the only real demand signal and no document records it yet.
+- Soak run per `docs/SOAK_PROTOCOL.md` after the P0 fixes land (artifact under `docs/soak/`).
