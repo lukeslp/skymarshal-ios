@@ -6,6 +6,43 @@ default_platform(:ios)
 # no session expiry. Falls back to interactive Apple ID if none are set.
 
 platform :ios do
+  desc "Capture App Store screenshots (runs the XCUITest pipeline for both device classes)"
+  desc "Needs a signed-in session or SKY_TEST_HANDLE/SKY_TEST_APP_PASSWORD — see scripts/capture_screenshots.sh"
+  lane :screenshots do
+    sh "cd .. && xcodegen generate --spec project.yml"
+    sh "cd .. && ./scripts/capture_screenshots.sh 'iPhone 17 Pro Max' iphone-6.9"
+    sh "cd .. && ./scripts/capture_screenshots.sh 'iPad Pro 13-inch (M5)' ipad-13"
+  end
+
+  desc "Upload screenshots from ../screenshots-appstore/ to App Store Connect"
+  lane :upload_screenshots do
+    # Stage capture-script output into deliver's per-locale layout. Device
+    # class is inferred from pixel dimensions; the filename prefix only
+    # keeps the two sets sorted together.
+    staging = File.expand_path("screenshots/en-US", __dir__)
+    FileUtils.rm_rf(staging)
+    FileUtils.mkdir_p(staging)
+    {
+      "iphone-6.9" => "iphone69",
+      "ipad-13"    => "ipad13",
+    }.each do |src, prefix|
+      Dir[File.expand_path("../screenshots-appstore/#{src}/0[1-9]-*.png", __dir__)].each do |f|
+        FileUtils.cp(f, File.join(staging, "#{prefix}-#{File.basename(f)}"))
+      end
+    end
+    deliver(
+      submit_for_review: false,
+      automatic_release: false,
+      force: true,
+      skip_binary_upload: true,
+      skip_metadata: true,
+      skip_app_version_update: true,
+      screenshots_path: File.expand_path("screenshots", __dir__),
+      overwrite_screenshots: true,
+      precheck_include_in_app_purchases: false
+    )
+  end
+
   desc "Upload App Store listing metadata only (no binary, no screenshots)"
   desc "Copy source of truth: app-store/PUBLIC_RELEASE_COPY.md"
   lane :upload_listing do

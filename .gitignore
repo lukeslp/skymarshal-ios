@@ -91,3 +91,7 @@ reports/
 # Fastlane regenerated artifacts
 ios/fastlane/README.md
 ios/fastlane/report.xml
+
+# Demo credentials for screenshot capture (never committed)
+app-store/DEMO_ACCOUNT.env
+ios/fastlane/screenshots/
