@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import os
 
 /// The orchestration boundary every UI layer should sit on top of.
 ///
@@ -9,10 +10,24 @@ import SwiftData
 @available(iOS 17, *)
 public actor ContentService {
 
+    private static let log = Logger(subsystem: "blue.skymarshal.ios", category: "ContentService")
+
     private let client: ATProtoClient
     private let container: ModelContainer
     private var loadedContent: [ContentItem] = []
     private var loadedHandle: String?
+
+    /// SwiftData saves on the cache paths are best-effort (a failed cache
+    /// write must not fail the user-visible operation), but never silent:
+    /// a recurring constraint violation here is how duplicate-key rows
+    /// sneak into the store.
+    private func saveOrLog(_ context: ModelContext, _ operation: StaticString) {
+        do {
+            try context.save()
+        } catch {
+            Self.log.error("\(operation, privacy: .public) save failed: \(error, privacy: .public)")
+        }
+    }
 
     public init(
         client: ATProtoClient = ATProtoClient(),
@@ -79,12 +94,24 @@ public actor ContentService {
         public let itemsLoaded: Int
         public let pagesFetched: Int
         public let isComplete: Bool
+        /// True when an endpoint stopped at ``maxPagesPerEndpoint`` with
+        /// more pages available — the archive holds items this load never
+        /// saw. UI must say so; "delete everything" against a truncated
+        /// load silently leaves the overflow live on Bluesky.
+        public let truncated: Bool
 
-        public init(phase: Phase, itemsLoaded: Int, pagesFetched: Int, isComplete: Bool) {
+        public init(
+            phase: Phase,
+            itemsLoaded: Int,
+            pagesFetched: Int,
+            isComplete: Bool,
+            truncated: Bool = false
+        ) {
             self.phase = phase
             self.itemsLoaded = itemsLoaded
             self.pagesFetched = pagesFetched
             self.isComplete = isComplete
+            self.truncated = truncated
         }
 
         public enum Phase: String, Sendable, Equatable {
@@ -111,6 +138,10 @@ public actor ContentService {
     /// Snapshot of the in-memory cache. The UI pulls this between progress
     /// ticks so items appear as pages arrive instead of all-at-once.
     public var loadedSnapshot: [ContentItem] { loadedContent }
+
+    /// True when the most recent ``ensureContentLoaded`` hit the page cap
+    /// on any endpoint with more pages remaining. See ``LoadProgress/truncated``.
+    public private(set) var lastLoadTruncated: Bool = false
 
     /// Fetch the user's complete posts/replies/reposts/likes set from the
     /// PDS via cursor pagination. Both endpoints are looped to exhaustion
@@ -152,7 +183,7 @@ public actor ContentService {
         loadedContent = loadRefreshStaging(owner: owner, generationID: generationID)
 
         do {
-            try await loopEndpoint(
+            let postsExhausted = try await loopEndpoint(
                 phase: .posts,
                 owner: owner,
                 generationID: generationID,
@@ -164,7 +195,7 @@ public actor ContentService {
                 return (response.feed.map(Self.toContentItem), response.cursor)
             }
 
-            try await loopEndpoint(
+            let likesExhausted = try await loopEndpoint(
                 phase: .likes,
                 owner: owner,
                 generationID: generationID,
@@ -189,14 +220,21 @@ public actor ContentService {
                 return (items, response.cursor)
             }
 
-            try replaceCommittedContent(owner: owner, with: loadedContent)
+            let truncated = !(postsExhausted && likesExhausted)
+            lastLoadTruncated = truncated
+            try replaceCommittedContent(
+                owner: owner,
+                with: loadedContent,
+                evictStale: !truncated
+            )
             clearRefreshStaging(owner: owner)
             clearArchiveLoadCheckpoints(owner: owner)
             await progress?(LoadProgress(
                 phase: .done,
                 itemsLoaded: loadedContent.count,
                 pagesFetched: 0,
-                isComplete: true
+                isComplete: true,
+                truncated: truncated
             ))
             return loadedContent
         } catch {
@@ -209,18 +247,22 @@ public actor ContentService {
     /// trips. Appends each page's items to `loadedContent` so the UI can
     /// render incrementally, and persists each page to the SwiftData
     /// cache so cold-start gets the same view back.
+    ///
+    /// Returns `true` when the endpoint was exhausted (cursor ran out) and
+    /// `false` when the page cap stopped it with more pages available.
+    @discardableResult
     private func loopEndpoint(
         phase: LoadProgress.Phase,
         owner: String,
         generationID: String,
         progress: (@Sendable (LoadProgress) async -> Void)?,
         fetch: (String?) async throws -> ([ContentItem], String?)
-    ) async throws {
-        guard let phaseKey = phase.archivePhaseRaw else { return }
+    ) async throws -> Bool {
+        guard let phaseKey = phase.archivePhaseRaw else { return true }
 
         var cursor: String? = loadArchiveCheckpointCursor(owner: owner, phaseKey: phaseKey)
         var pages = loadArchiveCheckpointPagesFetched(owner: owner, phaseKey: phaseKey)
-        if pages > 0 && cursor == nil { return }
+        if pages > 0 && cursor == nil { return true }
         var knownIDs = Set(loadedContent.map(\.id))
         repeat {
             try Task.checkCancellation()
@@ -248,6 +290,7 @@ public actor ContentService {
             ))
         } while cursor != nil && pages < Self.maxPagesPerEndpoint
 
+        return cursor == nil
     }
 
     /// Inject a content list directly. Useful for previews, tests, and
@@ -299,15 +342,59 @@ public actor ContentService {
 
     // MARK: - Delete
 
+    /// Consecutive failures that halt a batch. Once the network is down or
+    /// the hourly write window is exhausted, every remaining item fails the
+    /// same way — grinding on just burns hours and floods the error list.
+    public static let maxConsecutiveDeleteFailures = 10
+
+    /// Breadcrumb write cadence. Rewriting a 50k-ID payload per success
+    /// would be O(n²) UserDefaults churn over a multi-hour batch.
+    private static let breadcrumbChunk = 25
+
     /// Delete each item individually. Returns (deletedCount, errorMessages).
     /// Each call is wrapped in `RateLimit.withBackoff` inside ``ATProtoClient``
     /// — concurrent fan-out is intentionally avoided so we don't blow past
-    /// the per-account write quota faster.
-    public func delete(itemIDs: [String]) async -> (deleted: Int, errors: [String]) {
+    /// the per-account write quota faster, and past ``DeletePacing/burstAllowance``
+    /// the loop self-paces below the hourly quota.
+    ///
+    /// The loop honors task cancellation between items, trims the
+    /// ``DeleteBatchRecovery`` breadcrumb as successes land, and halts after
+    /// ``maxConsecutiveDeleteFailures`` so a dead network or exhausted quota
+    /// fails the batch honestly instead of grinding through every item.
+    public func delete(
+        itemIDs: [String],
+        progress: (@Sendable (Int) async -> Void)? = nil
+    ) async -> (deleted: Int, errors: [String]) {
+        // Owner is captured BEFORE any network call: if the session dies
+        // mid-batch, a nil owner would send deletePersistedContent down its
+        // ownerless branch and evict cache rows for every account on the
+        // device.
+        let ownerHandle = await client.currentHandle
+        let ownerDID = await client.currentDid
+        let owner = ownerHandle ?? ownerDID
+
         var deleted = 0
         var errors: [String] = []
         var deletedIDs: [String] = []
-        for id in itemIDs {
+        var breadcrumbBacklog: [String] = []
+        var consecutiveFailures = 0
+
+        defer {
+            DeleteBatchRecovery.markCompleted(breadcrumbBacklog)
+            if !deletedIDs.isEmpty {
+                deletePersistedContent(itemIDs: deletedIDs, owner: owner)
+            }
+        }
+
+        for (index, id) in itemIDs.enumerated() {
+            if Task.isCancelled {
+                errors.append("Stopped by user: \(itemIDs.count - index) item(s) not attempted.")
+                break
+            }
+            if consecutiveFailures >= Self.maxConsecutiveDeleteFailures {
+                errors.append("Stopped after \(consecutiveFailures) consecutive failures: \(itemIDs.count - index) item(s) not attempted. Check your connection or try again later — Bluesky may be rate-limiting this account.")
+                break
+            }
             guard let item = loadedContent.first(where: { $0.id == id || $0.uri == id }) else {
                 errors.append("\(id): not in loaded content")
                 continue
@@ -329,22 +416,29 @@ public actor ContentService {
                     errors.append("\(item.uri): unsupported aggregate content type")
                     continue
                 }
+                if deleted + 1 > DeletePacing.burstAllowance {
+                    try? await Task.sleep(
+                        nanoseconds: UInt64(DeletePacing.pacedDelaySeconds * 1_000_000_000)
+                    )
+                }
                 try await client.deleteRecord(
                     uri: deletionURI,
                     expectedCollection: expectedCollection
                 )
                 deleted += 1
+                consecutiveFailures = 0
                 loadedContent.removeAll { $0.id == item.id }
                 deletedIDs.append(item.id)
+                await progress?(deleted)
+                breadcrumbBacklog.append(item.id)
+                if breadcrumbBacklog.count >= Self.breadcrumbChunk {
+                    DeleteBatchRecovery.markCompleted(breadcrumbBacklog)
+                    breadcrumbBacklog.removeAll(keepingCapacity: true)
+                }
             } catch {
+                consecutiveFailures += 1
                 errors.append("\(item.uri): \(error.localizedDescription)")
             }
-        }
-        if !deletedIDs.isEmpty {
-            let currentHandle = await client.currentHandle
-            let currentDID = await client.currentDid
-            let owner = currentHandle ?? currentDID
-            deletePersistedContent(itemIDs: deletedIDs, owner: owner)
         }
         return (deleted, errors)
     }
@@ -558,7 +652,7 @@ public actor ContentService {
                 ))
             }
         }
-        try? context.save()
+        saveOrLog(context, "persist")
     }
 
     /// Drop matching cached records after a successful delete so they
@@ -580,7 +674,7 @@ public actor ContentService {
                 context.delete(existing)
             }
         }
-        try? context.save()
+        saveOrLog(context, "deletePersistedContent")
     }
 
     /// Wipe all cached content for one owner before a forceRefresh
@@ -621,7 +715,7 @@ public actor ContentService {
                 ))
             }
         }
-        try? context.save()
+        saveOrLog(context, "persistRefreshStaging")
     }
 
     private func loadRefreshStaging(owner: String, generationID: String) -> [ContentItem] {
@@ -645,14 +739,25 @@ public actor ContentService {
         try? context.save()
     }
 
-    private func replaceCommittedContent(owner: String, with items: [ContentItem]) throws {
+    /// `evictStale: false` is the truncated-load path: rows absent from a
+    /// capped load may simply live beyond the page cap, so deleting them
+    /// would evict known-good cache for content that still exists upstream.
+    private func replaceCommittedContent(
+        owner: String,
+        with items: [ContentItem],
+        evictStale: Bool = true
+    ) throws {
         let context = ModelContext(container)
         let descriptor = FetchDescriptor<ContentItemRecord>(
             predicate: #Predicate { $0.ownerHandle == owner }
         )
         let existingRows = (try? context.fetch(descriptor)) ?? []
+        // uniquingKeysWith: a duplicate composite key (possible across
+        // migrations / multi-context writes despite the .unique attribute)
+        // must not trap at the end of a multi-hour refresh.
         var existingByKey = Dictionary(
-            uniqueKeysWithValues: existingRows.map { ($0.compositeKey, $0) }
+            existingRows.map { ($0.compositeKey, $0) },
+            uniquingKeysWith: { first, _ in first }
         )
         let now = Date()
 
@@ -693,8 +798,10 @@ public actor ContentService {
                 ))
             }
         }
-        for stale in existingByKey.values {
-            context.delete(stale)
+        if evictStale {
+            for stale in existingByKey.values {
+                context.delete(stale)
+            }
         }
         try context.save()
     }

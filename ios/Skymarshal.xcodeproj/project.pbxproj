@@ -21,6 +21,7 @@
 		1C5170BD1CE332775063D1A3 /* LastScannedBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2640395C3927D53D3C9B375A /* LastScannedBanner.swift */; };
 		1D9B712CF38FB7D812B65058 /* ContentType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491804997851E0480E3B7194 /* ContentType.swift */; };
 		1E17874CFF06F47B8EC2FC59 /* SearchAndScoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC1C886B8184F15CA15F3F32 /* SearchAndScoreTests.swift */; };
+		1EDA15318FE0C18042B34CEB /* DeleteSafetyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0251CDB9470178D22697417 /* DeleteSafetyTests.swift */; };
 		202EDDF5E9903C511FADD83D /* MediaThumbnailRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D3BE832B28566F7FA58947 /* MediaThumbnailRow.swift */; };
 		23C4AE5471A5C15977C11D5E /* InteractionFilterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 600FF77DFF3CBC8AD8B18493 /* InteractionFilterTests.swift */; };
 		247628CCD88EC6E6885E968E /* ArchiveLoadCheckpointTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7BBA7DC1E1BE3D785518107 /* ArchiveLoadCheckpointTests.swift */; };
@@ -133,6 +134,7 @@
 		F2489F5E05A1AD96DAFAFB31 /* AccountDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B74AACF37FEDE7F8B59D9D64 /* AccountDetailView.swift */; };
 		F27CE9228345BE86F36E04A7 /* StorageModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABB23B2F9DD406B2A2A17ED /* StorageModels.swift */; };
 		F4DF3B33546DDBBE157F599F /* ScanSummaryStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E30699ACD9FBA95746DC78E /* ScanSummaryStrip.swift */; };
+		F8A5329CFFA45BB0CAFBD2A7 /* DeletePacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8A7E95FBF0C93D5A80D6EB1 /* DeletePacing.swift */; };
 		F9681EFDBACDA437AAECE865 /* ReduceMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F9F29B67CBCC9B0D7EF82B3 /* ReduceMotion.swift */; };
 /* End PBXBuildFile section */
 
@@ -313,9 +315,11 @@
 		E51117D9318AC829BC60ECFA /* TypedConfirmSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypedConfirmSheet.swift; sourceTree = "<group>"; };
 		E5473889BD7929C3288FF1B2 /* Skymarshal.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Skymarshal.entitlements; sourceTree = "<group>"; };
 		E617CED88B3942F17AB3AC3D /* Timeout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Timeout.swift; sourceTree = "<group>"; };
+		E8A7E95FBF0C93D5A80D6EB1 /* DeletePacing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeletePacing.swift; sourceTree = "<group>"; };
 		E8D9EC50546232514095F18E /* ContentItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentItem.swift; sourceTree = "<group>"; };
 		EB0DE21307679CE27F51FFDD /* Interaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Interaction.swift; sourceTree = "<group>"; };
 		EF98F227B9CFB208A593B891 /* AttributedPostText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttributedPostText.swift; sourceTree = "<group>"; };
+		F0251CDB9470178D22697417 /* DeleteSafetyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteSafetyTests.swift; sourceTree = "<group>"; };
 		F0F3607A281A22A96499B601 /* AnalyticsInsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsInsightsView.swift; sourceTree = "<group>"; };
 		F13FF534F6122C655A075286 /* AccountRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountRow.swift; sourceTree = "<group>"; };
 		F62385E352BFF3314B1AEBB3 /* EditActionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditActionBar.swift; sourceTree = "<group>"; };
@@ -553,6 +557,7 @@
 				3F6217EEAAB150885CEC6C21 /* ATProtoDate.swift */,
 				8A1175A507B9D549FD38610F /* BackgroundGraphRefreshNotice.swift */,
 				CC5F0231741B1BC2B90885C8 /* BluescreenAnalyzer.swift */,
+				E8A7E95FBF0C93D5A80D6EB1 /* DeletePacing.swift */,
 				C33CEEA494ABBF59FFC62725 /* EngagementCacheTTL.swift */,
 				B68A86B4F78B52A2B431BD19 /* Exporter.swift */,
 				765C97061CEAAA0FD09D3B0B /* FeatureFlags.swift */,
@@ -582,6 +587,7 @@
 				70545F230369C31549E72CB6 /* ColdLaunchHydrationPatternTests.swift */,
 				8DC054C5281ED1C71D89290D /* ContentBackupImportTests.swift */,
 				7F523D8D9B7C0B04B797CD44 /* DeletePreflightTests.swift */,
+				F0251CDB9470178D22697417 /* DeleteSafetyTests.swift */,
 				FD14FDBAE5516851968240DC /* DeleteURIMappingTests.swift */,
 				3D3CC90BA19071F867E44A14 /* DestructiveActionConsistencyTests.swift */,
 				79485208079763B89F328C49 /* ExporterTests.swift */,
@@ -775,6 +781,7 @@
 				7F8F22BD66EACE4252A4EE37 /* ContentSortOrder.swift in Sources */,
 				1D9B712CF38FB7D812B65058 /* ContentType.swift in Sources */,
 				15E602494BF1E156A8E7C3BD /* DeleteBatchRecovery.swift in Sources */,
+				F8A5329CFFA45BB0CAFBD2A7 /* DeletePacing.swift in Sources */,
 				3B2B051276F10B0F8994B2AC /* DeletePreflight.swift in Sources */,
 				B2BE03AF8B77BD2712A8A946 /* EngagementCacheTTL.swift in Sources */,
 				24EF00B3E079F4D08D3A6E21 /* Exporter.swift in Sources */,
@@ -817,6 +824,7 @@
 				B371E2C734F061786C014B23 /* ColdLaunchHydrationPatternTests.swift in Sources */,
 				F10689186D4F86B47B4E2108 /* ContentBackupImportTests.swift in Sources */,
 				30522E9F9D11B1F73C73B238 /* DeletePreflightTests.swift in Sources */,
+				1EDA15318FE0C18042B34CEB /* DeleteSafetyTests.swift in Sources */,
 				00E78D483E5D877449E93B3D /* DeleteURIMappingTests.swift in Sources */,
 				00B7A8EBB9703BEBDB5B5EE9 /* DestructiveActionConsistencyTests.swift in Sources */,
 				78CD18D426387960001ED4AC /* ExporterTests.swift in Sources */,

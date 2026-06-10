@@ -246,6 +246,32 @@ struct ContentListView: View {
                     }
                 }
 
+                if model.isDeleting, let deleteProgress = model.deleteProgress {
+                    DeleteProgressBanner(
+                        deleted: deleteProgress.deleted,
+                        total: deleteProgress.total
+                    ) {
+                        model.cancelDelete()
+                    }
+                }
+
+                if model.archiveTruncated {
+                    Label {
+                        Text("Showing the most recent \(ContentService.maxPagesPerEndpoint * 100, format: .number) items per category. Older items exist on Bluesky beyond this view.")
+                            .font(Theme.Mono.caption(11))
+                            .foregroundStyle(.secondary)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle")
+                            .symbolRenderingMode(.monochrome)
+                            .foregroundStyle(Theme.caution)
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 6)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.thinMaterial)
+                    .accessibilityElement(children: .combine)
+                }
+
                 if editMode.isEditing {
                     EditActionBar(
                         selectionCount: selection.count,

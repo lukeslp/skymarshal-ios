@@ -42,9 +42,21 @@ public enum RateLimit {
         return false
     }
 
+    /// Server-supplied waits are honored up to this cap. Anything longer
+    /// (a fully exhausted hourly window can be ~50 min away) should fail
+    /// upward so batch-level handling can halt with honest messaging
+    /// instead of one item silently sleeping for an hour.
+    public static let maxServerWaitSeconds: Double = 120
+
     /// Run `work` with 429-aware exponential backoff. Re-throws any non-429
     /// error immediately. After exhausting the schedule, throws the last
     /// observed 429 error.
+    ///
+    /// When the 429 carries a server-supplied wait (`Retry-After` /
+    /// `ratelimit-reset`, surfaced as ``ATProtoError/retryAfterSeconds``),
+    /// that wait is used for the next retry instead of the ladder step,
+    /// clamped to ``maxServerWaitSeconds``. The fixed ladder remains the
+    /// fallback whenever the server says nothing — never simplify it.
     ///
     /// Wrap each individual write call (e.g. one `deleteRecord`), not an
     /// outer batch loop — each URI gets its own retry budget.
@@ -54,7 +66,11 @@ public enum RateLimit {
         var lastError: Error?
         let schedule: [UInt64] = [0] + backoffSeconds
         for delay in schedule {
-            if delay > 0 {
+            let serverWait = (lastError as? ATProtoError)?.retryAfterSeconds
+                .map { min(max($0, 1), maxServerWaitSeconds) }
+            if let serverWait {
+                try await Task.sleep(nanoseconds: UInt64(serverWait * 1_000_000_000))
+            } else if delay > 0 {
                 try await Task.sleep(nanoseconds: delay * 1_000_000_000)
             }
             do {
@@ -83,12 +99,23 @@ public struct ATProtoError: Error, Sendable, Equatable, LocalizedError {
     public let message: String
     public let body: String?
     public let error: String?
+    /// Server-instructed wait parsed from `Retry-After` / `ratelimit-reset`
+    /// response headers, when present. ``RateLimit/withBackoff(_:)`` prefers
+    /// this over its fixed ladder for the next retry.
+    public let retryAfterSeconds: TimeInterval?
 
-    public init(status: Int, message: String, body: String? = nil, error: String? = nil) {
+    public init(
+        status: Int,
+        message: String,
+        body: String? = nil,
+        error: String? = nil,
+        retryAfterSeconds: TimeInterval? = nil
+    ) {
         self.status = status
         self.message = message
         self.body = body
         self.error = error ?? Self.parseErrorCode(from: body)
+        self.retryAfterSeconds = retryAfterSeconds
     }
 
     /// Surface the structured PDS message ("Token has been expired" rather

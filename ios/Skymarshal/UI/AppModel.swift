@@ -56,6 +56,11 @@ final class AppModel {
     var errorMessage: String?
     /// Set when a multi-item delete may have been interrupted before completion.
     var deleteInterruptionNotice: String?
+    /// True when the last archive load hit the per-endpoint page cap with
+    /// more pages remaining — the visible archive is the most recent
+    /// ~20,000 items per category, not everything. Honest-UX gate for
+    /// "delete everything" expectations.
+    private(set) var archiveTruncated: Bool = false
     /// Set when the session refresh path can't recover the user's tokens
     /// and the UI has been flipped back to LoginView. Distinct from
     /// ``errorMessage`` so a stale "ExpiredToken" toast from an in-flight
@@ -374,6 +379,7 @@ final class AppModel {
             self.summary = await svc.summarize()
             self.loadProgress = nil
             self.lastContentScannedAt = Date()
+            self.archiveTruncated = await svc.lastLoadTruncated
         } catch is CancellationError {
             self.items = await content.loadedSnapshot
             self.summary = await content.summarize()
@@ -391,18 +397,72 @@ final class AppModel {
         return results
     }
 
+    /// True while a bulk delete batch is running; drives the in-progress
+    /// UI and the Stop button.
+    private(set) var isDeleting: Bool = false
+    /// (confirmed deletions so far, batch size) for the progress banner.
+    private(set) var deleteProgress: (deleted: Int, total: Int)?
+    private var deleteTask: Task<(deleted: Int, errors: [String]), Never>?
+
+    private func noteDeleteProgress(deleted: Int, total: Int) {
+        deleteProgress = (deleted, total)
+    }
+
     func delete(itemIDs: [String]) async -> (deleted: Int, errors: [String]) {
         let ownerKey = currentHandle ?? currentDid ?? ""
         if itemIDs.count >= 2, !ownerKey.isEmpty {
             DeleteBatchRecovery.store(ownerKey: ownerKey, itemIDs: itemIDs)
         }
-        let result = await content.delete(itemIDs: itemIDs)
-        DeleteBatchRecovery.clear()
+
+        // A paced 1,000-item batch outlives the 30s screen autolock many
+        // times over; without these two holds the process suspends and the
+        // batch dies mid-flight. The idle-timer hold keeps the screen on
+        // while the app is frontmost; the background task buys a grace
+        // window if the user switches away anyway.
+        UIApplication.shared.isIdleTimerDisabled = true
+        var bgTask: UIBackgroundTaskIdentifier = .invalid
+        bgTask = UIApplication.shared.beginBackgroundTask(withName: "sm.bulkDelete") {
+            self.deleteTask?.cancel()
+            UIApplication.shared.endBackgroundTask(bgTask)
+            bgTask = .invalid
+        }
+        isDeleting = true
+        deleteProgress = (0, itemIDs.count)
+        defer {
+            isDeleting = false
+            deleteProgress = nil
+            deleteTask = nil
+            UIApplication.shared.isIdleTimerDisabled = false
+            if bgTask != .invalid {
+                UIApplication.shared.endBackgroundTask(bgTask)
+            }
+        }
+
+        let total = itemIDs.count
+        let task = Task { [weak self, content] in
+            await content.delete(itemIDs: itemIDs) { deleted in
+                await self?.noteDeleteProgress(deleted: deleted, total: total)
+            }
+        }
+        deleteTask = task
+        let result = await task.value
+
+        // The breadcrumb self-trims as items succeed (ContentService calls
+        // DeleteBatchRecovery.markCompleted) and self-clears when nothing
+        // remains. Do NOT clear it unconditionally here: after a cancel,
+        // a circuit-breaker halt, or a wall of errors, what's left in the
+        // breadcrumb is exactly the set of items whose fate is unconfirmed.
         if !itemIDs.isEmpty {
             self.items = await content.loadedSnapshot
             self.summary = await content.summarize()
         }
         return result
+    }
+
+    /// Stop button for an in-flight bulk delete. Already-deleted records
+    /// stay deleted; the result surfaces how many items were not attempted.
+    func cancelDelete() {
+        deleteTask?.cancel()
     }
 
     func dismissDeleteInterruptionRecovery() {

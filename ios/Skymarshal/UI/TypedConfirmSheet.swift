@@ -48,7 +48,7 @@ struct TypedConfirmSheet: View {
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
-                        Text("This action cannot be undone. Deleted posts cannot be recovered, and the bsky.social rate limit means this batch will take several minutes to complete.")
+                        Text("This action cannot be undone. Deleted posts cannot be recovered. At Bluesky's rate limits, this batch takes \(DeletePacing.formattedEstimate(for: effectiveCount)) at minimum — keep Skymarshal open and your device awake while it runs. You can stop partway; finished deletions stay deleted.")
                             .font(.callout)
                             .foregroundStyle(.secondary)
                     }

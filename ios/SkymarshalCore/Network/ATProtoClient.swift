@@ -465,7 +465,13 @@ public actor ATProtoClient {
             do {
                 newSession = try await refreshSession()
             } catch {
-                handleRefreshFailure()
+                // Only a definitive rejection of the refresh token means the
+                // session is dead. A timeout, airplane mode, or a PDS 5xx is
+                // transient — wiping the Keychain on those reintroduced the
+                // "logged out after a while" bug for every flaky network.
+                if Self.isDefinitiveAuthRejection(error) {
+                    handleRefreshFailure()
+                }
                 throw error
             }
             var retried = request
@@ -486,10 +492,28 @@ public actor ATProtoClient {
             throw ATProtoError(
                 status: http.statusCode,
                 message: HTTPURLResponse.localizedString(forStatusCode: http.statusCode),
-                body: String(data: data, encoding: .utf8)
+                body: String(data: data, encoding: .utf8),
+                retryAfterSeconds: Self.retryAfterSeconds(from: http)
             )
         }
         return (data, http)
+    }
+
+    /// Extract the server-instructed wait from a throttled response.
+    /// `Retry-After` carries delta-seconds; `ratelimit-reset` carries a
+    /// Unix epoch. Either feeds ``RateLimit/withBackoff(_:)`` as an
+    /// override; absent both, the fixed ladder applies.
+    static func retryAfterSeconds(from http: HTTPURLResponse) -> TimeInterval? {
+        if let retryAfter = http.value(forHTTPHeaderField: "Retry-After"),
+           let seconds = TimeInterval(retryAfter), seconds > 0 {
+            return seconds
+        }
+        if let reset = http.value(forHTTPHeaderField: "ratelimit-reset"),
+           let epoch = TimeInterval(reset) {
+            let delta = epoch - Date().timeIntervalSince1970
+            if delta > 0 { return delta }
+        }
+        return nil
     }
 
     /// Tear down a session that can't be refreshed. Clears in-memory +
@@ -497,6 +521,14 @@ public actor ATProtoClient {
     /// so observers (``AppModel``) can flip the UI back to LoginView
     /// with a useful "Session expired — please sign in again." message
     /// instead of letting the bare ATProtoError reach the user.
+    /// True only when the PDS itself rejected the refresh token (HTTP 400 /
+    /// 401 from `refreshSession`). `URLError`s and 5xx responses are
+    /// transient and must NOT tear the session down.
+    static func isDefinitiveAuthRejection(_ error: Error) -> Bool {
+        guard let atError = error as? ATProtoError else { return false }
+        return atError.status == 400 || atError.status == 401
+    }
+
     private func handleRefreshFailure() {
         self.currentSession = nil
         self.refreshTask = nil

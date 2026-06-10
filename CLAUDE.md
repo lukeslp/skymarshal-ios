@@ -17,7 +17,9 @@ ios/                          # The active product — SwiftUI app, TestFlight v
   project.yml                 # xcodegen canonical source — never edit .xcodeproj directly
   Skymarshal/                 # App target: SwiftUI views, AppModel, App entry
   SkymarshalCore/             # Framework: Models, Services, Standards, Network, Storage
-  SkymarshalTests/            # 185 test methods; xcodebuild test green
+  SkymarshalTests/            # 233 test methods; xcodebuild test green
+                              #   (ScreenshotTest needs SKY_TEST_HANDLE/_APP_PASSWORD;
+                              #   -skip-testing:SkymarshalUITests/ScreenshotTest in dev runs)
   SkymarshalUITests/          # UI harness with sm.feature.* flag bridge
 docs/                         # iOS-specific planning + design artifacts
   PROJECT_PLAN.md             # (mirror at repo root) — distribution status, council log
@@ -54,8 +56,13 @@ The Python and React clients here are **read-only references**. To run them, go 
 # iOS — the active product
 cd ios
 xcodegen generate                  # regenerate Skymarshal.xcodeproj from project.yml
-xcodebuild -scheme Skymarshal -destination 'platform=iOS Simulator,name=iPhone 15' test
+xcodebuild -scheme Skymarshal -destination 'platform=iOS Simulator,name=iPhone 17' test
 xcodebuild -scheme Skymarshal -destination 'generic/platform=iOS' archive -archivePath build/Skymarshal.xcarchive
+
+# fastlane (App Store Connect; export APP_STORE_CONNECT_API_KEY_* first)
+cd ios && fastlane screenshots         # capture both device classes via XCUITest
+cd ios && fastlane upload_screenshots  # refuses partial/stale/unequal sets (SKY_ALLOW_PARTIAL=1 to force)
+cd ios && fastlane upload_listing      # metadata only, from ios/fastlane/metadata/
 
 # Feature-flag toggles for UITest / dev runs
 # Pass via scheme arguments: -sm.feature.advancedSearch YES, -sm.feature.visualizationHub YES, etc.
@@ -69,8 +76,10 @@ xcodebuild -scheme Skymarshal -destination 'generic/platform=iOS' archive -archi
 
 - **iOS uses `ContentType.REPLIES`, not `.COMMENTS`.** AT Protocol calls them "replies" (the field on `app.bsky.feed.post`). Python `reference/python/models.py` still has a `COMMENTS` legacy value; iOS does not carry it forward.
 - **Web client engagement-weight split** — when reading `reference/web/` for parity, note `skymarshal/models/enums.ts:138-141` says `replies: 3` and `SearchManager.ts:336` honors it, but `pages/ContentManagement.tsx:56` uses `2.5`. iOS sides with Python (2.5). The web bug is on the web team — don't propagate the 3 into iOS.
-- **Resumable-delete breadcrumb is half-built** — `SkymarshalCore/Services/DeleteBatchRecovery.swift:22-30` writes the full intended-IDs list once at delete-start and never updates per-success. `ContentService.swift:289-318` does the serial delete loop. On mid-batch crash, recovery reports *all* items as pending. Fix is ~5 LOC inside the for-loop (write back after `deleted += 1`). Treat as a ship-blocker for v1.0.x.
-- **`ratelimit-reset` / `Retry-After` headers are discarded.** `ATProtoClient.swift:453-466` (`performRaw`) drops response headers; `RateLimit.withBackoff` only uses the fixed `[1,2,4,8,15,30,60,120]` ladder. Worth threading an optional server-supplied wait into `RateLimit` and falling back to the ladder — pattern ported from ATProtoKit's `ATAPIError.tooManyRequests(retryAfter:)`.
+- **Resumable-delete breadcrumb is chunked, not per-item** (fixed 2026-06-10). `DeleteBatchRecovery.markCompleted` trims confirmed deletions every ~25 successes inside the `ContentService.delete` loop; the breadcrumb self-clears when empty. Do NOT clear it unconditionally after a batch — what remains after a cancel/halt is exactly the unconfirmed set.
+- **`Retry-After` / `ratelimit-reset` are parsed** (fixed 2026-06-10). `performRaw` threads the server wait into `ATProtoError.retryAfterSeconds`; `RateLimit.withBackoff` prefers it (clamped to 120s) over the ladder. The fixed `[1,2,4,8,15,30,60,120]` ladder remains the fallback — never simplify it.
+- **All server-timestamp parsing goes through `ATProtoDate.parse`** (fixed 2026-06-10). A bare `ISO8601DateFormatter` rejects the fractional-second timestamps the official client writes; nil dates used to pass date filters, which made date-scoped bulk deletes select the whole archive. Date predicates in `SearchRequest` fail closed — never let a nil `createdAt` match an active date filter.
+- **Refresh failures triage network vs auth** (fixed 2026-06-10). Only a 400/401 from `refreshSession` clears the Keychain (`ATProtoClient.isDefinitiveAuthRejection`); timeouts/5xx keep the session. Bulk deletes pace at ~3,200/hr past a 300-item burst (`DeletePacing`), halt after 10 consecutive failures, and honor cancellation between items.
 - **JWT pre-expiry refresh isn't done.** `ATProtoClient.swift` refreshes reactively on 401. ATProtoKit's `ensureValidToken()` decodes the JWT `exp` claim and refreshes if `<= now + 10s`. One fewer round-trip per stale-token call — file under "convention worth borrowing from ATProtoKit without taking the dep."
 - **UTF-8 byte-offset facet parsing trap.** AT Proto facet `byteStart` / `byteEnd` are UTF-8 byte indices. When post bodies eventually render tappable mentions/links, `NSRange` / `String.Index` math will silently corrupt offsets on any emoji or non-ASCII character. Use `text.utf8.distance(...)` with `samePosition(in: text.utf8)`.
 - **No-SPM-deps stance is sustainable for ~8 endpoints**, not forever. Trigger to adopt ATProtoKit (or similar): (a) rich-text facet emission for posting, or (b) lexicon drift outpacing hand-rolled `ATProtoTypes.swift`. Neither is in the v1.x brief.
@@ -115,29 +124,34 @@ These are load-bearing across every SwiftUI view and easy to break by accident. 
 
 ## Council pre-ship checklist (v1.0.x → App Store)
 
-Action items distilled from the May 2026 `/team:team` verdict. Treat each as a gate.
+May 2026 `/team:team` verdict, updated by the 2026-06-10 adversarial review (cynic + breaker + executive; full log in `PROJECT_PLAN.md`).
 
-**Ship-blockers (must land before App Store submission):**
-- Move `DeleteBatchRecovery` breadcrumb update inside the delete for-loop at `SkymarshalCore/Services/ContentService.swift:289-318` so per-success state survives mid-batch crashes. ~5 LOC + a recovery test.
-- Pre-flight estimated wall-clock time before any bulk delete ≥ 1,000 items. With a ~5k writes/hr PDS cap, a 50k nuke is 10+ hours and the UI currently does not say so up front.
+**Done (verified 2026-06-10):**
+- ✅ Breadcrumb per-success state — chunked `DeleteBatchRecovery.markCompleted` inside the delete loop + recovery tests.
+- ✅ Pre-flight wall-clock estimate — `DeletePacing.formattedEstimate` in `TypedConfirmSheet`.
+- ✅ User-facing Bluescreen rename — zero user-facing "Bluescreen" strings remain (tab "Followers", copy "Patterns we noticed"). Internal codenames stay.
+- ✅ Reviewer notes cite `com.atproto.repo.deleteRecord` (`app-store/SUBMISSION_NOTES.md` + `ios/fastlane/metadata/review_information/notes.txt`).
+- ✅ Content tab CSV/JSON export (`Exporter.swift` pattern; never `Transferable`/`ShareLink` — commit `5e3e66a`).
+- ✅ Alt-text search — covered by `includeAltTextInKeyword`; the dedicated `altTextContains` field was dropped as redundant.
+- ✅ Date-parse safety, refresh triage, Retry-After parsing, delete pacing/cancel/circuit-breaker, 20k truncation banner, SwiftData duplicate-key guard (breaker findings — see Gotchas).
+
+**Still open before submission (manual, Luke):**
+- Create + populate the demo account (`app-store/DEMO_ACCOUNT.md`) and paste credentials into ASC App Review sign-in fields.
 - 15-min [USPTO TESS](https://tmsearch.uspto.gov) check on "Skymarshal" in the software-utility class.
-- Rename **user-facing** "Bluescreen" to "Patterns" or "Signals" in listing copy + in-app labels. Internal codename keeps "Bluescreen" per the existing dignity-rename convention (`BluescreenAnalyzer` etc. stay).
-- Reviewer-notes file for App Store submission citing `com.atproto.repo.deleteRecord` as a documented public AT Protocol lexicon, with link to the spec. Mitigates 5.2.2 / 4.3 review risk seen historically with Twitter cleanup apps.
-
-**Parity gaps (small, close before App Store):**
-- Content tab CSV/JSON export — follow the `Exporter.swift` Bluescreen pattern: hand-rolled FileHandle CSV (RFC 4180 + UTF-8 BOM) + per-element `JSONEncoder` framing + temp-file `UIActivityViewController`. **Do not use `Transferable` / `ShareLink`** — commit `5e3e66a` memorializes the crash.
-- Alt-text search filter — one optional `altTextContains: String?` field on `SearchRequest` + one predicate clause.
-- Timeframe quick-filter chips (7d / 30d / 90d / 1y) — pure UI sugar over the existing `dateFrom` / `dateTo`.
+- Soak run per `docs/SOAK_PROTOCOL.md` (≥10k-post account, artifact under `docs/soak/`) — required by `docs/SUBMISSION_DECISION.md`.
+- Full screenshot sets for both device classes; pull TestFlight install/session/crash numbers before submitting.
+- Timeframe quick-filter chips (7d/30d/90d/1y) — last open parity item; may slip to v1.1.
 
 **v1.1 candidates (after launch):**
-- "Danger Zone" bulk-by-category delete (all likes / all reposts / all follows) — high blast radius, pair with `TypedConfirmSheet` + countdown + the 429 ladder.
+- Ghost likes via `com.atproto.repo.listRecords` — likes of deleted/suspended authors are invisible to `getActorLikes` and currently undeletable.
+- "Danger Zone" bulk-by-category delete (all likes / all reposts / all follows) — pair with `TypedConfirmSheet` + countdown + the 429 ladder.
 - Per-item delete parade (Python's `DeleteMode.INDIVIDUAL`).
-- `Retry-After` / `ratelimit-reset` header parse in `ATProtoClient.performRaw:453-466`, threaded into `RateLimit.withBackoff` as an optional override (fixed ladder remains the fallback).
+- Paywall decision (launch is free, no IAP — decided 2026-06-10; grandfather early adopters if one ships).
 
-**Kill criteria (preserved from cynic, do not bury):**
+**Kill criteria (restated measurably 2026-06-10; canonical copy in `PROJECT_PLAN.md`):**
 - **Ship-blocker.** First 2 App Store submissions / threshold: rejection citing 5.0 or 4.3 on content-deletion grounds / action: do not appeal a third time — pivot to PWA at skymarshal.blue, keep iOS as a read-only audit companion.
-- **Pivot-trigger.** Any 2026 Bluesky official-app release / threshold: ships native bulk-delete-by-filter / action: drop deletion as headline within 30 days; reposition entirely around Patterns (follower hygiene) + alt-text audit.
-- **Sunset-trigger.** 6 months post-launch / threshold: MAU < 75 AND paid conversion < 1.0% AND App Store rating < 4.2 / action: archive iOS target, maintain Python CLI only.
+- **Pivot-trigger.** Bluesky ships/announces native bulk-delete-by-filter (checked monthly, next 2026-07-10) / action: drop deletion as headline within 30 days; reposition around Patterns + alt-text audit.
+- **Sunset-trigger.** By 2026-12-10: <300 App Analytics opt-in downloads AND <25 ratings AND (if IAP shipped) <30 unlocks / action: archive iOS target, maintain Python CLI only.
 
 ## Marketing copy rules (apply to App Store listing too)
 
