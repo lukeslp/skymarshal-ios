@@ -31,6 +31,30 @@ final class TestURLProtocol: URLProtocol {
     override func stopLoading() {}
 }
 
+extension URLRequest {
+    /// Inside a `URLProtocol`, the loader has already converted `httpBody`
+    /// to `httpBodyStream` — reading `httpBody` returns nil and any
+    /// body-based stubbing silently matches nothing.
+    var bodyString: String {
+        if let body = httpBody {
+            return String(data: body, encoding: .utf8) ?? ""
+        }
+        guard let stream = httpBodyStream else { return "" }
+        stream.open()
+        defer { stream.close() }
+        var data = Data()
+        let bufferSize = 4096
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+        defer { buffer.deallocate() }
+        while stream.hasBytesAvailable {
+            let read = stream.read(buffer, maxLength: bufferSize)
+            if read <= 0 { break }
+            data.append(buffer, count: read)
+        }
+        return String(data: data, encoding: .utf8) ?? ""
+    }
+}
+
 @available(iOS 17, *)
 final class DestructiveActionConsistencyTests: XCTestCase {
     override func tearDown() {
@@ -76,8 +100,7 @@ final class DestructiveActionConsistencyTests: XCTestCase {
         let client = makeClient()
         await client.setSession(makeSession())
         TestURLProtocol.handler = { request in
-            let body = String(data: request.httpBody ?? Data(), encoding: .utf8) ?? ""
-            return body.contains("bad")
+            return request.bodyString.contains("bad")
                 ? (500, Data("{\"error\":\"failed\"}".utf8))
                 : (200, Data("{}".utf8))
         }
@@ -107,8 +130,7 @@ final class DestructiveActionConsistencyTests: XCTestCase {
         let client = makeClient()
         await client.setSession(makeSession())
         TestURLProtocol.handler = { request in
-            let body = String(data: request.httpBody ?? Data(), encoding: .utf8) ?? ""
-            return body.contains("bad")
+            return request.bodyString.contains("bad")
                 ? (500, Data("{\"error\":\"failed\"}".utf8))
                 : (200, Data("{}".utf8))
         }

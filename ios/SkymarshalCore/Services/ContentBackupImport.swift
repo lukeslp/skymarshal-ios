@@ -103,10 +103,7 @@ public enum ContentBackupImport: Sendable {
                 expectedCollection: expectedCollection
             )
 
-            let date: Date? = {
-                guard let s = createdAt, !s.isEmpty else { return nil }
-                return ISO8601DateFormatter().date(from: s)
-            }()
+            let date = ATProtoDate.parse(createdAt)
             let media: [MediaPreview] = hasMedia
                 ? [MediaPreview(kind: .image, alt: altText)]
                 : []

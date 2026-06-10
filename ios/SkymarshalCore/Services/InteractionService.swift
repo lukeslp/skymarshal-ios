@@ -181,9 +181,7 @@ public actor InteractionService {
                         direction: .incoming,
                         subjectURI: parentURI,
                         subjectText: view.post.record?.text,
-                        timestamp: view.post.record?.createdAt.flatMap {
-                            ISO8601DateFormatter().date(from: $0)
-                        },
+                        timestamp: ATProtoDate.parse(view.post.record?.createdAt),
                         actorRecordURI: view.post.uri
                     ))
                 }
@@ -195,9 +193,7 @@ public actor InteractionService {
                         direction: .incoming,
                         subjectURI: view.post.uri,
                         subjectText: view.post.record?.text,
-                        timestamp: view.reason?.indexedAt.flatMap {
-                            ISO8601DateFormatter().date(from: $0)
-                        }
+                        timestamp: ATProtoDate.parse(view.reason?.indexedAt)
                     ))
                 }
             }
@@ -244,9 +240,7 @@ public actor InteractionService {
                         direction: .incoming,
                         subjectURI: view.post.uri,
                         subjectText: view.post.record?.text,
-                        timestamp: view.post.record?.createdAt.flatMap {
-                            ISO8601DateFormatter().date(from: $0)
-                        }
+                        timestamp: ATProtoDate.parse(view.post.record?.createdAt)
                     ))
                 }
             }

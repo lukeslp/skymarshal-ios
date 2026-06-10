@@ -199,8 +199,15 @@ public struct SearchRequest: Hashable, Sendable, Codable {
                 }
             }
         }
-        if let start = startDate, let created = item.createdAt, created < start { return false }
-        if let end = endDate, let created = item.createdAt, created > end { return false }
+        // Fail closed: when a date filter is active, an item whose
+        // createdAt could not be parsed must NOT match. Letting nil-dated
+        // items through turned "delete before <date>" into "delete
+        // everything" for archives whose timestamps failed to parse.
+        if startDate != nil || endDate != nil {
+            guard let created = item.createdAt else { return false }
+            if let start = startDate, created < start { return false }
+            if let end = endDate, created > end { return false }
+        }
         if let r = likes,   !r.contains(item.likeCount)   { return false }
         if let r = reposts, !r.contains(item.repostCount) { return false }
         if let r = replies, !r.contains(item.replyCount)  { return false }

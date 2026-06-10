@@ -400,9 +400,8 @@ public actor FollowerService {
         let response = try await client.getAuthorFeed(
             actor: actor, limit: 1, cursor: nil, filter: "posts_no_replies"
         )
-        guard let view = response.feed.first,
-              let createdAt = view.post.record?.createdAt else { return nil }
-        return ISO8601DateFormatter().date(from: createdAt)
+        guard let view = response.feed.first else { return nil }
+        return ATProtoDate.parse(view.post.record?.createdAt)
     }
 
     /// Replace the profile's count fields and (if originally absent) any

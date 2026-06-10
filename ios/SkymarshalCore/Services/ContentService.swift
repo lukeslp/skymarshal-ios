@@ -385,12 +385,7 @@ public actor ContentService {
         let isRepost = view.reason != nil
         let type: ContentType = isRepost ? .reposts : (isReply ? .replies : .posts)
 
-        let createdAt: Date? = {
-            if let iso = post.record?.createdAt {
-                return ISO8601DateFormatter().date(from: iso)
-            }
-            return nil
-        }()
+        let createdAt = ATProtoDate.parse(post.record?.createdAt)
 
         let subjectHandle: String? = (type == .likes || type == .reposts)
             ? post.author.handle

@@ -102,6 +102,6 @@ public struct BskyProfile: Hashable, Sendable, Codable, Identifiable {
 
     /// Account-creation date parsed from `createdAt`. Returns nil for malformed strings.
     public var createdDate: Date? {
-        ISO8601DateFormatter().date(from: createdAt)
+        ATProtoDate.parse(createdAt)
     }
 }
