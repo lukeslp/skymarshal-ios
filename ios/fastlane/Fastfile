@@ -30,6 +30,15 @@ platform :ios do
         FileUtils.cp(f, File.join(staging, "#{prefix}-#{File.basename(f)}"))
       end
     end
+    # overwrite_screenshots wipes EVERY device class in the locale, not just
+    # the ones staged — uploading an iPhone-only set deletes the iPad set
+    # that lives only in ASC (this happened 2026-06-10). Refuse partial
+    # uploads unless explicitly forced.
+    %w[iphone69 ipad13].each do |prefix|
+      if Dir[File.join(staging, "#{prefix}-*.png")].empty? && ENV["SKY_ALLOW_PARTIAL"] != "1"
+        UI.user_error!("No #{prefix} screenshots staged — a partial upload would delete the other device class in ASC. Capture both sets, or set SKY_ALLOW_PARTIAL=1 to override.")
+      end
+    end
     deliver(
       submit_for_review: false,
       automatic_release: false,
