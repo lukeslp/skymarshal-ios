@@ -3,20 +3,20 @@ Skymarshal is air-traffic control for your Bluesky.
 Find old posts you forgot you wrote. Catch the late-night replies you'd
 rather not look at. Cull the followers you'd never have followed back.
 Skymarshal scans your own Bluesky archive, scores it, and lets you tidy
-in bulk — with the kind of confirmations a deletion deserves.
+in bulk, with the kind of confirmations a deletion deserves.
 
 Built for power users who've used Bluesky long enough that "delete one
 post at a time" stopped being acceptable.
 
 CONTENT MANAGEMENT
-- Search every post, reply, repost, and like you've ever made — keyword,
+- Search every post, reply, repost, and like you've ever made: keyword,
   content type, date range, engagement count, alt-text, presence of media.
 - Inline media thumbnails so you can remember exactly which post you're
   looking at before you act.
 - Swipe-delete one at a time, or Select All from a search result and
   delete a hundred at once.
 - Multiple confirmation steps. Permanent deletions deserve them.
-- Rate-limit aware — bulk deletes pause and retry instead of hammering
+- Rate-limit aware: bulk deletes pause and retry instead of hammering
   the API and getting throttled.
 
 FOLLOWER CLEANUP
@@ -31,23 +31,23 @@ FOLLOWER CLEANUP
 
 DYNAMIC SEARCH
 - Filter to "with media" or "without media."
-- Search alt-text alongside post text — finds that capybara post even
+- Search alt-text alongside post text; finds that capybara post even
   when you didn't write the word "capybara."
 - Combine date range + engagement bounds to surface "dead threads"
   (low engagement) or "old bangers" (high engagement, distant past).
 
 PRIVACY
 - Sign in with a Bluesky app password. Skymarshal never sees your real
-  password — generate a disposable one in Bluesky's settings.
+  password. Generate a disposable one in Bluesky's settings.
 - No analytics. No tracking pixels. No third-party SDKs of any kind.
-- No account on our end, no server we host. Your archive is fetched
+- No account on my end, no server I host. Your archive is fetched
   directly from Bluesky's public XRPC endpoints. Nothing leaves your
   phone.
 
 WHO IT'S FOR
 Power users with thousands of posts. Journalists. Public-facing accounts.
 Anyone who wants their archive on their terms. Light users will find it
-overkill — that's fine. Skymarshal is the second tool you reach for when
+overkill. That's fine. Skymarshal is the second tool you reach for when
 the first one isn't enough.
 
 WHAT IT'S NOT
@@ -56,4 +56,4 @@ growth tool. Not affiliated with Bluesky Social, PBC. The Bluesky logo,
 butterfly mark, and "Bluesky" name are property of their owner;
 Skymarshal is an independent third-party utility.
 
-Made by a small studio. Questions: skymarshal@lukesteuber.com
+Made by Luke Steuber. Questions: skymarshal@lukesteuber.com

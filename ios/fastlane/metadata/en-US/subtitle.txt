@@ -1,1 +1,1 @@
-Cleanup tool for Bluesky.
+Cleanup tool for Bluesky
