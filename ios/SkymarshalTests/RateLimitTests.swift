@@ -74,6 +74,21 @@ final class RateLimitTests: XCTestCase {
 
     // MARK: - withBackoff behavior
 
+    private final class AtomicCounter: @unchecked Sendable {
+        private let lock = NSLock()
+        private var _count: Int = 0
+        var count: Int {
+            lock.lock()
+            defer { lock.unlock() }
+            return _count
+        }
+        func increment() {
+            lock.lock()
+            defer { lock.unlock() }
+            _count += 1
+        }
+    }
+
     func test_withBackoff_returnsImmediatelyOnSuccess() async throws {
         let result = try await RateLimit.withBackoff { 42 }
         XCTAssertEqual(result, 42)
@@ -81,15 +96,15 @@ final class RateLimitTests: XCTestCase {
 
     func test_withBackoff_reThrowsNonRateLimitErrorImmediately() async {
         struct OtherError: Error, Equatable {}
-        var attempts = 0
+        let counter = AtomicCounter()
         do {
             _ = try await RateLimit.withBackoff { () -> Int in
-                attempts += 1
+                counter.increment()
                 throw OtherError()
             }
             XCTFail("Expected throw")
         } catch is OtherError {
-            XCTAssertEqual(attempts, 1, "Non-429 must not retry")
+            XCTAssertEqual(counter.count, 1, "Non-429 must not retry")
         } catch {
             XCTFail("Wrong error type: \(error)")
         }
@@ -99,15 +114,15 @@ final class RateLimitTests: XCTestCase {
         // Use a very short conceptual schedule by faking the source: we
         // fail twice with 429, then succeed. The actual delays will fire
         // (1s + 2s = 3s real time), so this test takes ~3 seconds.
-        var attempts = 0
+        let counter = AtomicCounter()
         let result = try await RateLimit.withBackoff { () -> String in
-            attempts += 1
-            if attempts < 3 {
+            counter.increment()
+            if counter.count < 3 {
                 throw ATProtoError(status: 429, message: "still throttled")
             }
             return "ok"
         }
         XCTAssertEqual(result, "ok")
-        XCTAssertEqual(attempts, 3)
+        XCTAssertEqual(counter.count, 3)
     }
 }

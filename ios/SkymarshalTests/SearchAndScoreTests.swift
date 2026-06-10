@@ -49,8 +49,7 @@ final class SearchAndScoreTests: XCTestCase {
             media: [MediaPreview(kind: .image, alt: "a cat")]
         )
         let noMedia = ContentItem(uri: "b", cid: "2", contentType: .posts)
-        var req = SearchRequest()
-        req.mediaFilter = .onlyMedia
+        let req = SearchRequest(mediaFilter: .onlyMedia)
         let out = req.apply(to: [withMedia, noMedia])
         XCTAssertEqual(out.map(\.uri), ["a"])
     }
@@ -61,8 +60,7 @@ final class SearchAndScoreTests: XCTestCase {
             media: [MediaPreview(kind: .image, alt: "a cat")]
         )
         let noMedia = ContentItem(uri: "b", cid: "2", contentType: .posts)
-        var req = SearchRequest()
-        req.mediaFilter = .noMedia
+        let req = SearchRequest(mediaFilter: .noMedia)
         let out = req.apply(to: [withMedia, noMedia])
         XCTAssertEqual(out.map(\.uri), ["b"])
     }
@@ -73,7 +71,7 @@ final class SearchAndScoreTests: XCTestCase {
             text: "look at this",
             media: [MediaPreview(kind: .image, alt: "a sleepy capybara in a hot spring")]
         )
-        var req = SearchRequest(keyword: "capybara", includeAltTextInKeyword: true)
+        let req = SearchRequest(keyword: "capybara", includeAltTextInKeyword: true)
         XCTAssertEqual(req.apply(to: [item]).count, 1)
     }
 
@@ -83,7 +81,7 @@ final class SearchAndScoreTests: XCTestCase {
             text: "look at this",
             media: [MediaPreview(kind: .image, alt: "a sleepy capybara")]
         )
-        var req = SearchRequest(keyword: "capybara", includeAltTextInKeyword: false)
+        let req = SearchRequest(keyword: "capybara", includeAltTextInKeyword: false)
         XCTAssertEqual(req.apply(to: [item]).count, 0)
     }
 
@@ -131,46 +129,39 @@ final class SearchAndScoreTests: XCTestCase {
     }
 
     func test_search_byKeyword_isCaseInsensitive() {
-        var req = SearchRequest()
-        req.keyword = "FOObar"
+        let req = SearchRequest(keyword: "FOObar")
         let results = req.apply(to: sampleItems())
         XCTAssertEqual(results.count, 1)
         XCTAssertEqual(results.first?.uri, "at://a/post/2")
     }
 
     func test_search_byContentType_filtersToSubset() {
-        var req = SearchRequest()
-        req.contentTypes = [.posts]
+        let req = SearchRequest(contentTypes: [.posts])
         let results = req.apply(to: sampleItems())
         XCTAssertEqual(results.count, 2)
     }
 
     func test_search_byContentType_allBypasses() {
-        var req = SearchRequest()
-        req.contentTypes = [.all]
+        let req = SearchRequest(contentTypes: [.all])
         XCTAssertEqual(req.apply(to: sampleItems()).count, sampleItems().count)
     }
 
     func test_search_byEngagementBounds() {
-        var req = SearchRequest()
-        req.likes = 10...100
+        let req = SearchRequest(likes: 10...100)
         let results = req.apply(to: sampleItems())
         XCTAssertEqual(results.count, 1)
         XCTAssertEqual(results.first?.uri, "at://a/post/2")
     }
 
     func test_search_byDateRange() {
-        var req = SearchRequest()
-        req.startDate = Date(timeIntervalSince1970: 250)
-        req.endDate = Date(timeIntervalSince1970: 350)
+        let req = SearchRequest(startDate: Date(timeIntervalSince1970: 250), endDate: Date(timeIntervalSince1970: 350))
         let results = req.apply(to: sampleItems())
         XCTAssertEqual(results.count, 1)
         XCTAssertEqual(results.first?.uri, "at://a/post/3")
     }
 
     func test_search_byExcludedUris() {
-        var req = SearchRequest()
-        req.excludedUris = ["at://a/post/1", "at://a/post/2"]
+        let req = SearchRequest(excludedUris: ["at://a/post/1", "at://a/post/2"])
         let uris = req.apply(to: sampleItems()).map(\.uri)
         XCTAssertFalse(uris.contains("at://a/post/1"))
         XCTAssertFalse(uris.contains("at://a/post/2"))
@@ -178,22 +169,23 @@ final class SearchAndScoreTests: XCTestCase {
     }
 
     func test_search_filtersAndIsCombinatorial() {
-        var req = SearchRequest()
-        req.keyword = "great"
-        req.contentTypes = [.posts]
-        req.likes = 10...100
+        let req = SearchRequest(
+            keyword: "great",
+            contentTypes: [.posts],
+            likes: 10...100
+        )
         let results = req.apply(to: sampleItems())
         XCTAssertEqual(results.count, 1)
         XCTAssertEqual(results.first?.uri, "at://a/post/2")
     }
 
     func test_search_apply_isUnboundedForUIList() {
-        var req = SearchRequest(limit: 2)
+        let req = SearchRequest(limit: 2)
         XCTAssertEqual(req.apply(to: sampleItems()).count, sampleItems().count)
     }
 
     func test_search_respectsLimitWhenCapped() {
-        var req = SearchRequest(limit: 2)
+        let req = SearchRequest(limit: 2)
         XCTAssertEqual(req.apply(to: sampleItems(), maximumResults: 2).count, 2)
     }
 
@@ -202,8 +194,7 @@ final class SearchAndScoreTests: XCTestCase {
     }
 
     func test_hasActiveFilters_trueWhenAnythingSet() {
-        var req = SearchRequest()
-        req.keyword = "x"
+        let req = SearchRequest(keyword: "x")
         XCTAssertTrue(req.hasActiveFilters)
     }
 
@@ -216,8 +207,7 @@ final class SearchAndScoreTests: XCTestCase {
         // filter set would unexpectedly hide their own posts.
         let post = ContentItem(uri: "at://did:plc:alice/app.bsky.feed.post/abc", cid: "p", contentType: .posts)
         let reply = ContentItem(uri: "at://did:plc:alice/app.bsky.feed.post/def", cid: "r", contentType: .replies)
-        var req = SearchRequest()
-        req.subjectUriContains = "did:plc:bob"
+        let req = SearchRequest(subjectUriContains: "did:plc:bob")
         let out = req.apply(to: [post, reply])
         XCTAssertEqual(Set(out.map(\.uri)), Set([post.uri, reply.uri]))
     }
@@ -235,8 +225,7 @@ final class SearchAndScoreTests: XCTestCase {
             deletionURI: "at://did:plc:me/app.bsky.feed.like/bbb",
             contentType: .likes
         )
-        var req = SearchRequest()
-        req.subjectUriContains = "did:plc:bob"
+        let req = SearchRequest(subjectUriContains: "did:plc:bob")
         let out = req.apply(to: [likeOfBob, likeOfCharlie])
         XCTAssertEqual(out.map(\.uri), [likeOfBob.uri])
     }
@@ -254,8 +243,7 @@ final class SearchAndScoreTests: XCTestCase {
             deletionURI: "at://did:plc:me/app.bsky.feed.repost/bbb",
             contentType: .reposts
         )
-        var req = SearchRequest()
-        req.subjectUriContains = "did:plc:bob"
+        let req = SearchRequest(subjectUriContains: "did:plc:bob")
         let out = req.apply(to: [repostOfBob, repostOfCharlie])
         XCTAssertEqual(out.map(\.uri), [repostOfBob.uri])
     }
@@ -263,8 +251,7 @@ final class SearchAndScoreTests: XCTestCase {
     func test_subjectHandleContains_passesThroughPostsAndReplies() {
         let post = ContentItem(uri: "at://did:plc:me/app.bsky.feed.post/own", cid: "p", contentType: .posts)
         let reply = ContentItem(uri: "at://did:plc:me/app.bsky.feed.post/r", cid: "r", contentType: .replies)
-        var req = SearchRequest()
-        req.subjectHandleContains = "bob"
+        let req = SearchRequest(subjectHandleContains: "bob")
         let out = req.apply(to: [post, reply])
         XCTAssertEqual(Set(out.map(\.uri)), Set([post.uri, reply.uri]))
     }
@@ -284,8 +271,7 @@ final class SearchAndScoreTests: XCTestCase {
             contentType: .likes,
             subjectAuthorHandle: "charlie.bsky.social"
         )
-        var req = SearchRequest()
-        req.subjectHandleContains = "bob"
+        let req = SearchRequest(subjectHandleContains: "bob")
         let out = req.apply(to: [likeBob, likeCharlie])
         XCTAssertEqual(out.map(\.uri), [likeBob.uri])
     }
@@ -297,8 +283,7 @@ final class SearchAndScoreTests: XCTestCase {
             deletionURI: "at://did:plc:me/app.bsky.feed.like/aaa",
             contentType: .likes
         )
-        var req = SearchRequest()
-        req.subjectHandleContains = "bob"
+        let req = SearchRequest(subjectHandleContains: "bob")
         XCTAssertTrue(req.apply(to: [likeNoHandle]).isEmpty)
     }
 
@@ -318,8 +303,7 @@ final class SearchAndScoreTests: XCTestCase {
             deletionURI: "at://did:plc:me/app.bsky.feed.like/bbb",
             contentType: .likes
         )
-        var req = SearchRequest()
-        req.subjectUriContains = "did:plc:bob"
+        let req = SearchRequest(subjectUriContains: "did:plc:bob")
         let out = req.apply(to: [myPost, likeBob, likeCharlie])
         XCTAssertEqual(Set(out.map(\.uri)), Set([myPost.uri, likeBob.uri]))
     }

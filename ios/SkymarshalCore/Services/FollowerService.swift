@@ -55,11 +55,9 @@ public actor FollowerService {
         // post-login but defensive).
         let ownerHandle = await client.currentHandle ?? did
 
+        let previousLoaded = loaded
         loaded = []
-        // Replace any prior cached scan for THIS owner so the cache
-        // reflects current truth — accounts the user has unfollowed
-        // since the last scan won't reappear on cold-start.
-        clearPersistedScan(owner: ownerHandle)
+        do {
 
         // Phase 1 — paginated getFollows. Result list isn't yet visible to
         // the UI — we don't surface accounts until phase 2 starts giving us
@@ -107,7 +105,6 @@ public actor FollowerService {
                 ))
             }
             loaded.append(contentsOf: batchAnalyzed)
-            persist(batchAnalyzed, owner: ownerHandle)
 
             await progress?(ScanProgress(
                 phase: .hydrating,
@@ -135,7 +132,6 @@ public actor FollowerService {
                         interactedRecently: loaded[index].interactedRecently,
                         inactivityDays: inactivityDays
                     )
-                    persist([loaded[index]], owner: ownerHandle)
                 }
                 if index % 25 == 0 || index == loaded.count - 1 {
                     await progress?(ScanProgress(
@@ -148,6 +144,8 @@ public actor FollowerService {
             }
         }
 
+        loaded = applyingPersistedWhitelists(to: loaded, owner: ownerHandle)
+        try replacePersistedScan(accounts: loaded, owner: ownerHandle)
         await progress?(ScanProgress(
             phase: .complete,
             current: loaded.count,
@@ -155,6 +153,10 @@ public actor FollowerService {
             message: "Done. \(loaded.count) analyzed."
         ))
         return loaded
+        } catch {
+            loaded = previousLoaded
+            throw error
+        }
     }
 
     public func applyFilters(_ filters: FollowerFilters) -> [AnalyzedAccount] {
@@ -187,7 +189,10 @@ public actor FollowerService {
                 continue
             }
             do {
-                try await client.deleteRecord(uri: followURI)
+                try await client.deleteRecord(
+                    uri: followURI,
+                    expectedCollection: .follow
+                )
                 done += 1
                 loaded.removeAll { $0.did == did }
                 if let owner { deletePersistedAccount(did: did, owner: owner) }
@@ -335,21 +340,56 @@ public actor FollowerService {
         }
     }
 
-    /// Wipe all cached records for one owner before a fresh scan.
-    /// Called from `scan()` so a re-scan starts from a clean slate
-    /// per-owner — accounts you've unfollowed since the last scan
-    /// don't reappear, deleted accounts get cleaned up, the snapshot
-    /// reflects what was actually returned this run.
-    private func clearPersistedScan(owner: String) {
+    private func applyingPersistedWhitelists(
+        to accounts: [AnalyzedAccount],
+        owner: String
+    ) -> [AnalyzedAccount] {
+        guard let container else { return accounts }
+        let context = ModelContext(container)
+        let descriptor = FetchDescriptor<AnalyzedAccountRecord>(
+            predicate: #Predicate { $0.ownerHandle == owner }
+        )
+        let whitelistedDIDs = Set(
+            ((try? context.fetch(descriptor)) ?? [])
+                .filter(\.whitelisted)
+                .map(\.did)
+        )
+        return accounts.map { account in
+            whitelistedDIDs.contains(account.did) ? account.withWhitelist(true) : account
+        }
+    }
+
+    private func replacePersistedScan(accounts: [AnalyzedAccount], owner: String) throws {
         guard let container else { return }
         let context = ModelContext(container)
         let descriptor = FetchDescriptor<AnalyzedAccountRecord>(
             predicate: #Predicate { $0.ownerHandle == owner }
         )
-        if let rows = try? context.fetch(descriptor) {
-            for row in rows { context.delete(row) }
-            try? context.save()
+        let existingRows = (try? context.fetch(descriptor)) ?? []
+        var existingByKey = Dictionary(
+            uniqueKeysWithValues: existingRows.map { ($0.compositeKey, $0) }
+        )
+        let now = Date()
+
+        for account in accounts {
+            let key = "\(owner)|\(account.did)"
+            if let existing = existingByKey.removeValue(forKey: key) {
+                existing.update(from: account, scannedAt: now)
+                if account.userWhitelisted {
+                    existing.whitelisted = true
+                }
+            } else {
+                context.insert(AnalyzedAccountRecord(
+                    account: account,
+                    ownerHandle: owner,
+                    scannedAt: now
+                ))
+            }
         }
+        for stale in existingByKey.values {
+            context.delete(stale)
+        }
+        try context.save()
     }
 
     // MARK: - Internals

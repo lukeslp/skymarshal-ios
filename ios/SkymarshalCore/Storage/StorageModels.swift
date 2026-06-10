@@ -580,6 +580,76 @@ public final class GraphEdgeRecord {
     }
 }
 
+/// Rows fetched by an in-progress archive refresh. These remain isolated from
+/// the committed cache until both archive endpoints finish successfully.
+@available(iOS 17, *)
+@Model
+public final class ContentRefreshStagingRecord {
+    @Attribute(.unique) public var compositeKey: String
+    public var generationID: String
+    public var ownerHandle: String
+    public var uri: String
+    public var deletionURI: String?
+    public var cid: String
+    public var contentTypeRaw: String
+    public var text: String?
+    public var createdAt: Date?
+    public var likeCount: Int
+    public var repostCount: Int
+    public var replyCount: Int
+    public var hasMedia: Bool
+    public var parentReplyURI: String?
+    public var subjectAuthorHandle: String?
+
+    public init(item: ContentItem, ownerHandle: String, generationID: String) {
+        self.compositeKey = "\(ownerHandle)|\(generationID)|\(item.id)"
+        self.generationID = generationID
+        self.ownerHandle = ownerHandle
+        self.uri = item.uri
+        self.deletionURI = item.deletionURI
+        self.cid = item.cid
+        self.contentTypeRaw = item.contentType.rawValue
+        self.text = item.text
+        self.createdAt = item.createdAt
+        self.likeCount = item.likeCount
+        self.repostCount = item.repostCount
+        self.replyCount = item.replyCount
+        self.hasMedia = item.hasMedia
+        self.parentReplyURI = item.parentReplyURI
+        self.subjectAuthorHandle = item.subjectAuthorHandle
+    }
+
+    public func update(from item: ContentItem) {
+        deletionURI = item.deletionURI
+        cid = item.cid
+        text = item.text
+        createdAt = item.createdAt
+        likeCount = item.likeCount
+        repostCount = item.repostCount
+        replyCount = item.replyCount
+        hasMedia = item.hasMedia
+        parentReplyURI = item.parentReplyURI
+        subjectAuthorHandle = item.subjectAuthorHandle
+    }
+
+    public func toContentItem() -> ContentItem {
+        ContentItem(
+            uri: uri,
+            cid: cid,
+            deletionURI: deletionURI,
+            contentType: ContentType(rawValue: contentTypeRaw) ?? .posts,
+            text: text,
+            createdAt: createdAt,
+            likeCount: likeCount,
+            repostCount: repostCount,
+            replyCount: replyCount,
+            media: hasMedia ? [MediaPreview(kind: .image)] : [],
+            parentReplyURI: parentReplyURI,
+            subjectAuthorHandle: subjectAuthorHandle
+        )
+    }
+}
+
 /// Pagination resume cursor for ``ContentService.ensureContentLoaded`` —
 /// one row per `(ownerHandle, phase)` while a phase is in flight. Rows are
 /// deleted when the phase finishes cleanly; any remaining row means a prior
@@ -593,6 +663,7 @@ public final class ArchiveLoadCheckpointRecord {
     public var phaseRaw: String
     public var cursor: String?
     public var pagesFetched: Int
+    public var generationID: String = ""
     public var updatedAt: Date
 
     public init(
@@ -600,6 +671,7 @@ public final class ArchiveLoadCheckpointRecord {
         phaseRaw: String,
         cursor: String?,
         pagesFetched: Int,
+        generationID: String = "",
         updatedAt: Date = Date()
     ) {
         self.scopeKey = "\(ownerHandle)|\(phaseRaw)"
@@ -607,6 +679,7 @@ public final class ArchiveLoadCheckpointRecord {
         self.phaseRaw = phaseRaw
         self.cursor = cursor
         self.pagesFetched = pagesFetched
+        self.generationID = generationID
         self.updatedAt = updatedAt
     }
 }
@@ -653,6 +726,7 @@ public enum SkymarshalSchema {
         GraphEdgeRecord.self,
         GraphCheckpointRecord.self,
         ArchiveLoadCheckpointRecord.self,
+        ContentRefreshStagingRecord.self,
     ]
 
     public static func makeContainer(

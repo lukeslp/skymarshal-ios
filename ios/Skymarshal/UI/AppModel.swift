@@ -375,8 +375,12 @@ final class AppModel {
             self.loadProgress = nil
             self.lastContentScannedAt = Date()
         } catch is CancellationError {
-            // partial state is fine — user knows they stopped
+            self.items = await content.loadedSnapshot
+            self.summary = await content.summarize()
+            self.loadProgress = nil
         } catch {
+            self.items = await content.loadedSnapshot
+            self.summary = await content.summarize()
             errorMessage = error.localizedDescription
             self.loadProgress = nil
         }
@@ -395,7 +399,7 @@ final class AppModel {
         let result = await content.delete(itemIDs: itemIDs)
         DeleteBatchRecovery.clear()
         if !itemIDs.isEmpty {
-            self.items.removeAll { itemIDs.contains($0.id) }
+            self.items = await content.loadedSnapshot
             self.summary = await content.summarize()
         }
         return result
@@ -501,8 +505,12 @@ final class AppModel {
             self.lastFollowerScannedAt = Date()
             // Keep the .complete progress around briefly; UI fades it.
         } catch is CancellationError {
-            // partial state — user knows they stopped
+            self.accounts = await followers.loadedSnapshot
+            self.scanSummary = await followers.summary
+            self.scanProgress = nil
         } catch {
+            self.accounts = await followers.loadedSnapshot
+            self.scanSummary = await followers.summary
             errorMessage = error.localizedDescription
             self.scanProgress = nil
         }
@@ -511,7 +519,7 @@ final class AppModel {
     func unfollow(dids: [String], dryRun: Bool = false) async -> (done: Int, errors: [String]) {
         let result = await followers.unfollow(dids: dids, dryRun: dryRun)
         if !dryRun, !dids.isEmpty {
-            self.accounts.removeAll { dids.contains($0.did) }
+            self.accounts = await followers.loadedSnapshot
             self.scanSummary = await followers.summary
         }
         return result

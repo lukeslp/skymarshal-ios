@@ -19,6 +19,13 @@ import Foundation
 /// transparently calls ``refreshSession()`` and retries once. Refreshes
 /// are coalesced through ``refreshTask`` so a burst of in-flight calls
 /// don't each kick off their own refresh.
+public enum ATProtoRecordCollection: String, Sendable {
+    case post = "app.bsky.feed.post"
+    case like = "app.bsky.feed.like"
+    case repost = "app.bsky.feed.repost"
+    case follow = "app.bsky.graph.follow"
+}
+
 public actor ATProtoClient {
 
     private let baseURL: URL
@@ -343,21 +350,41 @@ public actor ATProtoClient {
     /// see `RateLimit.swift` for the schedule and rationale. Outer timeout
     /// of 300s (5 min) accommodates the 240s worst-case retry budget plus
     /// one final request.
-    public func deleteRecord(uri: String) async throws {
+    public func deleteRecord(
+        uri: String,
+        expectedCollection: ATProtoRecordCollection
+    ) async throws {
         guard let session = currentSession else {
             throw ATProtoError(status: 401, message: "Not authenticated")
         }
         let parts = parseATURI(uri)
-        guard let collection = parts.collection, let rkey = parts.rkey else {
+        guard let repo = parts.did,
+              let collection = parts.collection,
+              let rkey = parts.rkey,
+              !repo.isEmpty,
+              !collection.isEmpty,
+              !rkey.isEmpty else {
             throw ATProtoError(
                 status: 400,
                 message: "Malformed at:// URI — expected at://did/collection/rkey, got \(uri)"
             )
         }
+        guard repo == session.did else {
+            throw ATProtoError(
+                status: 400,
+                message: "Delete target belongs to \(repo), not the signed-in repository"
+            )
+        }
+        guard collection == expectedCollection.rawValue else {
+            throw ATProtoError(
+                status: 400,
+                message: "Delete target collection \(collection) does not match \(expectedCollection.rawValue)"
+            )
+        }
 
         let body: [String: String] = [
             "repo": session.did,
-            "collection": collection,
+            "collection": expectedCollection.rawValue,
             "rkey": rkey,
         ]
 

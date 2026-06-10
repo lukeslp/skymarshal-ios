@@ -131,61 +131,78 @@ public actor ContentService {
         }
 
         let owner = await client.currentHandle ?? did
-        let hasPendingArchiveCheckpoint = archiveLoadHasPendingCheckpoint(owner: owner)
-        if !forceRefresh, !loadedContent.isEmpty, !hasPendingArchiveCheckpoint {
+        let previousSnapshot = loadedContent
+        let pendingGeneration = archiveLoadGeneration(owner: owner)
+        if !forceRefresh, !loadedContent.isEmpty, pendingGeneration == nil {
             return loadedContent
         }
 
+        let generationID: String
         if forceRefresh {
-            loadedContent = []
-            clearPersistedContent(owner: owner)
+            clearRefreshStaging(owner: owner)
             clearArchiveLoadCheckpoints(owner: owner)
+            generationID = UUID().uuidString
+        } else if let pendingGeneration {
+            generationID = pendingGeneration
+        } else {
+            clearRefreshStaging(owner: owner)
+            clearArchiveLoadCheckpoints(owner: owner)
+            generationID = UUID().uuidString
         }
+        loadedContent = loadRefreshStaging(owner: owner, generationID: generationID)
 
-        try await loopEndpoint(
-            phase: .posts,
-            owner: owner,
-            progress: progress
-        ) { cursor in
-            let response = try await self.client.getAuthorFeed(
-                actor: did, limit: 100, cursor: cursor
-            )
-            return (response.feed.map(Self.toContentItem), response.cursor)
-        }
-
-        try await loopEndpoint(
-            phase: .likes,
-            owner: owner,
-            progress: progress
-        ) { cursor in
-            let response = try await self.client.getActorLikes(
-                actor: did, limit: 100, cursor: cursor
-            )
-            // getActorLikes returns the liked posts as subjects. The
-            // user's deletable like record lives in post.viewer.like.
-            let items = response.feed.map { view -> ContentItem in
-                let base = Self.toContentItem(view)
-                return ContentItem(
-                    uri: base.uri, cid: base.cid,
-                    deletionURI: view.post.viewer?.like,
-                    contentType: .likes,
-                    text: base.text, createdAt: base.createdAt,
-                    likeCount: base.likeCount, repostCount: base.repostCount,
-                    replyCount: base.replyCount, media: base.media,
-                    linkCard: base.linkCard, textLinks: base.textLinks,
-                    subjectAuthorHandle: view.post.author.handle
+        do {
+            try await loopEndpoint(
+                phase: .posts,
+                owner: owner,
+                generationID: generationID,
+                progress: progress
+            ) { cursor in
+                let response = try await self.client.getAuthorFeed(
+                    actor: did, limit: 100, cursor: cursor
                 )
+                return (response.feed.map(Self.toContentItem), response.cursor)
             }
-            return (items, response.cursor)
-        }
 
-        await progress?(LoadProgress(
-            phase: .done,
-            itemsLoaded: loadedContent.count,
-            pagesFetched: 0,
-            isComplete: true
-        ))
-        return loadedContent
+            try await loopEndpoint(
+                phase: .likes,
+                owner: owner,
+                generationID: generationID,
+                progress: progress
+            ) { cursor in
+                let response = try await self.client.getActorLikes(
+                    actor: did, limit: 100, cursor: cursor
+                )
+                let items = response.feed.map { view -> ContentItem in
+                    let base = Self.toContentItem(view)
+                    return ContentItem(
+                        uri: base.uri, cid: base.cid,
+                        deletionURI: view.post.viewer?.like,
+                        contentType: .likes,
+                        text: base.text, createdAt: base.createdAt,
+                        likeCount: base.likeCount, repostCount: base.repostCount,
+                        replyCount: base.replyCount, media: base.media,
+                        linkCard: base.linkCard, textLinks: base.textLinks,
+                        subjectAuthorHandle: view.post.author.handle
+                    )
+                }
+                return (items, response.cursor)
+            }
+
+            try replaceCommittedContent(owner: owner, with: loadedContent)
+            clearRefreshStaging(owner: owner)
+            clearArchiveLoadCheckpoints(owner: owner)
+            await progress?(LoadProgress(
+                phase: .done,
+                itemsLoaded: loadedContent.count,
+                pagesFetched: 0,
+                isComplete: true
+            ))
+            return loadedContent
+        } catch {
+            loadedContent = previousSnapshot
+            throw error
+        }
     }
 
     /// Loop one paginated endpoint until cursor is nil or the page cap
@@ -195,6 +212,7 @@ public actor ContentService {
     private func loopEndpoint(
         phase: LoadProgress.Phase,
         owner: String,
+        generationID: String,
         progress: (@Sendable (LoadProgress) async -> Void)?,
         fetch: (String?) async throws -> ([ContentItem], String?)
     ) async throws {
@@ -202,6 +220,7 @@ public actor ContentService {
 
         var cursor: String? = loadArchiveCheckpointCursor(owner: owner, phaseKey: phaseKey)
         var pages = loadArchiveCheckpointPagesFetched(owner: owner, phaseKey: phaseKey)
+        if pages > 0 && cursor == nil { return }
         var knownIDs = Set(loadedContent.map(\.id))
         repeat {
             try Task.checkCancellation()
@@ -211,14 +230,15 @@ public actor ContentService {
                     loadedContent.append(item)
                 }
             }
-            persist(items, owner: owner)
+            persistRefreshStaging(items, owner: owner, generationID: generationID)
             pages += 1
             cursor = nextCursor
             upsertArchiveCheckpoint(
                 owner: owner,
                 phaseKey: phaseKey,
                 cursor: nextCursor,
-                pagesFetched: pages
+                pagesFetched: pages,
+                generationID: generationID
             )
             await progress?(LoadProgress(
                 phase: phase,
@@ -228,9 +248,6 @@ public actor ContentService {
             ))
         } while cursor != nil && pages < Self.maxPagesPerEndpoint
 
-        if cursor == nil {
-            deleteArchiveCheckpoint(owner: owner, phaseKey: phaseKey)
-        }
     }
 
     /// Inject a content list directly. Useful for previews, tests, and
@@ -300,7 +317,22 @@ public actor ContentService {
                 continue
             }
             do {
-                try await client.deleteRecord(uri: deletionURI)
+                let expectedCollection: ATProtoRecordCollection
+                switch item.contentType {
+                case .posts, .replies:
+                    expectedCollection = .post
+                case .likes:
+                    expectedCollection = .like
+                case .reposts:
+                    expectedCollection = .repost
+                case .all:
+                    errors.append("\(item.uri): unsupported aggregate content type")
+                    continue
+                }
+                try await client.deleteRecord(
+                    uri: deletionURI,
+                    expectedCollection: expectedCollection
+                )
                 deleted += 1
                 loadedContent.removeAll { $0.id == item.id }
                 deletedIDs.append(item.id)
@@ -568,17 +600,126 @@ public actor ContentService {
             try? context.save()
         }
         clearArchiveLoadCheckpoints(owner: owner)
+        clearRefreshStaging(owner: owner)
+    }
+
+    // MARK: - Transactional refresh staging
+
+    private func persistRefreshStaging(
+        _ items: [ContentItem],
+        owner: String,
+        generationID: String
+    ) {
+        let context = ModelContext(container)
+        for item in items {
+            let key = "\(owner)|\(generationID)|\(item.id)"
+            let descriptor = FetchDescriptor<ContentRefreshStagingRecord>(
+                predicate: #Predicate { $0.compositeKey == key }
+            )
+            if let existing = try? context.fetch(descriptor).first {
+                existing.update(from: item)
+            } else {
+                context.insert(ContentRefreshStagingRecord(
+                    item: item,
+                    ownerHandle: owner,
+                    generationID: generationID
+                ))
+            }
+        }
+        try? context.save()
+    }
+
+    private func loadRefreshStaging(owner: String, generationID: String) -> [ContentItem] {
+        let context = ModelContext(container)
+        let descriptor = FetchDescriptor<ContentRefreshStagingRecord>(
+            predicate: #Predicate {
+                $0.ownerHandle == owner && $0.generationID == generationID
+            }
+        )
+        return ((try? context.fetch(descriptor)) ?? []).map { $0.toContentItem() }
+    }
+
+    private func clearRefreshStaging(owner: String) {
+        let context = ModelContext(container)
+        let descriptor = FetchDescriptor<ContentRefreshStagingRecord>(
+            predicate: #Predicate { $0.ownerHandle == owner }
+        )
+        for row in (try? context.fetch(descriptor)) ?? [] {
+            context.delete(row)
+        }
+        try? context.save()
+    }
+
+    private func replaceCommittedContent(owner: String, with items: [ContentItem]) throws {
+        let context = ModelContext(container)
+        let descriptor = FetchDescriptor<ContentItemRecord>(
+            predicate: #Predicate { $0.ownerHandle == owner }
+        )
+        let existingRows = (try? context.fetch(descriptor)) ?? []
+        var existingByKey = Dictionary(
+            uniqueKeysWithValues: existingRows.map { ($0.compositeKey, $0) }
+        )
+        let now = Date()
+
+        for item in items {
+            let key = ContentItemRecord.makeCompositeKey(
+                ownerHandle: owner,
+                contentType: item.contentType,
+                uri: item.uri
+            )
+            if let existing = existingByKey.removeValue(forKey: key) {
+                existing.deletionURI = item.deletionURI
+                existing.cid = item.cid
+                existing.text = item.text
+                existing.createdAt = item.createdAt
+                existing.likeCount = item.likeCount
+                existing.repostCount = item.repostCount
+                existing.replyCount = item.replyCount
+                existing.hasMedia = item.hasMedia
+                existing.parentReplyURI = item.parentReplyURI
+                existing.subjectAuthorHandle = item.subjectAuthorHandle
+                existing.scannedAt = now
+            } else {
+                context.insert(ContentItemRecord(
+                    uri: item.uri,
+                    cid: item.cid,
+                    deletionURI: item.deletionURI,
+                    contentType: item.contentType,
+                    text: item.text,
+                    createdAt: item.createdAt,
+                    likeCount: item.likeCount,
+                    repostCount: item.repostCount,
+                    replyCount: item.replyCount,
+                    hasMedia: item.hasMedia,
+                    ownerHandle: owner,
+                    scannedAt: now,
+                    parentReplyURI: item.parentReplyURI,
+                    subjectAuthorHandle: item.subjectAuthorHandle
+                ))
+            }
+        }
+        for stale in existingByKey.values {
+            context.delete(stale)
+        }
+        try context.save()
     }
 
     // MARK: - Archive load checkpoints (resume pagination)
 
-    private func archiveLoadHasPendingCheckpoint(owner: String) -> Bool {
+    private func archiveLoadGeneration(owner: String) -> String? {
         let context = ModelContext(container)
         let descriptor = FetchDescriptor<ArchiveLoadCheckpointRecord>(
             predicate: #Predicate { $0.ownerHandle == owner }
         )
-        guard let rows = try? context.fetch(descriptor) else { return false }
-        return !rows.isEmpty
+        let generations = Set(((try? context.fetch(descriptor)) ?? []).map(\.generationID))
+        guard generations.count == 1, let generation = generations.first, !generation.isEmpty else {
+            if !generations.isEmpty {
+                clearArchiveLoadCheckpoints(owner: owner)
+                clearRefreshStaging(owner: owner)
+            }
+            return nil
+        }
+        return generation
     }
 
     private func clearArchiveLoadCheckpoints(owner: String) {
@@ -614,7 +755,8 @@ public actor ContentService {
         owner: String,
         phaseKey: String,
         cursor: String?,
-        pagesFetched: Int
+        pagesFetched: Int,
+        generationID: String
     ) {
         let scopeKey = "\(owner)|\(phaseKey)"
         let context = ModelContext(container)
@@ -625,6 +767,7 @@ public actor ContentService {
         if let row = try? context.fetch(descriptor).first {
             row.cursor = cursor
             row.pagesFetched = pagesFetched
+            row.generationID = generationID
             row.updatedAt = now
         } else {
             context.insert(ArchiveLoadCheckpointRecord(
@@ -632,20 +775,9 @@ public actor ContentService {
                 phaseRaw: phaseKey,
                 cursor: cursor,
                 pagesFetched: pagesFetched,
+                generationID: generationID,
                 updatedAt: now
             ))
-        }
-        try? context.save()
-    }
-
-    private func deleteArchiveCheckpoint(owner: String, phaseKey: String) {
-        let scopeKey = "\(owner)|\(phaseKey)"
-        let context = ModelContext(container)
-        let descriptor = FetchDescriptor<ArchiveLoadCheckpointRecord>(
-            predicate: #Predicate { $0.scopeKey == scopeKey }
-        )
-        for row in (try? context.fetch(descriptor)) ?? [] {
-            context.delete(row)
         }
         try? context.save()
     }

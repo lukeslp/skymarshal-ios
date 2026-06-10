@@ -3,42 +3,88 @@ import XCTest
 
 final class ContentBackupImportTests: XCTestCase {
 
-    func test_decode_skipsLikeWithoutDeletionURI() throws {
+    func test_decode_rejectsLikeWithoutDeletionURI() throws {
         let json = """
-        {"handle":"alice.bsky.social","did":"did:plc:abc","exportedAt":"2020-01-01T00:00:00Z","itemCount":2,"items":[
-          {"uri":"at://like/1","cid":"c1","contentType":"likes","text":null,"createdAt":null,"likeCount":0,"repostCount":0,"replyCount":0,"hasMedia":false,"altText":null},
-          {"uri":"at://did:plc:abc/app.bsky.feed.post/r","cid":"c2","contentType":"posts","text":"hi","createdAt":null,"likeCount":1,"repostCount":0,"replyCount":0,"hasMedia":false,"altText":null,"deletionURI":null}
+        {"handle":"alice.bsky.social","did":"did:plc:abc","items":[
+          {"uri":"at://did:plc:other/app.bsky.feed.post/subject","cid":"c1","contentType":"likes","text":null,"createdAt":null,"likeCount":0,"repostCount":0,"replyCount":0,"hasMedia":false,"altText":null}
         ]}
         """.data(using: .utf8)!
-        let out = try ContentBackupImport.decodeContentItems(
+
+        XCTAssertThrowsError(try ContentBackupImport.decodeContentItems(
             from: json,
             expectedHandle: "alice.bsky.social",
             expectedDid: "did:plc:abc"
-        )
-        XCTAssertEqual(out.skippedLikeRepostWithoutDeletionURI, 1)
-        XCTAssertEqual(out.items.count, 1)
-        XCTAssertEqual(out.items.first?.contentType, .posts)
+        )) { error in
+            guard case ContentBackupImport.ImportError.unsafeDeletionURI = error else {
+                return XCTFail("wrong error \(error)")
+            }
+        }
     }
 
     func test_decode_handleMismatch_throws() {
         let json = """
-        {"handle":"other.bsky.social","items":[
-          {"uri":"at://x","cid":"c","contentType":"posts","text":null,"createdAt":null,"likeCount":0,"repostCount":0,"replyCount":0,"hasMedia":false,"altText":null}
+        {"handle":"other.bsky.social","did":"did:plc:abc","items":[
+          {"uri":"at://did:plc:abc/app.bsky.feed.post/x","cid":"c","contentType":"posts","text":null,"createdAt":null,"likeCount":0,"repostCount":0,"replyCount":0,"hasMedia":false,"altText":null}
         ]}
         """.data(using: .utf8)!
-        do {
-            _ = try ContentBackupImport.decodeContentItems(
-                from: json,
-                expectedHandle: "alice.bsky.social",
-                expectedDid: nil
-            )
-            XCTFail("expected error")
-        } catch let e as ContentBackupImport.ImportError {
-            if case .handleMismatch = e { return }
-            XCTFail("wrong case \(e)")
-        } catch {
-            XCTFail("wrong error \(error)")
+        XCTAssertThrowsError(try ContentBackupImport.decodeContentItems(
+            from: json,
+            expectedHandle: "alice.bsky.social",
+            expectedDid: "did:plc:abc"
+        )) { error in
+            guard case ContentBackupImport.ImportError.handleMismatch = error else {
+                return XCTFail("wrong error \(error)")
+            }
         }
+    }
+
+    func test_decode_missingEnvelopeDid_throws() {
+        let json = """
+        {"handle":"alice.bsky.social","items":[]}
+        """.data(using: .utf8)!
+        XCTAssertThrowsError(try ContentBackupImport.decodeContentItems(
+            from: json,
+            expectedHandle: "alice.bsky.social",
+            expectedDid: "did:plc:abc"
+        )) { error in
+            XCTAssertEqual(
+                error as? ContentBackupImport.ImportError,
+                .missingEnvelopeIdentity(field: "DID")
+            )
+        }
+    }
+
+    func test_decode_rejectsDeletionURIFromAnotherRepository() {
+        let json = """
+        {"handle":"alice.bsky.social","did":"did:plc:abc","items":[
+          {"uri":"at://did:plc:subject/app.bsky.feed.post/x","cid":"c","contentType":"likes","text":null,"createdAt":null,"likeCount":0,"repostCount":0,"replyCount":0,"hasMedia":false,"altText":null,"deletionURI":"at://did:plc:other/app.bsky.feed.like/l1"}
+        ]}
+        """.data(using: .utf8)!
+        XCTAssertThrowsError(try ContentBackupImport.decodeContentItems(
+            from: json,
+            expectedHandle: "alice.bsky.social",
+            expectedDid: "did:plc:abc"
+        )) { error in
+            guard case ContentBackupImport.ImportError.unsafeDeletionURI = error else {
+                return XCTFail("wrong error \(error)")
+            }
+        }
+    }
+
+    func test_decode_acceptsValidDeletionTargets() throws {
+        let json = """
+        {"handle":"alice.bsky.social","did":"did:plc:abc","items":[
+          {"uri":"at://did:plc:abc/app.bsky.feed.post/p1","cid":"c1","contentType":"posts","text":"post","createdAt":null,"likeCount":0,"repostCount":0,"replyCount":0,"hasMedia":false,"altText":null},
+          {"uri":"at://did:plc:subject/app.bsky.feed.post/p2","cid":"c2","contentType":"reposts","text":null,"createdAt":null,"likeCount":0,"repostCount":0,"replyCount":0,"hasMedia":false,"altText":null,"deletionURI":"at://did:plc:abc/app.bsky.feed.repost/r1"}
+        ]}
+        """.data(using: .utf8)!
+        let result = try ContentBackupImport.decodeContentItems(
+            from: json,
+            expectedHandle: "alice.bsky.social",
+            expectedDid: "did:plc:abc"
+        )
+        XCTAssertEqual(result.items.count, 2)
+        XCTAssertEqual(result.skippedLikeRepostWithoutDeletionURI, 0)
     }
 
     func test_restorePreview_countsSkips() {

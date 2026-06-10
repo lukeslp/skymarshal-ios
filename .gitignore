@@ -87,3 +87,7 @@ WORKING_SCRIPTS_TEST_REPORT.md
 # Reports and outputs
 reports/
 *.log
+
+# Fastlane regenerated artifacts
+ios/fastlane/README.md
+ios/fastlane/report.xml
