@@ -6,6 +6,29 @@ default_platform(:ios)
 # no session expiry. Falls back to interactive Apple ID if none are set.
 
 platform :ios do
+  desc "Archive a signed Release build and upload it to TestFlight"
+  desc "Bump CFBundleVersion in project.yml first — ASC rejects a reused build number."
+  desc "Needs APP_STORE_CONNECT_API_KEY_* in the env (source ~/.appstoreconnect/env.sh) — pilot auto-detects them."
+  lane :release_testflight do
+    sh "cd .. && xcodegen generate --spec project.yml"
+    build_app(
+      project: "Skymarshal.xcodeproj",
+      scheme: "Skymarshal",
+      configuration: "Release",
+      output_directory: "build/ipa",
+      output_name: "Skymarshal.ipa",
+      clean: true,
+      export_method: "app-store"
+    )
+    # No api_key: passed — upload_to_testflight reads APP_STORE_CONNECT_API_KEY_*
+    # from the env, the same way the deliver lanes do.
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      distribute_external: false,
+      notify_external_testers: false
+    )
+  end
+
   desc "Capture App Store screenshots (runs the XCUITest pipeline for both device classes)"
   desc "Needs a signed-in session or SKY_TEST_HANDLE/SKY_TEST_APP_PASSWORD — see scripts/capture_screenshots.sh"
   lane :screenshots do
