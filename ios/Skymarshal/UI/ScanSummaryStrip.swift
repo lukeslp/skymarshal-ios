@@ -116,7 +116,7 @@ private struct Pill: View {
         case "deleted":  return "Deleted accounts, \(value)"
         case "inactive": return "Inactive accounts, \(value)"
         case "mutuals":  return "Mutual follows, \(value)"
-        case "bad ratio": return "Unusual follower ratio, \(value)"
+        case "bad ratio": return "Follows-heavy accounts (follow far more than follow back), \(value)"
         case "analyzed": return "Total analyzed, \(value)"
         default:         return "\(label), \(value)"
         }

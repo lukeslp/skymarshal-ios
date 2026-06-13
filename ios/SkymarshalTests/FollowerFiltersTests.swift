@@ -123,14 +123,17 @@ final class FollowerFiltersTests: XCTestCase {
         XCTAssertEqual(Set(f.apply(to: sample).map(\.handle)), ["alice.bsky.social", "eve.bsky.social"])
     }
 
-    func test_showBadRatio_catchesBothExtremes() {
+    func test_showBadRatio_catchesFollowsHeavyOnly() {
         var f = FollowerFilters()
         f.showBadRatio = true
-        // Frank has ratio 10000 (>50). Carol has ratio 1.0 (in safe range).
-        // Add a low-ratio account to verify both sides catch.
-        let extras = [account(did: "7", handle: "lowratio.bsky.social", ratio: 0.05)]
-        XCTAssertEqual(Set(f.apply(to: sample + extras).map(\.handle)),
-                       ["frank.bsky.social", "lowratio.bsky.social"])
+        // Follows-heavy is the cull-worthy spam side (ratio < 0.1). A *high*
+        // ratio (Frank, 10000) is a popular account, not "bad" — it must NOT
+        // match. The 0/0 sentinel (follows nobody) must also be excluded.
+        let lowRatio = account(did: "7", handle: "lowratio.bsky.social", ratio: 0.05)
+        let followsNobody = account(did: "8", handle: "lurker.bsky.social",
+                                    following: 0, ratio: 0)
+        XCTAssertEqual(Set(f.apply(to: sample + [lowRatio, followsNobody]).map(\.handle)),
+                       ["lowratio.bsky.social"])
     }
 
     // MARK: - Numeric ranges

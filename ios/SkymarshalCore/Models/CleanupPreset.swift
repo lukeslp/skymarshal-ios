@@ -52,7 +52,9 @@ public enum CleanupPreset: String, CaseIterable, Identifiable, Sendable {
         case .ratioSkew:
             f.showBadRatio = true
             f.sortField = .ratio
-            f.sortDirection = .desc
+            // Ascending: most extreme follows-heavy (lowest ratio) leads —
+            // those are the strongest unfollow candidates.
+            f.sortDirection = .asc
         }
         return f
     }

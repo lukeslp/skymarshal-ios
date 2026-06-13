@@ -207,7 +207,12 @@ public enum BluescreenAnalyzer {
     public static func summarize(_ accounts: [AnalyzedAccount]) -> ScanSummary {
         guard !accounts.isEmpty else { return ScanSummary() }
 
-        let badRatio = accounts.filter { $0.ratio < 0.1 || $0.ratio > 50 }.count
+        // "Follows-heavy": follows far more than follow back (ratio < 0.1) —
+        // the spam/mass-follow pattern worth culling. A *high* ratio (popular
+        // accounts followed by many, following few) is not bad and is not a
+        // cleanup target, so it's excluded. The followsCount guard drops the
+        // 0/0 sentinel (ratio 0 but follows nobody).
+        let badRatio = accounts.filter { $0.ratio < 0.1 && $0.profile.followsCount > 0 }.count
         let inactive = accounts.filter { $0.isInactive }.count
         let deleted = accounts.filter { $0.isDeleted }.count
         let bots = accounts.filter { $0.botScore >= 0.6 }.count

@@ -112,7 +112,9 @@ public struct FollowerFilters: Hashable, Sendable {
             let inName = a.profile.displayName?.lowercased().contains(needle) ?? false
             if !inHandle && !inName { return false }
         }
-        if showBadRatio && !(a.ratio < 0.1 || a.ratio > 50) { return false }
+        // Follows-heavy only (ratio < 0.1, follows someone). High-ratio
+        // popular accounts are not "bad" and are not cull candidates.
+        if showBadRatio && !(a.ratio < 0.1 && a.profile.followsCount > 0) { return false }
         if showInactive && !a.isInactive { return false }
         if showDeleted && !a.isDeleted { return false }
         // User whitelist short-circuit: a manual "not an automated

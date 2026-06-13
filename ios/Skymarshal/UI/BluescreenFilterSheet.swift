@@ -69,7 +69,7 @@ struct BluescreenFilterSheet: View {
             Toggle("Non-mutuals only", isOn: $draft.showNonMutualOnly)
             Toggle("Muted only", isOn: $draft.showMuted)
             Toggle("Blocked-by only", isOn: $draft.showBlocked)
-            Toggle("Bad ratio (<0.1 or >50)", isOn: $draft.showBadRatio)
+            Toggle("Follows-heavy (ratio < 0.1)", isOn: $draft.showBadRatio)
         }
     }
 
