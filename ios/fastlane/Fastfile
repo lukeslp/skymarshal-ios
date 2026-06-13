@@ -10,6 +10,15 @@ platform :ios do
   desc "Bump CFBundleVersion in project.yml first — ASC rejects a reused build number."
   desc "Needs APP_STORE_CONNECT_API_KEY_* in the env (source ~/.appstoreconnect/env.sh) — pilot auto-detects them."
   lane :release_testflight do
+    # The binary upload runs through altool/Transporter, which — unlike the
+    # Spaceship-based deliver lanes — does NOT read APP_STORE_CONNECT_API_KEY_*
+    # from the env on its own. Build an explicit key from the .p8 and hand it
+    # to pilot, or it falls back to demanding an app-specific password.
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("APP_STORE_CONNECT_API_KEY_KEY_ID"),
+      issuer_id: ENV.fetch("APP_STORE_CONNECT_API_KEY_ISSUER_ID"),
+      key_filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_#{ENV.fetch("APP_STORE_CONNECT_API_KEY_KEY_ID")}.p8")
+    )
     sh "cd .. && xcodegen generate --spec project.yml"
     build_app(
       project: "Skymarshal.xcodeproj",
@@ -20,9 +29,8 @@ platform :ios do
       clean: true,
       export_method: "app-store"
     )
-    # No api_key: passed — upload_to_testflight reads APP_STORE_CONNECT_API_KEY_*
-    # from the env, the same way the deliver lanes do.
     upload_to_testflight(
+      api_key: api_key,
       skip_waiting_for_build_processing: true,
       distribute_external: false,
       notify_external_testers: false
