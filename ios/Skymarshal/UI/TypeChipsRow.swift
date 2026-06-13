@@ -5,6 +5,12 @@ import SkymarshalCore
 /// 5-segment .pickerStyle(.segmented) which couldn't share a row with
 /// other controls and didn't have space for category counts.
 ///
+/// Multi-select: each of the four concrete types (Posts, Replies, Reposts,
+/// Likes) is an independent toggle, and a leading "All" chip selects every
+/// type at once. The default selection (Posts + Replies) lives in the
+/// owning view — most archives are mostly likes, and likes are the thing
+/// people least want to wade through on landing.
+///
 /// Lifted from skymarshal-web's ContentManagement.tsx pattern:
 /// `border-primary bg-primary/10 text-primary` on the active chip,
 /// `(N)` count badge after the label. Each chip uses its content
@@ -13,27 +19,32 @@ import SkymarshalCore
 /// quiet through-line, not a coordinated theme park.
 @available(iOS 17, *)
 struct TypeChipsRow: View {
-    @Binding var scope: ContentType
+    @Binding var selected: Set<ContentType>
     let counts: [ContentType: Int]
 
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     private var reduceMotion: Bool { ReduceMotion.shouldReduce(systemReduceMotion: systemReduceMotion) }
 
+    private var allSelected: Bool {
+        selected.isSuperset(of: ContentType.selectable)
+    }
+
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(ContentType.allCases) { type in
+                TypeChip(
+                    type: .all,
+                    count: count(for: .all),
+                    isActive: allSelected,
+                    action: { mutate { selected = Set(ContentType.selectable) } }
+                )
+
+                ForEach(ContentType.selectable) { type in
                     TypeChip(
                         type: type,
                         count: count(for: type),
-                        isActive: scope == type,
-                        action: {
-                            if reduceMotion {
-                                scope = type
-                            } else {
-                                withAnimation(.snappy) { scope = type }
-                            }
-                        }
+                        isActive: selected.contains(type),
+                        action: { mutate { toggle(type) } }
                     )
                 }
             }
@@ -41,6 +52,20 @@ struct TypeChipsRow: View {
             .padding(.vertical, 4)
         }
         .scrollClipDisabled()
+    }
+
+    /// Toggle one type, keeping at least one selected — an empty set would
+    /// show an empty list with no chip to explain why.
+    private func toggle(_ type: ContentType) {
+        if selected.contains(type) {
+            if selected.count > 1 { selected.remove(type) }
+        } else {
+            selected.insert(type)
+        }
+    }
+
+    private func mutate(_ change: () -> Void) {
+        if reduceMotion { change() } else { withAnimation(.snappy, change) }
     }
 
     private func count(for type: ContentType) -> Int {
@@ -97,9 +122,9 @@ private struct TypeChip: View {
 @available(iOS 17, *)
 #Preview {
     VStack {
-        StatefulPreviewWrapper(ContentType.all) { binding in
+        StatefulPreviewWrapper([.posts, .replies] as Set<ContentType>) { binding in
             TypeChipsRow(
-                scope: binding,
+                selected: binding,
                 counts: [.posts: 9_832, .replies: 856, .reposts: 47, .likes: 339]
             )
         }

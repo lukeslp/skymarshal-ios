@@ -14,7 +14,10 @@ struct ContentListView: View {
     private var reduceMotion: Bool { ReduceMotion.shouldReduce(systemReduceMotion: systemReduceMotion) }
 
     @State private var keyword: String = ""
-    @State private var scope: ContentType = .all
+    /// Default to posts + replies — most archives are dominated by likes,
+    /// and likes are the noise people least want on landing. Multi-select:
+    /// the chip row toggles each type and "All" adds the rest back.
+    @State private var selectedTypes: Set<ContentType> = [.posts, .replies]
     @State private var filters: SearchRequest = SearchRequest()
     @State private var showFilterSheet: Bool = false
     @State private var draftFilters: SearchRequest = SearchRequest()
@@ -65,7 +68,9 @@ struct ContentListView: View {
         var req = filters
         let k = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
         req.keyword = k.isEmpty ? nil : k
-        req.contentTypes = scope == .all ? nil : [scope]
+        // A full set (all four) means "no content-type filter" — let it pass
+        // as nil so downstream treats it as unfiltered.
+        req.contentTypes = selectedTypes.isSuperset(of: ContentType.selectable) ? nil : selectedTypes
         return req
     }
 
@@ -129,7 +134,7 @@ struct ContentListView: View {
                 // ContentManagement pattern. Each chip carries its
                 // category count, so a glance tells you "9,832 Posts,
                 // 856 Replies" without opening anything.
-                TypeChipsRow(scope: $scope, counts: model.summary)
+                TypeChipsRow(selected: $selectedTypes, counts: model.summary)
 
                 // Inline Sort + Filter — always reachable while `.searchable`
                 // is focused (toolbar menus are not). Mirrors Scope tab layout.
@@ -432,7 +437,7 @@ struct ContentListView: View {
             // intend. Drop any selected item that's no longer visible
             // under the new filter.
             .onChange(of: keyword) { pruneSelectionToVisible() }
-            .onChange(of: scope) { pruneSelectionToVisible() }
+            .onChange(of: selectedTypes) { pruneSelectionToVisible() }
             .onChange(of: filters) { _, _ in pruneSelectionToVisible() }
             .onChange(of: sortOrder) { _, _ in pruneSelectionToVisible() }
             .sheet(isPresented: $showFilterSheet) {
@@ -649,15 +654,8 @@ struct ContentListView: View {
             filters = req
             sortOrder = preset.contentSortOrder
             keyword = req.keyword ?? ""
-            if let types = req.contentTypes {
-                if types.count == 1, let only = types.first, only != .all {
-                    scope = only
-                } else {
-                    scope = .all
-                }
-            } else {
-                scope = .all
-            }
+            let presetTypes = req.contentTypes?.subtracting([.all]) ?? []
+            selectedTypes = presetTypes.isEmpty ? Set(ContentType.selectable) : presetTypes
             pruneSelectionToVisible()
         } catch {
             // decode failure — ignore

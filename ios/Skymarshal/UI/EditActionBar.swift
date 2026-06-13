@@ -12,9 +12,31 @@ import SkymarshalCore
 @available(iOS 17, *)
 struct EditActionBar: View {
 
+    /// The destructive verb this bar carries. Content deletes posts
+    /// (permanent); Followers unfollows accounts (reversible). Same bar,
+    /// different stakes — the label, icon, and undo hint all follow from it.
+    enum Action {
+        case delete
+        case unfollow
+
+        var verb: String { self == .delete ? "Delete" : "Unfollow" }
+        var icon: String { self == .delete ? "trash" : "person.crop.circle.badge.minus" }
+        var noun: String { self == .delete ? "posts" : "accounts" }
+        var undoHint: String? {
+            self == .delete ? "This action cannot be undone" : nil
+        }
+
+        func accessibilityLabel(count: Int) -> String {
+            count > 0
+                ? "\(verb) \(count) selected \(noun)\(self == .delete ? " permanently" : "")"
+                : "\(verb) (no selection)"
+        }
+    }
+
     let selectionCount: Int
     let visibleCount: Int
     let allSelected: Bool
+    var action: Action = .delete
     let onToggleAll: () -> Void
     let onDelete: () -> Void
 
@@ -47,17 +69,15 @@ struct EditActionBar: View {
             Spacer(minLength: 8)
 
             Button(role: .destructive, action: onDelete) {
-                Label("Delete", systemImage: "trash")
+                Label(action.verb, systemImage: action.icon)
                     .labelStyle(.titleAndIcon)
                     .font(.subheadline.weight(.semibold))
             }
             .buttonStyle(.borderedProminent)
             .tint(Theme.danger)
             .disabled(selectionCount == 0)
-            .accessibilityLabel(selectionCount > 0
-                ? "Delete \(selectionCount) selected posts permanently"
-                : "Delete (no selection)")
-            .accessibilityHint("This action cannot be undone")
+            .accessibilityLabel(action.accessibilityLabel(count: selectionCount))
+            .accessibilityHint(action.undoHint ?? "")
         }
         .padding(.horizontal)
         .padding(.vertical, 10)

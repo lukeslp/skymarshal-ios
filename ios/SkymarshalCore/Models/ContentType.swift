@@ -15,6 +15,11 @@ public enum ContentType: String, Codable, Sendable, CaseIterable, Identifiable {
 
     public var id: String { rawValue }
 
+    /// The four concrete kinds a content item can actually be — `.all` is a
+    /// UI selector convenience, not a classification, so it's excluded.
+    /// Used by the multi-select chip row and its default selection.
+    public static let selectable: [ContentType] = [.posts, .replies, .reposts, .likes]
+
     public var label: String {
         switch self {
         case .all:     return "All"

@@ -232,6 +232,7 @@ struct BluescreenView: View {
                         selectionCount: selection.count,
                         visibleCount: filtered.count,
                         allSelected: !filtered.isEmpty && selection == Set(filtered.map(\.did)),
+                        action: .unfollow,
                         onToggleAll: {
                             let all = Set(filtered.map(\.did))
                             selection = (selection == all) ? [] : all
