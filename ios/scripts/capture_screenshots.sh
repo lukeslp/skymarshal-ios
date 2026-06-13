@@ -67,14 +67,16 @@ xcrun simctl status_bar "$DEVICE" override \
 
 # Export attachments even when the test fails — the named snaps are
 # the only useful failure diagnostics this side of an attached Xcode.
+# xcodebuild only forwards TEST_RUNNER_-prefixed variables from its
+# environment — command-line build settings never reach the runner.
+export TEST_RUNNER_SKY_TEST_HANDLE="${SKY_TEST_HANDLE:-}"
+export TEST_RUNNER_SKY_TEST_APP_PASSWORD="${SKY_TEST_APP_PASSWORD:-}"
 TEST_STATUS=0
 xcodebuild -project Skymarshal.xcodeproj -scheme Skymarshal \
   -destination "platform=iOS Simulator,id=$DEVICE" \
   -only-testing:SkymarshalUITests/ScreenshotTest \
   -resultBundlePath "$RESULT_BUNDLE" \
   -derivedDataPath build \
-  TEST_RUNNER_SKY_TEST_HANDLE="${SKY_TEST_HANDLE:-}" \
-  TEST_RUNNER_SKY_TEST_APP_PASSWORD="${SKY_TEST_APP_PASSWORD:-}" \
   test || TEST_STATUS=$?
 
 xcrun simctl status_bar "$DEVICE" clear
