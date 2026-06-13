@@ -439,9 +439,9 @@ final class AppModel {
         }
 
         let total = itemIDs.count
-        let task = Task { [weak self, content] in
+        let task = Task { [self, content] in
             await content.delete(itemIDs: itemIDs) { deleted in
-                await self?.noteDeleteProgress(deleted: deleted, total: total)
+                await self.noteDeleteProgress(deleted: deleted, total: total)
             }
         }
         deleteTask = task
