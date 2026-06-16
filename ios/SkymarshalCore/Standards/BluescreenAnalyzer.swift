@@ -154,6 +154,7 @@ public enum BluescreenAnalyzer {
         lastPostDate: Date? = nil,
         engagementScore: Double = 0,
         interactedRecently: Bool? = nil,
+        activityReadState: ActivityReadState = .unknown,
         inactivityDays: Int = 90,
         now: Date = Date()
     ) -> AnalyzedAccount {
@@ -177,9 +178,17 @@ public enum BluescreenAnalyzer {
         }
 
         let isDeleted = profile.handle == "handle.invalid"
+        // Time-based inactivity (a stale last-post date) is only honest
+        // when the activity read was reliable. When `activityReadState`
+        // is `.unknown` (throttled / gated / errored), an empty or stale
+        // last-post read is suppressed so a throttle can't masquerade as
+        // inactivity. The two reliable, read-independent signals
+        // (`isDeleted`, `postsCount == 0`) always stand.
+        let timeInactive = activityReadState == .read
+            && (daysSinceLast.map { $0 > inactivityDays } ?? false)
         let isInactive: Bool = isDeleted
             || profile.postsCount == 0
-            || (daysSinceLast.map { $0 > inactivityDays } ?? false)
+            || timeInactive
 
         let isMutual = profile.viewer?.followedBy != nil
 
@@ -199,7 +208,8 @@ public enum BluescreenAnalyzer {
             isDeleted: isDeleted,
             isMutual: isMutual,
             engagementScore: engagementScore,
-            interactedRecently: interactedRecently
+            interactedRecently: interactedRecently,
+            activityReadState: activityReadState
         )
     }
 

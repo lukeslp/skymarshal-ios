@@ -226,6 +226,13 @@ public final class AnalyzedAccountRecord {
     public var engagementScore: Double
     public var interactedRecentlyRaw: Int            // -1 = unknown, 0 = no, 1 = yes
 
+    /// Whether the AppView read of this account's activity was reliable.
+    /// Stored as the `ActivityReadState` raw value. Lightweight
+    /// migration mirrors `whitelisted`: existing rows decode to
+    /// `"unknown"` (the conservative default) on read because the SwiftData
+    /// property default fills any column the old schema never wrote.
+    public var activityReadStateRaw: String = ActivityReadState.unknown.rawValue
+
     /// User-applied "this isn't an automated account" override.
     /// Survives re-scans because we upsert by compositeKey and only
     /// the analyzer-derived fields get refreshed in `update(from:)`.
@@ -276,6 +283,7 @@ public final class AnalyzedAccountRecord {
         case .some(false): self.interactedRecentlyRaw = 0
         case .none:        self.interactedRecentlyRaw = -1
         }
+        self.activityReadStateRaw = account.activityReadState.rawValue
         self.whitelisted = account.userWhitelisted
 
         self.scannedAt = scannedAt
@@ -322,6 +330,7 @@ public final class AnalyzedAccountRecord {
         case .some(false): self.interactedRecentlyRaw = 0
         case .none:        self.interactedRecentlyRaw = -1
         }
+        self.activityReadStateRaw = account.activityReadState.rawValue
         self.scannedAt = scannedAt
     }
 
@@ -366,6 +375,8 @@ public final class AnalyzedAccountRecord {
         default: interacted = nil
         }
 
+        let readState = ActivityReadState(rawValue: activityReadStateRaw) ?? .unknown
+
         return AnalyzedAccount(
             profile: profile,
             ratio: ratio,
@@ -383,6 +394,7 @@ public final class AnalyzedAccountRecord {
             isMutual: isMutual,
             engagementScore: engagementScore,
             interactedRecently: interacted,
+            activityReadState: readState,
             userWhitelisted: whitelisted
         )
     }

@@ -21,6 +21,12 @@ public struct AnalyzedAccount: Hashable, Sendable, Identifiable {
     public let isMutual: Bool
     public let engagementScore: Double
     public let interactedRecently: Bool?
+    /// Whether the AppView read of this account's activity was reliable.
+    /// `.unknown` (the default) means throttle/gate/error made the
+    /// last-post / interaction signals untrustworthy — the cleanup
+    /// filters and presets refuse to treat such an account as inactive
+    /// or disengaged. Persisted via AnalyzedAccountRecord.activityReadStateRaw.
+    public let activityReadState: ActivityReadState
     /// User-applied "this isn't an automated account" override. When
     /// true: the row badge hides regardless of botScore, the stripe
     /// drops the danger/caution branch, and the account is excluded
@@ -46,6 +52,7 @@ public struct AnalyzedAccount: Hashable, Sendable, Identifiable {
         isMutual: Bool,
         engagementScore: Double,
         interactedRecently: Bool?,
+        activityReadState: ActivityReadState = .unknown,
         userWhitelisted: Bool = false
     ) {
         self.profile = profile
@@ -64,6 +71,7 @@ public struct AnalyzedAccount: Hashable, Sendable, Identifiable {
         self.isMutual = isMutual
         self.engagementScore = engagementScore
         self.interactedRecently = interactedRecently
+        self.activityReadState = activityReadState
         self.userWhitelisted = userWhitelisted
     }
 
@@ -84,7 +92,26 @@ public struct AnalyzedAccount: Hashable, Sendable, Identifiable {
             lastPostDate: lastPostDate, daysSinceLastPost: daysSinceLastPost,
             isInactive: isInactive, isDeleted: isDeleted, isMutual: isMutual,
             engagementScore: engagementScore, interactedRecently: interactedRecently,
+            activityReadState: activityReadState,
             userWhitelisted: newValue
+        )
+    }
+
+    /// Returns a copy with `activityReadState` updated, preserving every
+    /// other field. The throttle-safe read path uses this to stamp an
+    /// account `.read` or `.unknown` after an activity sweep without
+    /// re-running the analyzer.
+    public func withActivityReadState(_ newValue: ActivityReadState) -> AnalyzedAccount {
+        AnalyzedAccount(
+            profile: profile, ratio: ratio, botScore: botScore,
+            botFlags: botFlags, influenceScore: influenceScore,
+            influenceTier: influenceTier, accountAgeDays: accountAgeDays,
+            postsPerDay: postsPerDay, profileCompleteness: profileCompleteness,
+            lastPostDate: lastPostDate, daysSinceLastPost: daysSinceLastPost,
+            isInactive: isInactive, isDeleted: isDeleted, isMutual: isMutual,
+            engagementScore: engagementScore, interactedRecently: interactedRecently,
+            activityReadState: newValue,
+            userWhitelisted: userWhitelisted
         )
     }
 }

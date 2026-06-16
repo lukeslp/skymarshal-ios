@@ -14,7 +14,10 @@ public enum RateLimit {
 
     /// Backoff delays in seconds. The leading 0 is implicit (first attempt
     /// has no wait).
-    public static let backoffSeconds: [UInt64] = [1, 2, 4, 8, 15, 30, 60, 120]
+    /// Mutable so tests can shrink the ladder to a single fast attempt
+    /// instead of sleeping through the full 240s schedule. Production
+    /// never reassigns it; the default below is the proven sequence.
+    public static var backoffSeconds: [UInt64] = [1, 2, 4, 8, 15, 30, 60, 120]
 
     /// Detect a 429 across three orthogonal signals: error description
     /// substring match, ``ATProtoError`` with status 429, or an `NSError`
@@ -141,6 +144,22 @@ public struct ATProtoError: Error, Sendable, Equatable, LocalizedError {
         guard let error else { return false }
         return Self.expiredTokenCodes.contains(error)
     }
+
+    /// True when the PDS/AppView is rate-limiting this read. A throttled
+    /// read must NEVER be read as "this account is inactive" — that is the
+    /// core fail-safe of the throttle-safe read path. Detected from the
+    /// 429 status or the `RateLimitExceeded` XRPC code; ``RateLimit/isRateLimit(_:)``
+    /// covers the same condition at the `Error` level for the backoff loop.
+    public var isThrottled: Bool {
+        if status == 429 { return true }
+        if let error, Self.throttleCodes.contains(error) { return true }
+        return false
+    }
+
+    /// XRPC error codes that mean "you are being rate-limited, back off".
+    public static let throttleCodes: Set<String> = [
+        "RateLimitExceeded",
+    ]
 
     /// XRPC error codes that should trigger a refresh-and-retry path.
     public static let expiredTokenCodes: Set<String> = [

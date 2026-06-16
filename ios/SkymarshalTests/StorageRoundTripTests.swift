@@ -115,6 +115,28 @@ final class StorageRoundTripTests: XCTestCase {
         )
     }
 
+    func test_analyzedAccount_roundTrip_preservesActivityReadState() {
+        let base = BluescreenAnalyzer.analyze(profile: sampleProfile())
+
+        for state in [ActivityReadState.read, .unknown] {
+            let account = base.withActivityReadState(state)
+            let restored = AnalyzedAccountRecord(account: account, ownerHandle: "o")
+                .toAnalyzedAccount()
+            XCTAssertEqual(restored.activityReadState, state)
+        }
+    }
+
+    /// Update-in-place path must also persist the read-state, not just
+    /// the init path.
+    func test_analyzedAccount_update_persistsActivityReadState() {
+        let base = BluescreenAnalyzer.analyze(profile: sampleProfile())
+        let record = AnalyzedAccountRecord(
+            account: base.withActivityReadState(.unknown), ownerHandle: "o"
+        )
+        record.update(from: base.withActivityReadState(.read), scannedAt: Date())
+        XCTAssertEqual(record.toAnalyzedAccount().activityReadState, .read)
+    }
+
     // MARK: - SwiftData container integration
 
     func test_analyzedAccount_persistsAndRetrieves_viaInMemoryContainer() throws {

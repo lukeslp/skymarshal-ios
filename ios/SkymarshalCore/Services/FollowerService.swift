@@ -116,23 +116,28 @@ public actor FollowerService {
 
         // Phase 3 — optional last-post date per account. Updates loaded[i]
         // in place by re-running BluescreenAnalyzer with the lastPostDate
-        // — picks up the inactive flag for accounts that haven't posted
-        // recently. Each callback tick re-snapshots so the UI's badges
-        // refresh as activity data arrives.
+        // AND the read-state from the throttle-safe fetch — picks up the
+        // inactive flag for accounts that haven't posted recently, but
+        // only when the read was reliable. A throttled/gated read stamps
+        // `.unknown` so the inactivity branch is suppressed (fail-safe).
+        // Each callback tick re-snapshots so the UI's badges refresh as
+        // activity data arrives.
         if checkLastPost {
             for index in 0..<loaded.count {
                 try Task.checkCancellation()
                 let did = loaded[index].did
-                let lastPost = try? await fetchLastPostDate(actor: did)
-                if lastPost != nil {
-                    loaded[index] = BluescreenAnalyzer.analyze(
-                        profile: loaded[index].profile,
-                        lastPostDate: lastPost,
-                        engagementScore: loaded[index].engagementScore,
-                        interactedRecently: loaded[index].interactedRecently,
-                        inactivityDays: inactivityDays
-                    )
-                }
+                let probe = await fetchLastPostDate(
+                    actor: did,
+                    profilePostsCount: loaded[index].profile.postsCount
+                )
+                loaded[index] = BluescreenAnalyzer.analyze(
+                    profile: loaded[index].profile,
+                    lastPostDate: probe.date,
+                    engagementScore: loaded[index].engagementScore,
+                    interactedRecently: loaded[index].interactedRecently,
+                    activityReadState: probe.readState,
+                    inactivityDays: inactivityDays
+                )
                 if index % 25 == 0 || index == loaded.count - 1 {
                     await progress?(ScanProgress(
                         phase: .lastPosts,
@@ -163,6 +168,92 @@ public actor FollowerService {
         filters.apply(to: loaded)
     }
 
+    /// Phase 4 — opt-in "Deep analyze". Computes the engaged-audience set
+    /// from the user's recent posts and, for each loaded follow, stamps
+    /// `interactedRecently` (are they in the engaged set?) and an
+    /// `engagementScore` (hit count). Fail-safe throughout: if the
+    /// audience read was throttled (`.unknown`), every account's
+    /// engagement signal is left at its prior value (`interactedRecently`
+    /// stays `nil`) and the read-state is marked `.unknown` so the
+    /// disengaged preset refuses to act on them.
+    ///
+    /// Reuses the already-allowed `getLikes` / `getRepostedBy` endpoints
+    /// via ``EngagementEngine`` — no new network surface. The unused
+    /// `ScanProgress.Phase.interactions` is the progress hook.
+    ///
+    /// - Parameter userPostURIs: the user's recent post `at://` URIs
+    ///   (cheapest source: the user's cached content items).
+    @discardableResult
+    public func enrichEngagement(
+        userPostURIs: [String],
+        progress: (@Sendable (ScanProgress) async -> Void)? = nil
+    ) async -> [AnalyzedAccount] {
+        guard !loaded.isEmpty else { return loaded }
+        let owner = await client.currentHandle
+
+        await progress?(ScanProgress(
+            phase: .interactions,
+            current: 0,
+            total: loaded.count,
+            message: "Reading your engaged audience…"
+        ))
+
+        let engine = EngagementEngine(client: client)
+        let audience = await engine.engagedAudience(userPostURIs: userPostURIs)
+        let engagedDIDs = audience.engagedDIDs
+
+        // A throttled audience read can't tell "not engaged" from "we
+        // didn't see it" — leave engagement signals untouched and mark
+        // the read unreliable.
+        let audienceUnknown = audience.readState == .unknown
+
+        for index in 0..<loaded.count {
+            let account = loaded[index]
+            let hits = audience.countsByDID[account.did] ?? 0
+
+            if audienceUnknown {
+                loaded[index] = account.withActivityReadState(.unknown)
+                continue
+            }
+
+            let interacted = engagedDIDs.contains(account.did)
+            // Re-run analyze to fold in the engagement signal, preserving
+            // the account's existing activity read-state (the last-post
+            // phase already decided whether the inactivity signal is
+            // trustworthy — engagement enrichment must not resurrect a
+            // suppressed inactivity verdict).
+            loaded[index] = BluescreenAnalyzer.analyze(
+                profile: account.profile,
+                lastPostDate: account.lastPostDate,
+                engagementScore: Double(hits),
+                interactedRecently: interacted,
+                activityReadState: account.activityReadState,
+                inactivityDays: 90
+            )
+
+            if index % 25 == 0 || index == loaded.count - 1 {
+                await progress?(ScanProgress(
+                    phase: .interactions,
+                    current: index + 1,
+                    total: loaded.count,
+                    message: "Engagement check… \(index + 1) of \(loaded.count)"
+                ))
+            }
+        }
+
+        if let owner {
+            loaded = applyingPersistedWhitelists(to: loaded, owner: owner)
+            try? replacePersistedScan(accounts: loaded, owner: owner)
+        }
+        await progress?(ScanProgress(
+            phase: .complete,
+            current: loaded.count,
+            total: loaded.count,
+            message: "Deep analyze complete."
+        ))
+        return loaded
+    }
+
     /// Bulk unfollow. The follow record URI is in `viewer.following` on
     /// each AnalyzedAccount's profile. Each real call goes through
     /// `RateLimit.withBackoff` inside ``ATProtoClient/deleteRecord(uri:)``
@@ -171,13 +262,28 @@ public actor FollowerService {
     ///
     /// When `dryRun` is true, validates each DID and follow record but performs
     /// no XRPC writes and does not mutate `loaded`.
-    public func unfollow(dids: [String], dryRun: Bool = false) async -> (done: Int, errors: [String]) {
+    ///
+    /// When `requireKnownActivity` is true (the preset bulk paths pass
+    /// it), accounts whose `activityReadState == .unknown` are skipped
+    /// and reported rather than unfollowed. This is the defense-in-depth
+    /// layer behind the filter guard: even if a `.unknown` account leaks
+    /// into a selection, the destructive call itself refuses to act on an
+    /// account whose activity we could not reliably read.
+    public func unfollow(
+        dids: [String],
+        dryRun: Bool = false,
+        requireKnownActivity: Bool = false
+    ) async -> (done: Int, errors: [String]) {
         let owner = await client.currentHandle
         var done = 0
         var errors: [String] = []
         for did in dids {
             guard let acc = loaded.first(where: { $0.did == did }) else {
                 errors.append("\(did): not in loaded scan")
+                continue
+            }
+            if requireKnownActivity && acc.activityReadState == .unknown {
+                errors.append("\(acc.handle): activity could not be read reliably — skipped for safety")
                 continue
             }
             guard let followURI = acc.profile.viewer?.following else {
@@ -394,14 +500,55 @@ public actor FollowerService {
 
     // MARK: - Internals
 
-    /// Fetch the actor's most recent post date — one item, no replies.
-    /// Uses the public read endpoint via `getAuthorFeed`.
-    private func fetchLastPostDate(actor: String) async throws -> Date? {
-        let response = try await client.getAuthorFeed(
-            actor: actor, limit: 1, cursor: nil, filter: "posts_no_replies"
-        )
-        guard let view = response.feed.first else { return nil }
-        return ATProtoDate.parse(view.post.record?.createdAt)
+    /// Probe result for a throttle-safe last-post read.
+    struct LastPostProbe: Sendable {
+        let date: Date?
+        let readState: ActivityReadState
+    }
+
+    /// Fetch the actor's most recent post date — one item, no replies —
+    /// through `RateLimit.withBackoff` so a transient 429 retries instead
+    /// of being misread as "no posts".
+    ///
+    /// Returns a tri-state read alongside the date:
+    ///   - **throttle after the backoff ladder is exhausted** → `.unknown`.
+    ///     Never let a rate-limit look like inactivity.
+    ///   - **200 + empty feed for an account whose profile says
+    ///     `postsCount > 0`** → `.unknown`. An active account with an
+    ///     empty public feed is the signature of throttling or an
+    ///     `!no-unauthenticated` gate, not genuine inactivity.
+    ///   - **any other error** → `.unknown`. Fail safe on the read.
+    ///   - **otherwise** (a real post, or a genuinely empty feed for an
+    ///     account that reports zero posts) → `.read`.
+    private func fetchLastPostDate(
+        actor: String,
+        profilePostsCount: Int
+    ) async -> LastPostProbe {
+        do {
+            let response = try await RateLimit.withBackoff {
+                try await self.client.getAuthorFeed(
+                    actor: actor, limit: 1, cursor: nil, filter: "posts_no_replies"
+                )
+            }
+            guard let view = response.feed.first else {
+                // Empty feed. If the profile claims posts exist, the
+                // empty read is almost certainly a throttle/gate, not
+                // truth → fail safe to `.unknown`. A zero-post profile
+                // with an empty feed is a consistent, trustworthy read.
+                return LastPostProbe(
+                    date: nil,
+                    readState: profilePostsCount > 0 ? .unknown : .read
+                )
+            }
+            return LastPostProbe(
+                date: ATProtoDate.parse(view.post.record?.createdAt),
+                readState: .read
+            )
+        } catch {
+            // Throttle-after-retries or any other read failure: we did
+            // not reliably read this account's activity.
+            return LastPostProbe(date: nil, readState: .unknown)
+        }
     }
 
     /// Replace the profile's count fields and (if originally absent) any

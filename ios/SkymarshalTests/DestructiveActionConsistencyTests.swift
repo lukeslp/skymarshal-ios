@@ -147,6 +147,47 @@ final class DestructiveActionConsistencyTests: XCTestCase {
         XCTAssertEqual(remaining.map(\.did), [bad.did])
     }
 
+    /// Defense-in-depth: when a preset passes `requireKnownActivity:
+    /// true`, an account whose activity read was unreliable (`.unknown`)
+    /// is skipped and reported, never unfollowed — even though its
+    /// follow record is valid and the network would accept the delete.
+    func test_unfollow_requireKnownActivity_skipsUnknownReadState() async throws {
+        let client = makeClient()
+        await client.setSession(makeSession())
+        TestURLProtocol.handler = { _ in (200, Data("{}".utf8)) }
+        let service = FollowerService(client: client)
+        let known = makeAccount(did: "did:plc:known", rkey: "known", activityReadState: .read)
+        let unknown = makeAccount(did: "did:plc:unknown", rkey: "unknown", activityReadState: .unknown)
+        await service.setLoaded([known, unknown])
+
+        let result = await service.unfollow(
+            dids: [known.did, unknown.did],
+            requireKnownActivity: true
+        )
+        let remaining = await service.loadedSnapshot
+
+        XCTAssertEqual(result.done, 1)
+        XCTAssertEqual(result.errors.count, 1)
+        XCTAssertTrue(result.errors[0].contains("could not be read reliably"))
+        // The unknown account survives the bulk action.
+        XCTAssertEqual(remaining.map(\.did), [unknown.did])
+    }
+
+    /// Without the flag, the same `.unknown` account is unfollowed
+    /// normally — the guard is opt-in per call site.
+    func test_unfollow_withoutRequireKnownActivity_unfollowsUnknownReadState() async throws {
+        let client = makeClient()
+        await client.setSession(makeSession())
+        TestURLProtocol.handler = { _ in (200, Data("{}".utf8)) }
+        let service = FollowerService(client: client)
+        let unknown = makeAccount(did: "did:plc:unknown", rkey: "unknown", activityReadState: .unknown)
+        await service.setLoaded([unknown])
+
+        let result = await service.unfollow(dids: [unknown.did])
+        XCTAssertEqual(result.done, 1)
+        XCTAssertTrue(result.errors.isEmpty)
+    }
+
     func test_followerScan_failureRestoresPreviousMemorySnapshot() async throws {
         let client = makeClient()
         await client.setSession(makeSession())
@@ -189,7 +230,11 @@ final class DestructiveActionConsistencyTests: XCTestCase {
         )
     }
 
-    private func makeAccount(did: String, rkey: String) -> AnalyzedAccount {
+    private func makeAccount(
+        did: String,
+        rkey: String,
+        activityReadState: ActivityReadState = .read
+    ) -> AnalyzedAccount {
         let profile = BskyProfile(
             did: did,
             handle: "\(rkey).bsky.social",
@@ -197,5 +242,6 @@ final class DestructiveActionConsistencyTests: XCTestCase {
             viewer: .init(following: "at://did:plc:me/app.bsky.graph.follow/\(rkey)")
         )
         return BluescreenAnalyzer.analyze(profile: profile)
+            .withActivityReadState(activityReadState)
     }
 }
