@@ -29,6 +29,10 @@ public enum FeatureFlags {
     public static let visualizationHubKey = "sm.feature.visualizationHub"
     public static let wordPatternsKey = "sm.feature.wordPatterns"
     public static let backupRestoreKey = "sm.feature.backupRestore"
+    /// When `true`, adds a "Web" tab hosting the live skymarshal.blue site in a
+    /// hardened WKWebView (see `WebShellView`). Additive companion surface; the
+    /// native content-management tabs remain primary. Off by first-launch default.
+    public static let webShellKey = "sm.feature.webShell"
     /// When `false`, Content tab hides the visible-count / avg-engagement strip and shows
     /// active filter chips only while filters are active (see `ContentListView`).
     public static let contentPowerToolsExpandedKey = "sm.ui.contentPowerToolsExpanded"
@@ -63,6 +67,7 @@ public enum FeatureFlags {
             visualizationHubKey,
             wordPatternsKey,
             backupRestoreKey,
+            webShellKey,
             contentPowerToolsExpandedKey,
         ]
         for i in 0..<(arguments.count - 1) {

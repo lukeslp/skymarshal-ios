@@ -5,6 +5,7 @@ import SkymarshalCore
 struct RootView: View {
     @State private var model = AppModel.liveDefault()
     @AppStorage(FeatureFlags.visualizationHubKey) private var featureVisualizationHub: Bool = false
+    @AppStorage(FeatureFlags.webShellKey) private var featureWebShell: Bool = false
     @State private var showPostUpdateFeatureDiscovery = false
 
     var body: some View {
@@ -23,6 +24,10 @@ struct RootView: View {
                     if featureVisualizationHub {
                         VisualizationHubView()
                             .tabItem { Label("Scope", systemImage: "scope") }
+                    }
+                    if featureWebShell {
+                        WebShellView()
+                            .tabItem { Label("Web", systemImage: "globe") }
                     }
                 }
             } else {

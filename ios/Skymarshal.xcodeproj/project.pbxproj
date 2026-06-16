@@ -136,6 +136,7 @@
 		F4DF3B33546DDBBE157F599F /* ScanSummaryStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E30699ACD9FBA95746DC78E /* ScanSummaryStrip.swift */; };
 		F8A5329CFFA45BB0CAFBD2A7 /* DeletePacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8A7E95FBF0C93D5A80D6EB1 /* DeletePacing.swift */; };
 		F9681EFDBACDA437AAECE865 /* ReduceMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F9F29B67CBCC9B0D7EF82B3 /* ReduceMotion.swift */; };
+		FA8A1BFD0BE39D08AE23468C /* WebShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9F1FE406732CF1A69044DA9 /* WebShellView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -296,6 +297,7 @@
 		B74AACF37FEDE7F8B59D9D64 /* AccountDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDetailView.swift; sourceTree = "<group>"; };
 		B782349CA1305BCCC0AE2EE9 /* RateLimitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RateLimitTests.swift; sourceTree = "<group>"; };
 		B9DD6042E5FF9F3EC2084666 /* SearchRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchRequest.swift; sourceTree = "<group>"; };
+		B9F1FE406732CF1A69044DA9 /* WebShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebShellView.swift; sourceTree = "<group>"; };
 		BADD57E99019D70492F0107E /* ContentListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentListView.swift; sourceTree = "<group>"; };
 		BEA5E5F56D11FF95180F9AC1 /* ActiveFilterChips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveFilterChips.swift; sourceTree = "<group>"; };
 		C33CEEA494ABBF59FFC62725 /* EngagementCacheTTL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngagementCacheTTL.swift; sourceTree = "<group>"; };
@@ -392,6 +394,7 @@
 			isa = PBXGroup;
 			children = (
 				05314DCB1CDD7604E1EB92B2 /* Components */,
+				FA444BD6F3AB4E9E41387D98 /* Web */,
 				E4FD7762E826AE71D79366DC /* AboutView.swift */,
 				B74AACF37FEDE7F8B59D9D64 /* AccountDetailView.swift */,
 				F13FF534F6122C655A075286 /* AccountRow.swift */,
@@ -572,6 +575,14 @@
 				E617CED88B3942F17AB3AC3D /* Timeout.swift */,
 			);
 			path = Standards;
+			sourceTree = "<group>";
+		};
+		FA444BD6F3AB4E9E41387D98 /* Web */ = {
+			isa = PBXGroup;
+			children = (
+				B9F1FE406732CF1A69044DA9 /* WebShellView.swift */,
+			);
+			path = Web;
 			sourceTree = "<group>";
 		};
 		FCE7966212BB75311499EAF0 /* SkymarshalTests */ = {
@@ -893,6 +904,7 @@
 				4ED0412C292B00C1F8D5DF08 /* TypeChipsRow.swift in Sources */,
 				9C56CC18883DE8EA4C7CE2E5 /* TypedConfirmSheet.swift in Sources */,
 				8E70F72F4F000D9FBB79B660 /* VisualizationHubView.swift in Sources */,
+				FA8A1BFD0BE39D08AE23468C /* WebShellView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -984,7 +996,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = blue.skymarshal.ios.core;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1084,7 +1096,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = blue.skymarshal.ios.core;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
