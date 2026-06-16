@@ -314,6 +314,12 @@ struct BluescreenView: View {
                         Toggle("Dry-run unfollow (preview only)", isOn: $unfollowDryRun)
                         if !model.accounts.isEmpty {
                             Button {
+                                Task { await model.deepAnalyzeEngagement() }
+                            } label: {
+                                Label("Deep analyze (engaged audience)", systemImage: "heart.text.square")
+                            }
+                            .disabled(model.isScanning)
+                            Button {
                                 presentAfterMenuDismisses { showExportSheet = true }
                             } label: {
                                 Label("Export…", systemImage: "square.and.arrow.up")
@@ -400,7 +406,11 @@ struct BluescreenView: View {
                 } else {
                     Button("Unfollow \(batch.count)", role: .destructive) {
                         Task {
-                            _ = await model.unfollow(dids: batch)
+                            // Bulk preset path: refuse to act on accounts
+                            // whose activity we couldn't read reliably.
+                            _ = await model.unfollow(
+                                dids: batch, requireKnownActivity: true
+                            )
                             selection.removeAll()
                             pendingUnfollow = nil
                         }

@@ -172,9 +172,38 @@ final class BluescreenAnalyzerTests: XCTestCase {
     func test_analyze_inactiveByLastPostBeyondThreshold() {
         let p = profile()
         let lastPost = Date().addingTimeInterval(-100 * 86_400)
-        let acc = BluescreenAnalyzer.analyze(profile: p, lastPostDate: lastPost, inactivityDays: 90)
+        // Time-based inactivity is only honored when the activity read
+        // was reliable.
+        let acc = BluescreenAnalyzer.analyze(
+            profile: p, lastPostDate: lastPost,
+            activityReadState: .read, inactivityDays: 90
+        )
         XCTAssertTrue(acc.isInactive)
         XCTAssertEqual(acc.daysSinceLastPost, 100)
+    }
+
+    /// Fail-safe: a stale last-post date read under a throttle/gate
+    /// (`.unknown`) must NOT flag the account inactive. An active
+    /// account (`posts > 0`) whose feed read was unreliable stays out of
+    /// the inactive bucket.
+    func test_analyze_suppressesTimeInactivity_whenReadStateUnknown() {
+        let p = profile(posts: 50)
+        let lastPost = Date().addingTimeInterval(-100 * 86_400)
+        let acc = BluescreenAnalyzer.analyze(
+            profile: p, lastPostDate: lastPost,
+            activityReadState: .unknown, inactivityDays: 90
+        )
+        XCTAssertFalse(acc.isInactive)
+        XCTAssertEqual(acc.activityReadState, .unknown)
+    }
+
+    /// `postsCount == 0` is a reliable, read-independent signal: the
+    /// account is inactive even when the read-state is `.unknown`.
+    func test_analyze_zeroPostsInactive_evenWhenReadStateUnknown() {
+        let acc = BluescreenAnalyzer.analyze(
+            profile: profile(posts: 0), activityReadState: .unknown
+        )
+        XCTAssertTrue(acc.isInactive)
     }
 
     func test_analyze_mutualFromViewerFollowedBy() {

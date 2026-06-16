@@ -576,13 +576,37 @@ final class AppModel {
         }
     }
 
-    func unfollow(dids: [String], dryRun: Bool = false) async -> (done: Int, errors: [String]) {
-        let result = await followers.unfollow(dids: dids, dryRun: dryRun)
+    func unfollow(
+        dids: [String],
+        dryRun: Bool = false,
+        requireKnownActivity: Bool = false
+    ) async -> (done: Int, errors: [String]) {
+        let result = await followers.unfollow(
+            dids: dids, dryRun: dryRun, requireKnownActivity: requireKnownActivity
+        )
         if !dryRun, !dids.isEmpty {
             self.accounts = await followers.loadedSnapshot
             self.scanSummary = await followers.summary
         }
         return result
+    }
+
+    /// Opt-in "Deep analyze": fold the engaged-audience signal into the
+    /// scanned follows. Reads the user's recent post URIs from cached
+    /// content and runs ``FollowerService/enrichEngagement(userPostURIs:)``
+    /// — likers/reposters of those posts become the engaged set, which
+    /// stamps `interactedRecently` per follow. Fail-safe: a throttled
+    /// audience read leaves engagement signals untouched and marks the
+    /// affected accounts `.unknown`.
+    func deepAnalyzeEngagement(
+        progress: (@Sendable (ScanProgress) async -> Void)? = nil
+    ) async {
+        let postURIs = items
+            .filter { $0.contentType == .posts || $0.contentType == .replies }
+            .map(\.uri)
+        await followers.enrichEngagement(userPostURIs: postURIs, progress: progress)
+        self.accounts = await followers.loadedSnapshot
+        self.scanSummary = await followers.summary
     }
 
     /// Toggle the user-whitelist override on a scanned account. Pulls

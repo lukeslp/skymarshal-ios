@@ -28,7 +28,9 @@ final class FollowerFiltersTests: XCTestCase {
         completeness: Double = 1.0,
         ratio: Double = 1.0,
         postsPerDay: Double = 0.1,
-        lastPostDate: Date? = nil
+        lastPostDate: Date? = nil,
+        interactedRecently: Bool? = nil,
+        activityReadState: ActivityReadState = .read
     ) -> AnalyzedAccount {
         let createdAt = ISO8601DateFormatter().string(
             from: Date().addingTimeInterval(-Double(ageDays) * 86_400)
@@ -53,7 +55,8 @@ final class FollowerFiltersTests: XCTestCase {
             lastPostDate: lastPostDate, daysSinceLastPost: nil,
             isInactive: isInactive, isDeleted: isDeleted,
             isMutual: isMutual,
-            engagementScore: engagement, interactedRecently: nil
+            engagementScore: engagement, interactedRecently: interactedRecently,
+            activityReadState: activityReadState
         )
     }
 
@@ -109,6 +112,66 @@ final class FollowerFiltersTests: XCTestCase {
         f.showInactive = true
         let result = f.apply(to: sample)
         XCTAssertEqual(Set(result.map(\.handle)), ["carol.bsky.social", "dead.user"])
+    }
+
+    // MARK: - Fail-safe inactivity (throttle-safe reads)
+
+    /// An account flagged inactive from a stale last-post date must NOT
+    /// appear in the inactive bucket when the activity read was
+    /// unreliable. This is the core fix: a throttled read looks empty,
+    /// and an empty read must never masquerade as "inactive".
+    func test_showInactive_excludesTimeInactive_whenReadStateUnknown() {
+        let throttled = account(
+            did: "u", handle: "throttled.bsky.social",
+            posts: 200, isInactive: true, activityReadState: .unknown
+        )
+        var f = FollowerFilters()
+        f.showInactive = true
+        XCTAssertTrue(f.apply(to: [throttled]).isEmpty)
+    }
+
+    /// Time-based inactivity with a reliable read still surfaces — the
+    /// guard suppresses only the untrustworthy case.
+    func test_showInactive_includesTimeInactive_whenReadStateRead() {
+        let inactive = account(
+            did: "u", handle: "stale.bsky.social",
+            posts: 200, isInactive: true, activityReadState: .read
+        )
+        var f = FollowerFilters()
+        f.showInactive = true
+        XCTAssertEqual(f.apply(to: [inactive]).map(\.handle), ["stale.bsky.social"])
+    }
+
+    /// `postsCount == 0` and deleted accounts are reliable signals that
+    /// never depend on an AppView read, so they surface even when the
+    /// read-state is `.unknown`.
+    func test_showInactive_includesZeroPostsAndDeleted_evenWhenReadStateUnknown() {
+        let zeroPosts = account(
+            did: "z", handle: "zero.bsky.social",
+            posts: 0, isInactive: true, activityReadState: .unknown
+        )
+        let deleted = account(
+            did: "d", handle: "handle.invalid",
+            isInactive: true, isDeleted: true, activityReadState: .unknown
+        )
+        var f = FollowerFilters()
+        f.showInactive = true
+        XCTAssertEqual(
+            Set(f.apply(to: [zeroPosts, deleted]).map(\.handle)),
+            ["zero.bsky.social", "handle.invalid"]
+        )
+    }
+
+    /// Regression lock on the disengaged preset: `nil` (engagement
+    /// unknown) must never count as disengaged — only a confirmed
+    /// `false` qualifies.
+    func test_showDisengaged_excludesEngagementUnknown() {
+        let unknown = account(did: "n", handle: "nil.bsky.social", interactedRecently: nil)
+        let disengaged = account(did: "f", handle: "false.bsky.social", interactedRecently: false)
+        let engaged = account(did: "t", handle: "true.bsky.social", interactedRecently: true)
+        var f = FollowerFilters()
+        f.showDisengaged = true
+        XCTAssertEqual(f.apply(to: [unknown, disengaged, engaged]).map(\.handle), ["false.bsky.social"])
     }
 
     func test_showDeleted_isStrictSubsetOfInactive() {

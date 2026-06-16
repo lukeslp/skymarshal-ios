@@ -115,12 +115,27 @@ public struct FollowerFilters: Hashable, Sendable {
         // Follows-heavy only (ratio < 0.1, follows someone). High-ratio
         // popular accounts are not "bad" and are not cull candidates.
         if showBadRatio && !(a.ratio < 0.1 && a.profile.followsCount > 0) { return false }
-        if showInactive && !a.isInactive { return false }
+        // Fail-safe inactivity. Two reliable signals never depend on an
+        // AppView read: `isDeleted` (handle.invalid) and `postsCount == 0`
+        // (the profile object itself reports zero posts). A *time-based*
+        // inactivity verdict (`isInactive` from a stale last-post date)
+        // is only trusted when the activity read was reliable
+        // (`activityReadState == .read`). A throttled/gated `.unknown`
+        // read that produced an empty feed must NOT surface the account
+        // as inactive — that's the bulk-unfollow-of-active-accounts bug.
+        if showInactive {
+            let reliablyInactive = a.isDeleted || a.profile.postsCount == 0
+            let timeInactive = a.isInactive && a.activityReadState == .read
+            if !(reliablyInactive || timeInactive) { return false }
+        }
         if showDeleted && !a.isDeleted { return false }
         // User whitelist short-circuit: a manual "not an automated
         // account" override pins this row out of the bots filter even
         // when the score is above threshold.
         if showBots && (a.botScore < botThreshold || a.userWhitelisted) { return false }
+        // `!= false` keeps `nil` (engagement-unknown) out of the
+        // disengaged bucket — only a confirmed `false` qualifies. This
+        // is the fail-safe lock for the disengaged preset.
         if showDisengaged && a.interactedRecently != false { return false }
         if showMutualOnly && !a.isMutual { return false }
         if showNonMutualOnly && a.isMutual { return false }

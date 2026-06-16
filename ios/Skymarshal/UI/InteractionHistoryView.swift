@@ -53,6 +53,17 @@ struct InteractionHistoryView: View {
 
                 if let bundle {
                     outgoingSections(bundle.outgoing)
+                    if bundle.incomingReadState == .unknown
+                        && progress?.phase == .complete {
+                        Section {
+                            Label(
+                                "Bluesky throttled this read — counts may be incomplete. This account isn't treated as inactive.",
+                                systemImage: "exclamationmark.triangle"
+                            )
+                            .font(.footnote)
+                            .foregroundStyle(Theme.caution)
+                        }
+                    }
                     incomingSections(
                         bundle.incoming,
                         complete: bundle.incomingComplete,

@@ -75,6 +75,13 @@ public struct InteractionBundle: Sendable {
     /// service actually walked, so a "Deep sweep" toggle from
     /// InteractionHistoryView and the hint stay in sync.
     public let examinedPerDirection: Int
+    /// Whether the incoming sweep (the target's archive) was read
+    /// reliably. `.unknown` means a throttle or gate truncated the
+    /// sweep, so an empty/short `incoming` does NOT mean "they never
+    /// engaged you" — the UI surfaces a "couldn't fully read" banner
+    /// instead of the silent "0 / complete". Outgoing is always read
+    /// from cached content, so it has no read-state.
+    public let incomingReadState: ActivityReadState
 
     public init(
         target: BskyProfile,
@@ -82,7 +89,8 @@ public struct InteractionBundle: Sendable {
         incoming: [Interaction],
         outgoingComplete: Bool = true,
         incomingComplete: Bool = true,
-        examinedPerDirection: Int = 200
+        examinedPerDirection: Int = 200,
+        incomingReadState: ActivityReadState = .read
     ) {
         self.target = target
         self.outgoing = outgoing
@@ -90,6 +98,7 @@ public struct InteractionBundle: Sendable {
         self.outgoingComplete = outgoingComplete
         self.incomingComplete = incomingComplete
         self.examinedPerDirection = examinedPerDirection
+        self.incomingReadState = incomingReadState
     }
 }
 

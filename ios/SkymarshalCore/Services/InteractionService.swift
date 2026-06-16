@@ -46,6 +46,12 @@ public actor InteractionService {
         // User's own DID prefix for incoming-direction matching.
         let userPrefix = "at://\(userDID)/"
 
+        // Track whether either incoming sweep hit a throttle/error. A
+        // throttled incoming sweep must NOT be read as "they never
+        // engaged you" — the bundle carries `.unknown` so the UI shows a
+        // "couldn't fully read" banner instead of a silent zero.
+        var incomingThrottled = false
+
         // Phase 2 — incoming via target's getAuthorFeed
         var incoming: [Interaction] = []
         var feedComplete = true
@@ -61,8 +67,10 @@ public actor InteractionService {
             feedComplete = complete
         } catch {
             // Soft-fail on this pass — incoming likes pass might
-            // still succeed and contribute partial data.
+            // still succeed and contribute partial data. A rate-limit
+            // here taints the read-state regardless.
             feedComplete = false
+            if RateLimit.isRateLimit(error) { incomingThrottled = true }
         }
 
         // Phase 3 — incoming likes via getActorLikes(actor: target)
@@ -79,7 +87,20 @@ public actor InteractionService {
             likesComplete = complete
         } catch {
             likesComplete = false
+            if RateLimit.isRateLimit(error) { incomingThrottled = true }
         }
+
+        // Read-state verdict for the incoming sweep:
+        //   - any sweep throttled after the backoff ladder → `.unknown`
+        //   - both sweeps returned empty while the target's profile
+        //     reports `postsCount > 0` → `.unknown` (an active account
+        //     with an empty public archive is the throttle/gate
+        //     signature)
+        //   - otherwise → `.read`
+        let bothEmpty = incoming.isEmpty
+        let activeButEmpty = bothEmpty && targetProfile.postsCount > 0
+        let incomingReadState: ActivityReadState =
+            (incomingThrottled || activeButEmpty) ? .unknown : .read
 
         await progress?(InteractionProgress(
             phase: .complete,
@@ -93,7 +114,8 @@ public actor InteractionService {
             incoming: incoming,
             outgoingComplete: true,
             incomingComplete: feedComplete && likesComplete,
-            examinedPerDirection: cap
+            examinedPerDirection: cap,
+            incomingReadState: incomingReadState
         )
     }
 
@@ -163,12 +185,15 @@ public actor InteractionService {
 
         while examined < cap {
             try Task.checkCancellation()
-            let response = try await client.getAuthorFeed(
-                actor: targetDID,
-                limit: 100,
-                cursor: cursor,
-                filter: "posts_with_replies"
-            )
+            let pageCursor = cursor
+            let response = try await RateLimit.withBackoff {
+                try await self.client.getAuthorFeed(
+                    actor: targetDID,
+                    limit: 100,
+                    cursor: pageCursor,
+                    filter: "posts_with_replies"
+                )
+            }
 
             for view in response.feed {
                 examined += 1
@@ -226,11 +251,14 @@ public actor InteractionService {
 
         while examined < cap {
             try Task.checkCancellation()
-            let response = try await client.getActorLikes(
-                actor: targetDID,
-                limit: 100,
-                cursor: cursor
-            )
+            let pageCursor = cursor
+            let response = try await RateLimit.withBackoff {
+                try await self.client.getActorLikes(
+                    actor: targetDID,
+                    limit: 100,
+                    cursor: pageCursor
+                )
+            }
 
             for view in response.feed {
                 examined += 1
