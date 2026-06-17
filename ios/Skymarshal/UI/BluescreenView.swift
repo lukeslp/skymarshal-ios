@@ -17,6 +17,11 @@ struct BluescreenView: View {
     @State private var editMode: EditMode = .inactive
     @State private var detailAccount: AnalyzedAccount? = nil
 
+    /// Opt-in capped ghost-verify batch state. `ghostVerifyTask` lets
+    /// the banner cancel; `ghostVerifyProgress` drives the progress line.
+    @State private var ghostVerifyTask: Task<Void, Never>? = nil
+    @State private var ghostVerifyProgress: ScanProgress? = nil
+
     /// Inline bot-detection sensitivity preset. Discrete values only —
     /// safety committee verdict ruled out a free slider because a
     /// 0.1 setting would let a user bulk-block real humans. The
@@ -61,6 +66,41 @@ struct BluescreenView: View {
         f.search = keyword
         f.botThreshold = botSensitivityRaw
         return f.apply(to: model.accounts)
+    }
+
+    /// Cap for the opt-in ghost-verify batch: never more than 100 reads
+    /// per run (kill-criteria ceiling). Mirrors FollowerService's cap.
+    private static let ghostVerifyCap = 100
+
+    /// How many already-flagged disengaged candidates are eligible for
+    /// the capped ghost-verify batch — reliable read, found disengaged,
+    /// not yet checked. Drives the menu label and disabled state.
+    private var flaggedGhostCandidateCount: Int {
+        min(
+            model.accounts.filter {
+                $0.ghostVerdict == nil
+                    && $0.activityReadState == .read
+                    && $0.interactedRecently == false
+            }.count,
+            Self.ghostVerifyCap
+        )
+    }
+
+    private func startGhostVerify() {
+        guard ghostVerifyTask == nil else { return }
+        ghostVerifyProgress = ScanProgress(
+            phase: .interactions, current: 0, total: flaggedGhostCandidateCount,
+            message: "Verifying flagged ghosts…"
+        )
+        ghostVerifyTask = Task {
+            await model.verifyFlaggedGhosts(cap: Self.ghostVerifyCap) { progress in
+                await MainActor.run { ghostVerifyProgress = progress }
+            }
+            await MainActor.run {
+                ghostVerifyProgress = nil
+                ghostVerifyTask = nil
+            }
+        }
     }
 
     private var sensitivityLabel: String {
@@ -116,6 +156,17 @@ struct BluescreenView: View {
                     ScanErrorBanner(message: error) {
                         model.errorMessage = nil
                     }
+                }
+
+                // Opt-in ghost-verify batch progress, with cancel. Caps
+                // at 100/run; only the already-flagged disengaged set.
+                if let progress = ghostVerifyProgress, progress.phase != .complete {
+                    LoadProgressBannerLite(
+                        title: progress.total > 0
+                            ? "\(progress.message) (\(progress.current)/\(progress.total))"
+                            : progress.message,
+                        onCancel: { ghostVerifyTask?.cancel() }
+                    )
                 }
 
                 // Inline Sort + Select row — sits below the summary
@@ -319,6 +370,17 @@ struct BluescreenView: View {
                                 Label("Deep analyze (engaged audience)", systemImage: "heart.text.square")
                             }
                             .disabled(model.isScanning)
+                            Button {
+                                startGhostVerify()
+                            } label: {
+                                Label(
+                                    "Verify flagged ghosts (\(flaggedGhostCandidateCount))",
+                                    systemImage: "moon.stars"
+                                )
+                            }
+                            .disabled(model.isScanning
+                                      || ghostVerifyTask != nil
+                                      || flaggedGhostCandidateCount == 0)
                             Button {
                                 presentAfterMenuDismisses { showExportSheet = true }
                             } label: {
