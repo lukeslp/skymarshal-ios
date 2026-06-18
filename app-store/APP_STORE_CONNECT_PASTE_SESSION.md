@@ -18,7 +18,7 @@ Use this checklist in one uninterrupted session while filling App Store Connect.
 Paste/confirm:
 
 - Name: `Skymarshal`
-- Subtitle: `Cleanup tool for Bluesky.`
+- Subtitle: `Bulk delete posts & follows`
 - Category:
   - Primary: `Social Networking`
   - Secondary: `Utilities`
@@ -112,6 +112,10 @@ Then submit for review.
 Before pressing submit, scan for these known tripwires:
 
 - Trademark ambiguity: ensure non-affiliation language is present
+- 4.1(a) copycat tripwire (rejected 2026-06-18): keep "Bluesky" OUT of the
+  subtitle entirely, and to two mentions max in the description (one
+  functional + the non-affiliation disclaimer up top). Density of brand
+  references reads as misleading association even with a disclaimer present.
 - App-password confusion: review note explains Bluesky app passwords
 - Destructive actions: screenshots and description mention confirmation safety
 - Privacy mismatch: listing claims must match App Privacy answers

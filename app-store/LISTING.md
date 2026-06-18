@@ -21,13 +21,19 @@ Skymarshal
 ## Subtitle (30 chars)
 
 ```
-Cleanup tool for Bluesky.
+Bulk delete posts & follows
 ```
 
-24 chars. Indexed for search. "Bluesky" here is descriptive use of the
-network name, not a trademark claim — the same posture every third-party
-Bluesky tool on the App Store uses. If reviewer pushback ever surfaces,
-fall back to "Bluesky archive cleanup." (also 24 chars, also descriptive).
+27 chars. Action-forward, no brand reference.
+
+**Revised 2026-06-18 after a Guideline 4.1(a) "Copycats" rejection** of
+1.0 (25). The prior subtitle "Cleanup tool for Bluesky." was cited
+explicitly: Apple treats the platform name in the subtitle as a
+misleading association even though it's descriptive use. The lesson:
+keep "Bluesky" OUT of the subtitle entirely — do NOT use the
+once-suggested "Bluesky archive cleanup" fallback, which would re-trip
+the same rule. The platform is conveyed by screenshots, the review
+notes, and a single functional mention in the description.
 
 ---
 
@@ -49,31 +55,31 @@ and keep the privacy line as the consistent footer.
 ## Description (4000 char cap; this draft is ~2,200)
 
 ```
-Skymarshal is air-traffic control for your Bluesky.
+Skymarshal is an independent cleanup utility for your account on Bluesky.
+Search every post, reply, repost, and like you've ever made, then tidy it
+in bulk, with the kind of confirmations a permanent deletion deserves.
 
-Find old posts you forgot you wrote. Catch the late-night replies you'd
-rather not look at. Cull the followers you'd never have followed back.
-Skymarshal scans your own Bluesky archive, scores it, and lets you tidy
-in bulk — with the kind of confirmations a deletion deserves.
+Not affiliated with, endorsed by, or sponsored by Bluesky Social PBC.
+Skymarshal is a third-party tool; all trademarks belong to their owners.
 
-Built for power users who've used Bluesky long enough that "delete one
-post at a time" stopped being acceptable.
+Built for power users who've been around long enough that "delete one post
+at a time" stopped being acceptable.
 
 ────────────
 
 CONTENT MANAGEMENT
-• Search every post, reply, repost, and like you've ever made — keyword,
+• Search every post, reply, repost, and like you've ever made: keyword,
   content type, date range, engagement count, alt-text, presence of media.
 • Inline media thumbnails so you can remember exactly which post you're
   looking at before you act.
-• Swipe-delete one at a time, or Select All from a search result and
+• Swipe to delete one at a time, or Select All from a search result and
   delete a hundred at once.
 • Multiple confirmation steps. Permanent deletions deserve them.
-• Rate-limit aware — bulk deletes pause and retry instead of hammering
-  the API and getting throttled.
+• Rate-limit aware: bulk deletes pause and retry instead of hammering
+  the network and getting throttled.
 
 FOLLOWER CLEANUP
-• Pull your full follow list and score every account against six bot
+• Pull your full follow list and score every account against six automation
   signals: mass-following, no posts, missing profile bits, suspiciously
   round numbers, very-new accounts flooding follows, and bad ratios.
 • Flag inactive accounts (no posts in N days, configurable).
@@ -84,63 +90,73 @@ FOLLOWER CLEANUP
 
 DYNAMIC SEARCH
 • Filter to "with media" or "without media."
-• Search alt-text alongside post text — finds that capybara post even
+• Search alt-text alongside post text; finds that capybara post even
   when you didn't write the word "capybara."
 • Combine date range + engagement bounds to surface "dead threads"
   (low engagement) or "old bangers" (high engagement, distant past).
 
 PRIVACY
-• Sign in with a Bluesky app password. Skymarshal never sees your real
-  password — generate a disposable one in Bluesky's settings.
+• Sign in with an app password, not your main password. Generate a
+  disposable one in your account settings and revoke it whenever you like.
 • No analytics. No tracking pixels. No third-party SDKs of any kind.
-• No account on our end, no server we host. Your archive is fetched
-  directly from Bluesky's public XRPC endpoints. Nothing leaves your
-  phone.
+• No account on my end, no server I host. Your archive is fetched
+  directly from the network's public endpoints. Nothing leaves your phone.
 
 ────────────
 
 WHO IT'S FOR
 Power users with thousands of posts. Journalists. Public-facing accounts.
 Anyone who wants their archive on their terms. Light users will find it
-overkill — that's fine. Skymarshal is the second tool you reach for when
+overkill. That's fine. Skymarshal is the second tool you reach for when
 the first one isn't enough.
 
 WHAT IT'S NOT
-Not a Bluesky client. You can't post from Skymarshal. Not a network
-growth tool. Not affiliated with Bluesky Social, PBC. The Bluesky logo,
-butterfly mark, and "Bluesky" name are property of their owner;
-Skymarshal is an independent third-party utility.
+Not a social client. You can't post from Skymarshal. Not a network-growth
+tool. Just careful, bulk cleanup of the archive you already made.
 
-Made by a small studio. Questions: skymarshal@lukesteuber.com
+Made by Luke Steuber. Questions: skymarshal@lukesteuber.com
 ```
 
-The full block is under 2,300 chars, leaving 1,700 of headroom for
+The full block is well under the cap, leaving ample headroom for
 seasonal or feature-specific additions.
 
-Three rules respected:
+Four rules respected:
 - No "free", "best", "#1", "AI-powered", "AI-enhanced" — Apple bans these
   outright or treats them as smell.
-- No competitor mentions other than the one we're built for (Bluesky).
-- Affiliation disclaimer is explicit and last in its section so a
-  reviewer skimming for trademark issues lands on it without searching.
+- "Bluesky" appears exactly twice: one functional mention in the opening
+  line and one in the non-affiliation disclaimer. **Revised 2026-06-18:**
+  the prior draft used the brand ~7× and framed the product around it
+  ("air-traffic control for your Bluesky"); Apple cited the description
+  under 4.1(a) even though the disclaimer was present. Density of brand
+  references reads as misleading association — keep it minimal.
+- Non-affiliation disclaimer is now in the SECOND paragraph (front-loaded,
+  not buried in "WHAT IT'S NOT") so a reviewer skimming for trademark
+  issues lands on it immediately.
+- "WHAT IT'S NOT" no longer restates the trademark notice (it's up top) and
+  drops the logo/butterfly/name enumeration, which only added brand density.
 
 ---
 
 ## Keywords (100 char cap, comma-separated)
 
 ```
-posts,replies,reposts,likes,archive,manage,delete,follower,unfollow,bot,atproto,bulk,clean,filter
+posts,replies,reposts,likes,archive,manage,delete,follower,unfollow,atproto,bulk,clean,filter
 ```
 
-98 chars. Indexes are additive: words in the app name + subtitle are
-ALSO indexed for search, so this field shouldn't repeat
-"skymarshal" / "cleanup" / "tool" / "bluesky".
+93 chars. Indexes are additive: words in the app name + subtitle are
+ALSO indexed for search. The subtitle no longer carries "bluesky"
+(removed 2026-06-18, see Subtitle note), so brand-name discoverability now
+rides on `atproto` here plus the single description mention.
 
 Targeted searches this surfaces for:
-- "bluesky cleanup" (subtitle + this field)
-- "delete bluesky posts" (subtitle + delete + posts)
-- "bluesky bot follower" (subtitle + bot + follower)
+- "delete posts" / "bulk delete" (subtitle + delete + posts + bulk)
 - "atproto archive manage" (atproto + archive + manage)
+- "unfollow / follower cleanup" (follower + unfollow + clean)
+
+Note: `bot` was removed from this field on 2026-06-18 to match the
+user-facing "automation signals" rename and the actual `keywords.txt`.
+"bluesky" is deliberately NOT a keyword — after the 4.1(a) rejection,
+adding the brand to an indexed field would invite the same objection.
 
 Words deliberately not included and why:
 - `account`, `social`, `media` — too generic, low conversion
@@ -156,7 +172,7 @@ Words deliberately not included and why:
 First flight.
 
 Skymarshal does two things: searches every post, reply, repost, and like
-in your Bluesky archive, and scores your follow list for bots and
+in your archive, and scores your follow list for automation signals and
 inactive accounts. Bulk delete and bulk unfollow on top, with the
 rate-limit safety nets they deserve.
 

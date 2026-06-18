@@ -1,7 +1,7 @@
 First flight.
 
 Skymarshal does two things: searches every post, reply, repost, and like
-in your Bluesky archive, and scores your follow list for bots and
+in your archive, and scores your follow list for automation signals and
 inactive accounts. Bulk delete and bulk unfollow on top, with the
 rate-limit safety nets they deserve.
 

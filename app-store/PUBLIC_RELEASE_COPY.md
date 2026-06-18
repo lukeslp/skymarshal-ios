@@ -12,7 +12,7 @@ Paste these values directly into App Store Connect for the public iOS release.
 
 ### Subtitle (30 max)
 
-`Cleanup tool for Bluesky.`
+`Bulk delete posts & follows`
 
 ### Promotional Text (170 max)
 
@@ -20,33 +20,33 @@ Paste these values directly into App Store Connect for the public iOS release.
 
 ### Keywords (100 max, comma-separated)
 
-`posts,replies,reposts,likes,archive,manage,delete,follower,unfollow,bot,atproto,bulk,clean,filter`
+`posts,replies,reposts,likes,archive,manage,delete,follower,unfollow,atproto,bulk,clean,filter`
 
 ### Description (4000 max)
 
-Skymarshal is air-traffic control for your Bluesky.
+Skymarshal is an independent cleanup utility for your account on Bluesky.
+Search every post, reply, repost, and like you've ever made, then tidy it
+in bulk, with the kind of confirmations a permanent deletion deserves.
 
-Find old posts you forgot you wrote. Catch the late-night replies you'd
-rather not look at. Cull the followers you'd never have followed back.
-Skymarshal scans your own Bluesky archive, scores it, and lets you tidy
-in bulk — with the kind of confirmations a deletion deserves.
+Not affiliated with, endorsed by, or sponsored by Bluesky Social PBC.
+Skymarshal is a third-party tool; all trademarks belong to their owners.
 
-Built for power users who've used Bluesky long enough that "delete one
-post at a time" stopped being acceptable.
+Built for power users who've been around long enough that "delete one post
+at a time" stopped being acceptable.
 
 CONTENT MANAGEMENT
-- Search every post, reply, repost, and like you've ever made — keyword,
+- Search every post, reply, repost, and like you've ever made: keyword,
   content type, date range, engagement count, alt-text, presence of media.
 - Inline media thumbnails so you can remember exactly which post you're
   looking at before you act.
-- Swipe-delete one at a time, or Select All from a search result and
+- Swipe to delete one at a time, or Select All from a search result and
   delete a hundred at once.
 - Multiple confirmation steps. Permanent deletions deserve them.
-- Rate-limit aware — bulk deletes pause and retry instead of hammering
-  the API and getting throttled.
+- Rate-limit aware: bulk deletes pause and retry instead of hammering
+  the network and getting throttled.
 
 FOLLOWER CLEANUP
-- Pull your full follow list and score every account against six bot
+- Pull your full follow list and score every account against six automation
   signals: mass-following, no posts, missing profile bits, suspiciously
   round numbers, very-new accounts flooding follows, and bad ratios.
 - Flag inactive accounts (no posts in N days, configurable).
@@ -57,39 +57,36 @@ FOLLOWER CLEANUP
 
 DYNAMIC SEARCH
 - Filter to "with media" or "without media."
-- Search alt-text alongside post text — finds that capybara post even
+- Search alt-text alongside post text; finds that capybara post even
   when you didn't write the word "capybara."
 - Combine date range + engagement bounds to surface "dead threads"
   (low engagement) or "old bangers" (high engagement, distant past).
 
 PRIVACY
-- Sign in with a Bluesky app password. Skymarshal never sees your real
-  password — generate a disposable one in Bluesky's settings.
+- Sign in with an app password, not your main password. Generate a
+  disposable one in your account settings and revoke it whenever you like.
 - No analytics. No tracking pixels. No third-party SDKs of any kind.
-- No account on our end, no server we host. Your archive is fetched
-  directly from Bluesky's public XRPC endpoints. Nothing leaves your
-  phone.
+- No account on my end, no server I host. Your archive is fetched
+  directly from the network's public endpoints. Nothing leaves your phone.
 
 WHO IT'S FOR
 Power users with thousands of posts. Journalists. Public-facing accounts.
 Anyone who wants their archive on their terms. Light users will find it
-overkill — that's fine. Skymarshal is the second tool you reach for when
+overkill. That's fine. Skymarshal is the second tool you reach for when
 the first one isn't enough.
 
 WHAT IT'S NOT
-Not a Bluesky client. You can't post from Skymarshal. Not a network
-growth tool. Not affiliated with Bluesky Social, PBC. The Bluesky logo,
-butterfly mark, and "Bluesky" name are property of their owner;
-Skymarshal is an independent third-party utility.
+Not a social client. You can't post from Skymarshal. Not a network-growth
+tool. Just careful, bulk cleanup of the archive you already made.
 
-Made by a small studio. Questions: skymarshal@lukesteuber.com
+Made by Luke Steuber. Questions: skymarshal@lukesteuber.com
 
 ### What's New (v1.0.0)
 
 First flight.
 
 Skymarshal does two things: searches every post, reply, repost, and like
-in your Bluesky archive, and scores your follow list for bots and
+in your archive, and scores your follow list for automation signals and
 inactive accounts. Bulk delete and bulk unfollow on top, with the
 rate-limit safety nets they deserve.
 

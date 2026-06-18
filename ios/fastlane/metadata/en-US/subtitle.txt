@@ -1,1 +1,1 @@
-Cleanup tool for Bluesky
+Bulk delete posts & follows
