@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import SkymarshalCore
+import WidgetKit
 
 /// View-model glue between SwiftUI views and the actor-isolated services.
 /// Holds auth state, the loaded content + summary, the loaded follower
@@ -380,6 +381,7 @@ final class AppModel {
             self.loadProgress = nil
             self.lastContentScannedAt = Date()
             self.archiveTruncated = await svc.lastLoadTruncated
+            writeWidgetSnapshot()
         } catch is CancellationError {
             self.items = await content.loadedSnapshot
             self.summary = await content.summarize()
@@ -563,6 +565,7 @@ final class AppModel {
             self.accounts = await svc.loadedSnapshot
             self.scanSummary = await svc.summary
             self.lastFollowerScannedAt = Date()
+            writeWidgetSnapshot()
             // Keep the .complete progress around briefly; UI fades it.
         } catch is CancellationError {
             self.accounts = await followers.loadedSnapshot
@@ -607,6 +610,7 @@ final class AppModel {
         await followers.enrichEngagement(userPostURIs: postURIs, progress: progress)
         self.accounts = await followers.loadedSnapshot
         self.scanSummary = await followers.summary
+        writeWidgetSnapshot()
     }
 
     /// Lazily compute the per-account ghost verdict + reciprocity for a
@@ -654,6 +658,27 @@ final class AppModel {
         guard let owner = currentHandle else { return }
         await followers.setWhitelist(did: did, to: newValue, owner: owner)
         self.accounts = await followers.loadedSnapshot
+    }
+
+    // MARK: - Home-screen widgets
+
+    /// Build a ``WidgetSnapshot`` from the current scan + content and
+    /// write it to the shared App Group container, then ask WidgetKit to
+    /// refresh. Network-free: reads only in-memory engine results. Called
+    /// after a follower scan or content load completes. A missing App
+    /// Group (e.g. a build without the entitlement) is a no-op.
+    func writeWidgetSnapshot() {
+        let previousHistory = WidgetSnapshotStore.read()?.followerHistory ?? []
+        let snapshot = WidgetSnapshotBuilder.build(
+            accounts: accounts,
+            summary: scanSummary,
+            items: items,
+            followerCount: nil,
+            previousHistory: previousHistory
+        )
+        if WidgetSnapshotStore.write(snapshot) {
+            WidgetCenter.shared.reloadAllTimelines()
+        }
     }
 
     // MARK: - Saved search presets

@@ -35,6 +35,20 @@
                ReferencedContainer = "container:Skymarshal.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "15018C1AD97B2DEB58283AF3"
+               BuildableName = "SkymarshalWidgets.appex"
+               BlueprintName = "SkymarshalWidgets"
+               ReferencedContainer = "container:Skymarshal.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction

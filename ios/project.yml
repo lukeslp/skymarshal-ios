@@ -91,6 +91,31 @@ targets:
         INFOPLIST_KEY_UIRequiresFullScreen: NO
     dependencies:
       - target: SkymarshalCore
+      - target: SkymarshalWidgets
+
+  SkymarshalWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: SkymarshalWidgets
+    info:
+      path: SkymarshalWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Skymarshal
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: blue.skymarshal.ios.widgets
+        CODE_SIGN_ENTITLEMENTS: SkymarshalWidgets/SkymarshalWidgets.entitlements
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: SkymarshalWidgets/Info.plist
+        SKIP_INSTALL: YES
+        CURRENT_PROJECT_VERSION: "20"
+        MARKETING_VERSION: "1.0.0"
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+    dependencies:
+      - target: SkymarshalCore
 
   SkymarshalTests:
     type: bundle.unit-test
@@ -126,6 +151,7 @@ schemes:
       targets:
         Skymarshal: all
         SkymarshalCore: all
+        SkymarshalWidgets: all
     test:
       targets:
         - SkymarshalTests
