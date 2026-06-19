@@ -23,6 +23,13 @@ struct AccountDetailView: View {
     @State private var mutualsLoading: Bool = false
     @State private var showProfileExplorer: Bool = false
 
+    /// Lazily-resolved ghost verdict for this account. Seeded from the
+    /// passed-in `account` (instant on re-open from cache); computed in
+    /// `.task` on first open when nil.
+    @State private var ghostVerdict: GhostVerdict?
+    @State private var reciprocityInbound: Int?
+    @State private var ghostChecking: Bool = false
+
     @AppStorage(FeatureFlags.profileExplorerKey) private var featureProfileExplorer: Bool = true
 
     var body: some View {
@@ -37,6 +44,8 @@ struct AccountDetailView: View {
                     if !account.botFlags.isEmpty {
                         botFlagsSection
                     }
+
+                    ghostReciprocitySection
 
                     if account.lastPostDate != nil || account.isInactive {
                         activitySection
@@ -94,6 +103,28 @@ struct AccountDetailView: View {
             .task(id: account.did) {
                 await loadMutuals()
             }
+            .task(id: account.did) {
+                await resolveGhostReciprocity()
+            }
+        }
+    }
+
+    /// Lazy per-account ghost/reciprocity resolve. If the passed-in
+    /// account already carries a cached verdict, seed instantly and skip
+    /// the network. Otherwise fire one cheap user-initiated read, stamp
+    /// the model, and reflect the result locally so the chip updates.
+    private func resolveGhostReciprocity() async {
+        if let cached = account.ghostVerdict {
+            ghostVerdict = cached
+            reciprocityInbound = account.reciprocityGapInboundCount
+            return
+        }
+        guard ghostVerdict == nil, !ghostChecking else { return }
+        ghostChecking = true
+        defer { ghostChecking = false }
+        if let stamped = await model.ghostReciprocity(forDID: account.did) {
+            ghostVerdict = stamped.ghostVerdict
+            reciprocityInbound = stamped.reciprocityGapInboundCount
         }
     }
 
@@ -307,6 +338,92 @@ struct AccountDetailView: View {
                 Task { await model.setWhitelist(did: account.did, to: newValue) }
             }
         )
+    }
+
+    // MARK: - Ghost / reciprocity
+
+    /// Per-account "does this account engage you?" verdict + reciprocity
+    /// line. Spinner on first open; instant on re-open from cache. A
+    /// `.unknown` verdict reads "couldn't read" in gray and the copy
+    /// states plainly that an unreadable account is not a reason to
+    /// unfollow (the engine's fail-safe contract surfaced in the UI).
+    @ViewBuilder
+    private var ghostReciprocitySection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: "arrow.left.arrow.right.circle")
+                    .foregroundStyle(.secondary)
+                Text("Do they engage you?")
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+            }
+
+            if let verdict = ghostVerdict {
+                ghostChip(verdict)
+                reciprocityLine(verdict)
+                if verdict == .unknown {
+                    Text("We couldn't read this account's activity reliably — likely throttled or it gates its feed from public reads. That is **not** a reason to unfollow.")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
+            } else {
+                HStack(spacing: 8) {
+                    ProgressView().controlSize(.small)
+                    Text("Checking whether they engage you…")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    @ViewBuilder
+    private func ghostChip(_ verdict: GhostVerdict) -> some View {
+        let spec: (icon: String, text: String, color: Color) = {
+            switch verdict {
+            case .engaged: return ("checkmark.circle.fill", "Engages you", Theme.scope)
+            case .ghost:   return ("xmark.circle.fill", "Ghost — never engages you", Theme.danger)
+            case .unknown: return ("questionmark.circle.fill", "Couldn't read", .secondary)
+            }
+        }()
+        HStack(spacing: 6) {
+            Image(systemName: spec.icon)
+                .font(.callout)
+            Text(spec.text)
+                .font(.callout.weight(.semibold))
+        }
+        .foregroundStyle(spec.color)
+        .padding(.horizontal, 10).padding(.vertical, 6)
+        .background(Theme.chipTint(spec.color), in: .capsule)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(spec.text)
+    }
+
+    @ViewBuilder
+    private func reciprocityLine(_ verdict: GhostVerdict) -> some View {
+        let inbound = reciprocityInbound ?? 0
+        let userReciprocates = model.userOutboundEngagedDIDs.contains(account.did)
+        Group {
+            switch verdict {
+            case .engaged where inbound > 0 && !userReciprocates:
+                Text("They engaged you \(inbound)× — you haven't engaged them back.")
+            case .engaged where inbound > 0:
+                Text("They engaged you \(inbound)×; you engage them too.")
+            case .engaged:
+                Text("They engage you. You \(userReciprocates ? "engage them too" : "haven't engaged them back").")
+            case .ghost:
+                Text(userReciprocates
+                     ? "You've engaged them, but they've never engaged you back."
+                     : "No engagement either way in what we could read.")
+            case .unknown:
+                EmptyView()
+            }
+        }
+        .font(.callout)
+        .foregroundStyle(.secondary)
     }
 
     // MARK: - Activity

@@ -202,6 +202,82 @@ final class EngagementEngineTests: XCTestCase {
         XCTAssertEqual(verdict.classification, .unknown)
     }
 
+    // MARK: - Fail-safe: unknown is never selectable for cleanup
+
+    /// A throttled per-account read yields `.unknown`, which maps to the
+    /// model `GhostVerdict.unknown` — and an account whose activity could
+    /// not be read reliably is refused by the destructive unfollow guard
+    /// (`requireKnownActivity`). Together these are the fail-safe: an
+    /// unreadable account is never swept into a bulk cleanup.
+    func test_verifyGhost_failSafeUnknown_notSelectableForCleanup() async {
+        let client = makeClient()
+        await client.setSession(makeSession())
+        let original = RateLimit.backoffSeconds
+        RateLimit.backoffSeconds = []
+        defer { RateLimit.backoffSeconds = original }
+
+        TestURLProtocol.handler = { _ in
+            (429, Data(#"{"error":"RateLimitExceeded"}"#.utf8))
+        }
+        let engine = EngagementEngine(client: client)
+        let (verdict, inbound) = await engine.verifyGhostWithInbound(
+            candidateDID: "did:plc:maybe",
+            engagedDIDs: [],
+            userPostURIPrefix: "at://did:plc:me/",
+            candidatePostsCount: 100
+        )
+        // Throttle → unknown, never a confirmed ghost; inbound is zero.
+        XCTAssertEqual(verdict.classification, .unknown)
+        XCTAssertEqual(inbound, 0)
+        XCTAssertEqual(GhostVerdict(verdict.classification), .unknown)
+
+        // An account stamped from this unreadable read, with an
+        // `.unknown` activity read-state, is refused by the unfollow
+        // guard — proving "not selectable for cleanup".
+        let profile = BskyProfile(
+            did: "did:plc:maybe", handle: "maybe.bsky.social",
+            followersCount: 0, followsCount: 0, postsCount: 100,
+            createdAt: "2020-01-01T00:00:00Z",
+            viewer: .init(following: "at://me/follow/abc")
+        )
+        let account = BluescreenAnalyzer.analyze(profile: profile)
+            .withActivityReadState(.unknown)
+            .withGhostReciprocity(verdict: GhostVerdict(verdict.classification), inboundCount: inbound)
+        let service = FollowerService(client: client)
+        await service.setLoaded([account])
+        let result = await service.unfollow(
+            dids: ["did:plc:maybe"], dryRun: true, requireKnownActivity: true
+        )
+        XCTAssertEqual(result.done, 0)
+        XCTAssertFalse(result.errors.isEmpty)
+    }
+
+    /// `verifyGhostWithInbound` counts how many of the candidate's likes
+    /// pointed at the user's posts and reports `engaged` with the count —
+    /// the inbound side of the reciprocity gap.
+    func test_verifyGhostWithInbound_countsInboundHits() async {
+        let client = makeClient()
+        await client.setSession(makeSession())
+        TestURLProtocol.handler = { _ in
+            (200, Data("""
+            {"feed":[
+              {"post":{"uri":"at://did:plc:me/app.bsky.feed.post/p1","cid":"c","author":{"did":"did:plc:me","handle":"me.bsky.social"},"record":{"text":"a","createdAt":"2024-01-01T00:00:00Z"}}},
+              {"post":{"uri":"at://did:plc:me/app.bsky.feed.post/p2","cid":"c","author":{"did":"did:plc:me","handle":"me.bsky.social"},"record":{"text":"b","createdAt":"2024-01-02T00:00:00Z"}}},
+              {"post":{"uri":"at://did:plc:other/app.bsky.feed.post/x","cid":"c","author":{"did":"did:plc:other","handle":"other.bsky.social"},"record":{"text":"c","createdAt":"2024-01-03T00:00:00Z"}}}
+            ]}
+            """.utf8))
+        }
+        let engine = EngagementEngine(client: client)
+        let (verdict, inbound) = await engine.verifyGhostWithInbound(
+            candidateDID: "did:plc:fan",
+            engagedDIDs: [],
+            userPostURIPrefix: "at://did:plc:me/",
+            candidatePostsCount: 100
+        )
+        XCTAssertEqual(verdict.classification, .engaged)
+        XCTAssertEqual(inbound, 2)
+    }
+
     // MARK: - Helpers
 
     private func makeClient() -> ATProtoClient {

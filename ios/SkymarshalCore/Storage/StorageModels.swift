@@ -239,6 +239,19 @@ public final class AnalyzedAccountRecord {
     /// Lightweight migration: existing rows get `false` on read.
     public var whitelisted: Bool = false
 
+    /// Lazily-computed per-account ghost verdict, stored as the
+    /// `GhostVerdict` raw value or `nil` when never checked. Lightweight
+    /// migration mirrors `activityReadStateRaw`: existing rows decode to
+    /// `nil` (not-yet-checked) because the optional property default
+    /// fills any column the old schema never wrote. Re-scans preserve it
+    /// (only analyzer-derived fields refresh in `update(from:)`), so a
+    /// once-computed verdict survives until explicitly recomputed.
+    public var ghostVerdictRaw: String? = nil
+
+    /// Inbound engagement count recorded with the ghost check. `nil`
+    /// when never checked. Back-compat default `nil`.
+    public var reciprocityGapInboundCount: Int? = nil
+
     public var scannedAt: Date
 
     public init(account: AnalyzedAccount, ownerHandle: String, scannedAt: Date = Date()) {
@@ -285,6 +298,8 @@ public final class AnalyzedAccountRecord {
         }
         self.activityReadStateRaw = account.activityReadState.rawValue
         self.whitelisted = account.userWhitelisted
+        self.ghostVerdictRaw = account.ghostVerdict?.rawValue
+        self.reciprocityGapInboundCount = account.reciprocityGapInboundCount
 
         self.scannedAt = scannedAt
     }
@@ -331,6 +346,17 @@ public final class AnalyzedAccountRecord {
         case .none:        self.interactedRecentlyRaw = -1
         }
         self.activityReadStateRaw = account.activityReadState.rawValue
+        // Ghost / reciprocity are lazily computed per-account and sticky
+        // across re-scans (a fresh analyzer pass carries `nil`). Only
+        // overwrite when the incoming account actually carries a value,
+        // so a once-computed verdict survives the next scan — same
+        // preserve-on-rescan posture as `whitelisted`.
+        if let verdict = account.ghostVerdict {
+            self.ghostVerdictRaw = verdict.rawValue
+        }
+        if let inbound = account.reciprocityGapInboundCount {
+            self.reciprocityGapInboundCount = inbound
+        }
         self.scannedAt = scannedAt
     }
 
@@ -376,6 +402,7 @@ public final class AnalyzedAccountRecord {
         }
 
         let readState = ActivityReadState(rawValue: activityReadStateRaw) ?? .unknown
+        let verdict = ghostVerdictRaw.flatMap(GhostVerdict.init(rawValue:))
 
         return AnalyzedAccount(
             profile: profile,
@@ -395,7 +422,9 @@ public final class AnalyzedAccountRecord {
             engagementScore: engagementScore,
             interactedRecently: interacted,
             activityReadState: readState,
-            userWhitelisted: whitelisted
+            userWhitelisted: whitelisted,
+            ghostVerdict: verdict,
+            reciprocityGapInboundCount: reciprocityGapInboundCount
         )
     }
 }

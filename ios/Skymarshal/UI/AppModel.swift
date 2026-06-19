@@ -609,6 +609,44 @@ final class AppModel {
         self.scanSummary = await followers.summary
     }
 
+    /// Lazily compute the per-account ghost verdict + reciprocity for a
+    /// single account when its detail view opens. One cheap
+    /// user-initiated read (≤ 2 PDS pages); the verdict is stamped and
+    /// persisted so re-opening is instant. Pulls the refreshed snapshot
+    /// through so the row badge + detail chip rebuild. Returns the
+    /// stamped account for the caller to render immediately.
+    @discardableResult
+    func ghostReciprocity(forDID did: String) async -> AnalyzedAccount? {
+        let stamped = await followers.computeGhostReciprocity(
+            forDID: did,
+            userItems: items
+        )
+        self.accounts = await followers.loadedSnapshot
+        return stamped
+    }
+
+    /// The user's own outbound engaged-DID set, used by the detail view
+    /// to render the reciprocity line ("you've engaged them M×" vs not).
+    /// Pure, derived from cached content — no network.
+    var userOutboundEngagedDIDs: Set<String> {
+        EngagementEngine.outboundEngagedDIDs(from: items)
+    }
+
+    /// Opt-in capped batch (BluescreenView menu): verify ghosts over the
+    /// already-flagged disengaged candidates only, capped per run. Never
+    /// the full follow set. Refreshes `accounts` afterward.
+    @discardableResult
+    func verifyFlaggedGhosts(
+        cap: Int = 100,
+        progress: (@Sendable (ScanProgress) async -> Void)? = nil
+    ) async -> Int {
+        let count = await followers.verifyFlaggedGhosts(
+            userItems: items, cap: cap, progress: progress
+        )
+        self.accounts = await followers.loadedSnapshot
+        return count
+    }
+
     /// Toggle the user-whitelist override on a scanned account. Pulls
     /// the new snapshot through after the FollowerService write so the
     /// AccountRow / AccountDetailView rebuild with the updated state.

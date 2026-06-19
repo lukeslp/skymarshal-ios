@@ -156,6 +156,17 @@ private struct StatusPills: View {
             if account.botScore >= 0.6 && !account.userWhitelisted {
                 BotScoreBadge(score: account.botScore)
             }
+            // Ghost badge: shown ONLY from the already-cached verdict.
+            // Tapping a row never fetches — list scroll stays O(0)
+            // network. An uncomputed row (ghostVerdict == nil) and a
+            // fail-safe `.unknown` both show nothing; only a confirmed
+            // ghost earns the badge.
+            if account.ghostVerdict == .ghost {
+                Image(systemName: "moon.stars.fill")
+                    .font(.caption2)
+                    .foregroundStyle(Theme.danger)
+                    .accessibilityLabel("Ghost — never engages you")
+            }
         }
     }
 

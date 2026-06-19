@@ -190,6 +190,71 @@ public actor EngagementEngine {
         return GhostVerdict(did: candidateDID, classification: .confirmedGhost)
     }
 
+    /// One-account verdict for the lazy AccountDetailView read. Returns
+    /// the verdict **and** the inbound engagement count (how many of the
+    /// candidate's likes pointed at the user's posts), gathered from the
+    /// same single capped `getActorLikes` sweep — no extra calls.
+    ///
+    /// This is the cheap user-initiated path the detail view calls on
+    /// open: one membership check against the precomputed `engagedDIDs`
+    /// short-circuit, then at most `cap / 100` PDS pages (default cap
+    /// 200 = ≤ 2 pages, well under the 15-call/account budget). When the
+    /// candidate is already in the engaged set we can't recover an exact
+    /// count without the sweep, so we report `1` (they engage you) and
+    /// skip the network entirely.
+    public func verifyGhostWithInbound(
+        candidateDID: String,
+        engagedDIDs: Set<String>,
+        userPostURIPrefix: String,
+        candidatePostsCount: Int,
+        cap: Int = 200
+    ) async -> (verdict: GhostVerdict, inboundCount: Int) {
+        if engagedDIDs.contains(candidateDID) {
+            return (GhostVerdict(did: candidateDID, classification: .engaged), 1)
+        }
+
+        var cursor: String? = nil
+        var examined = 0
+        var sawAny = false
+        var inbound = 0
+
+        while examined < cap {
+            if Task.isCancelled {
+                return (GhostVerdict(did: candidateDID, classification: .unknown), 0)
+            }
+            let pageCursor = cursor
+            let response: LikesResponse
+            do {
+                response = try await RateLimit.withBackoff {
+                    try await self.client.getActorLikes(
+                        actor: candidateDID, limit: 100, cursor: pageCursor
+                    )
+                }
+            } catch {
+                return (GhostVerdict(did: candidateDID, classification: .unknown), 0)
+            }
+
+            for view in response.feed {
+                examined += 1
+                sawAny = true
+                if view.post.uri.hasPrefix(userPostURIPrefix) {
+                    inbound += 1
+                }
+            }
+
+            cursor = response.cursor
+            if cursor == nil { break }
+        }
+
+        if inbound > 0 {
+            return (GhostVerdict(did: candidateDID, classification: .engaged), inbound)
+        }
+        if !sawAny && candidatePostsCount > 0 {
+            return (GhostVerdict(did: candidateDID, classification: .unknown), 0)
+        }
+        return (GhostVerdict(did: candidateDID, classification: .confirmedGhost), 0)
+    }
+
     // MARK: - Reciprocity
 
     /// Compute reciprocity gaps. `inbound` is who engaged the user and

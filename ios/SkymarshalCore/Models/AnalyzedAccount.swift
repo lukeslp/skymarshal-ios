@@ -34,6 +34,18 @@ public struct AnalyzedAccount: Hashable, Sendable, Identifiable {
     /// AnalyzedAccountRecord.whitelisted so the override survives
     /// re-scans.
     public let userWhitelisted: Bool
+    /// Per-account ghost classification, computed lazily when the
+    /// AccountDetailView opens (never batched over the full follow
+    /// graph). `nil` means **not yet checked** — distinct from
+    /// `.unknown`, which means we checked but the read was unreadable
+    /// (throttled/gated). `.unknown` is fail-safe: a `.unknown` account
+    /// is never selectable for bulk cleanup. Persisted via
+    /// AnalyzedAccountRecord.ghostVerdictRaw.
+    public let ghostVerdict: GhostVerdict?
+    /// How many times this account engaged the user (inbound), recorded
+    /// alongside the lazy ghost check. `nil` = not yet checked.
+    /// Persisted via AnalyzedAccountRecord.reciprocityGapInboundCount.
+    public let reciprocityGapInboundCount: Int?
 
     public init(
         profile: BskyProfile,
@@ -53,7 +65,9 @@ public struct AnalyzedAccount: Hashable, Sendable, Identifiable {
         engagementScore: Double,
         interactedRecently: Bool?,
         activityReadState: ActivityReadState = .unknown,
-        userWhitelisted: Bool = false
+        userWhitelisted: Bool = false,
+        ghostVerdict: GhostVerdict? = nil,
+        reciprocityGapInboundCount: Int? = nil
     ) {
         self.profile = profile
         self.ratio = ratio
@@ -73,6 +87,8 @@ public struct AnalyzedAccount: Hashable, Sendable, Identifiable {
         self.interactedRecently = interactedRecently
         self.activityReadState = activityReadState
         self.userWhitelisted = userWhitelisted
+        self.ghostVerdict = ghostVerdict
+        self.reciprocityGapInboundCount = reciprocityGapInboundCount
     }
 
     public var id: String { profile.did }
@@ -93,7 +109,9 @@ public struct AnalyzedAccount: Hashable, Sendable, Identifiable {
             isInactive: isInactive, isDeleted: isDeleted, isMutual: isMutual,
             engagementScore: engagementScore, interactedRecently: interactedRecently,
             activityReadState: activityReadState,
-            userWhitelisted: newValue
+            userWhitelisted: newValue,
+            ghostVerdict: ghostVerdict,
+            reciprocityGapInboundCount: reciprocityGapInboundCount
         )
     }
 
@@ -111,8 +129,66 @@ public struct AnalyzedAccount: Hashable, Sendable, Identifiable {
             isInactive: isInactive, isDeleted: isDeleted, isMutual: isMutual,
             engagementScore: engagementScore, interactedRecently: interactedRecently,
             activityReadState: newValue,
-            userWhitelisted: userWhitelisted
+            userWhitelisted: userWhitelisted,
+            ghostVerdict: ghostVerdict,
+            reciprocityGapInboundCount: reciprocityGapInboundCount
         )
+    }
+
+    /// Returns a copy with the lazily-computed ghost verdict and
+    /// inbound reciprocity count stamped on, preserving every other
+    /// field. The AccountDetailView `.task` calls this once per account
+    /// after the single cheap per-account read, then saves so re-opening
+    /// is instant.
+    public func withGhostReciprocity(
+        verdict: GhostVerdict,
+        inboundCount: Int
+    ) -> AnalyzedAccount {
+        AnalyzedAccount(
+            profile: profile, ratio: ratio, botScore: botScore,
+            botFlags: botFlags, influenceScore: influenceScore,
+            influenceTier: influenceTier, accountAgeDays: accountAgeDays,
+            postsPerDay: postsPerDay, profileCompleteness: profileCompleteness,
+            lastPostDate: lastPostDate, daysSinceLastPost: daysSinceLastPost,
+            isInactive: isInactive, isDeleted: isDeleted, isMutual: isMutual,
+            engagementScore: engagementScore, interactedRecently: interactedRecently,
+            activityReadState: activityReadState,
+            userWhitelisted: userWhitelisted,
+            ghostVerdict: verdict,
+            reciprocityGapInboundCount: inboundCount
+        )
+    }
+}
+
+/// Persistable per-account ghost classification, surfaced in the detail
+/// view. Maps from ``EngagementEngine/GhostVerdict/Classification``
+/// (`confirmedGhost`/`engaged`/`unknown`) into a Codable enum the model
+/// and SwiftData store can round-trip.
+///
+/// `.unknown` is the fail-safe state: the read was throttled or gated,
+/// so we could not confirm whether the account engages the user. Per the
+/// engine's fail-safe contract, `.unknown` is **never** a reason to
+/// unfollow and is never selectable for bulk cleanup.
+public enum GhostVerdict: String, Sendable, Hashable, Codable, CaseIterable {
+    /// Source-side read confirmed: they never engage the user.
+    case ghost
+    /// They do engage the user (engaged set or source-side hit).
+    case engaged
+    /// Read was unreliable (throttle/gate) — fail-safe, not a ghost.
+    case unknown
+}
+
+@available(iOS 17, *)
+public extension GhostVerdict {
+    /// Map the engine's source-side classification into the persistable
+    /// model verdict. `confirmedGhost → .ghost`, `engaged → .engaged`,
+    /// `unknown → .unknown` (fail-safe preserved).
+    init(_ classification: EngagementEngine.GhostVerdict.Classification) {
+        switch classification {
+        case .confirmedGhost: self = .ghost
+        case .engaged:        self = .engaged
+        case .unknown:        self = .unknown
+        }
     }
 }
 

@@ -137,6 +137,56 @@ final class StorageRoundTripTests: XCTestCase {
         XCTAssertEqual(record.toAnalyzedAccount().activityReadState, .read)
     }
 
+    // MARK: - Ghost / reciprocity
+
+    /// The lazily-computed ghost verdict + inbound reciprocity count must
+    /// survive the SwiftData round-trip, and a never-checked account must
+    /// decode back to `nil` (not-yet-checked, distinct from `.unknown`).
+    func test_analyzedAccount_roundTrip_preservesGhostVerdictAndReciprocity() {
+        let base = BluescreenAnalyzer.analyze(profile: sampleProfile())
+
+        // Never checked → nil on both fields.
+        let fresh = AnalyzedAccountRecord(account: base, ownerHandle: "o").toAnalyzedAccount()
+        XCTAssertNil(fresh.ghostVerdict)
+        XCTAssertNil(fresh.reciprocityGapInboundCount)
+
+        for verdict in GhostVerdict.allCases {
+            let stamped = base.withGhostReciprocity(verdict: verdict, inboundCount: 7)
+            let restored = AnalyzedAccountRecord(account: stamped, ownerHandle: "o")
+                .toAnalyzedAccount()
+            XCTAssertEqual(restored.ghostVerdict, verdict)
+            XCTAssertEqual(restored.reciprocityGapInboundCount, 7)
+        }
+    }
+
+    /// A reciprocity gap (inbound count) stamped on an account persists
+    /// through the in-place update path, not just init.
+    func test_reciprocityGap_storedOnAccount() {
+        let base = BluescreenAnalyzer.analyze(profile: sampleProfile())
+        let record = AnalyzedAccountRecord(account: base, ownerHandle: "o")
+        let stamped = base.withGhostReciprocity(verdict: .ghost, inboundCount: 4)
+        record.update(from: stamped, scannedAt: Date())
+        let restored = record.toAnalyzedAccount()
+        XCTAssertEqual(restored.ghostVerdict, .ghost)
+        XCTAssertEqual(restored.reciprocityGapInboundCount, 4)
+    }
+
+    /// Re-scan preservation: a once-computed verdict must NOT be wiped by
+    /// a fresh analyzer pass (which carries `nil`), mirroring how the
+    /// whitelist override is sticky across scans.
+    func test_analyzedAccount_update_preservesGhostVerdictAcrossRescan() {
+        let base = BluescreenAnalyzer.analyze(profile: sampleProfile())
+        let record = AnalyzedAccountRecord(
+            account: base.withGhostReciprocity(verdict: .ghost, inboundCount: 2),
+            ownerHandle: "o"
+        )
+        // A plain analyzer re-scan carries nil ghost fields.
+        record.update(from: base, scannedAt: Date())
+        let restored = record.toAnalyzedAccount()
+        XCTAssertEqual(restored.ghostVerdict, .ghost)
+        XCTAssertEqual(restored.reciprocityGapInboundCount, 2)
+    }
+
     // MARK: - SwiftData container integration
 
     func test_analyzedAccount_persistsAndRetrieves_viaInMemoryContainer() throws {

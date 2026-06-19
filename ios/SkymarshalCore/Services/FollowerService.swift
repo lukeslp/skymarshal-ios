@@ -19,9 +19,28 @@ public actor FollowerService {
     /// target DID; cleared on logout via clear().
     private var mutualFollowsCache: [String: MutualFollowResult] = [:]
 
+    /// Session-scoped set of DIDs the *user* engages (likes/reposts/
+    /// reply-parents), parsed once from the user's cached content. Pure,
+    /// no network — the cheap short-circuit for the per-account ghost
+    /// check. Reset on logout via clear().
+    private var outboundEngagedDIDsCache: Set<String>?
+
     public init(client: ATProtoClient, container: ModelContainer? = nil) {
         self.client = client
         self.container = container
+    }
+
+    /// Lazily build (once per session) and return the set of DIDs the
+    /// user engages, parsed from their cached content items. Pure: the
+    /// caller passes the items; we cache the derived set so re-opening
+    /// successive account details doesn't re-parse the whole archive.
+    private func userOutboundEngagedDIDs(
+        userItems: [ContentItem]
+    ) -> Set<String> {
+        if let cached = outboundEngagedDIDsCache { return cached }
+        let dids = EngagementEngine.outboundEngagedDIDs(from: userItems)
+        outboundEngagedDIDsCache = dids
+        return dids
     }
 
     /// Snapshot of in-flight cache. UI pulls between progress ticks.
@@ -254,6 +273,124 @@ public actor FollowerService {
         return loaded
     }
 
+    // MARK: - Per-account ghost / reciprocity (lazy)
+
+    /// Lazily compute the ghost verdict + inbound reciprocity count for a
+    /// **single** account, stamp it onto `loaded`, and persist it. This
+    /// is the cheap user-initiated read the AccountDetailView fires when
+    /// it opens and the account hasn't been checked yet.
+    ///
+    /// Cost is bounded to one capped `getActorLikes` sweep per account
+    /// (≤ 2 PDS pages by default) plus a pure membership check against
+    /// the session-cached outbound set — well under the 15-call/account
+    /// budget. Never batched over the follow graph.
+    ///
+    /// Fail-safe: a throttled/gated read yields `.unknown`, which the UI
+    /// renders as "couldn't read" and which is never a reason to
+    /// unfollow. Returns the freshly-stamped account, or `nil` when the
+    /// DID isn't in the loaded scan.
+    @discardableResult
+    public func computeGhostReciprocity(
+        forDID did: String,
+        userItems: [ContentItem]
+    ) async -> AnalyzedAccount? {
+        guard let idx = loaded.firstIndex(where: { $0.did == did }) else { return nil }
+        let account = loaded[idx]
+        guard let userDID = await client.currentDid else { return nil }
+        let owner = await client.currentHandle
+
+        let outbound = userOutboundEngagedDIDs(userItems: userItems)
+        let engine = EngagementEngine(client: client)
+        let (engineVerdict, inbound) = await engine.verifyGhostWithInbound(
+            candidateDID: did,
+            engagedDIDs: outbound,
+            userPostURIPrefix: "at://\(userDID)/",
+            candidatePostsCount: account.profile.postsCount
+        )
+
+        let stamped = account.withGhostReciprocity(
+            verdict: GhostVerdict(engineVerdict.classification),
+            inboundCount: inbound
+        )
+        // Re-find the index — the actor may have mutated `loaded` while
+        // the await was suspended.
+        if let liveIdx = loaded.firstIndex(where: { $0.did == did }) {
+            loaded[liveIdx] = stamped
+        }
+        if let owner { persist([stamped], owner: owner) }
+        return stamped
+    }
+
+    /// Whether the user's outbound engaged-DID set is already cached for
+    /// this session (so the UI can skip passing the full item list when
+    /// it's already been built).
+    public var hasOutboundCache: Bool { outboundEngagedDIDsCache != nil }
+
+    /// Opt-in capped batch: run the per-account ghost check over the
+    /// **already-flagged disengaged candidates only** — accounts whose
+    /// activity read was reliable and that the engaged-audience pass
+    /// found disengaged (`interactedRecently == false`) or that score
+    /// low. Capped at `cap` per run (default 100) so a single tap never
+    /// spends minutes of the IP budget. Honors cancellation between
+    /// accounts and streams progress.
+    ///
+    /// Never the full follow set: candidates are pre-filtered to the
+    /// disengaged bucket before any network read happens.
+    @discardableResult
+    public func verifyFlaggedGhosts(
+        userItems: [ContentItem],
+        cap: Int = 100,
+        progress: (@Sendable (ScanProgress) async -> Void)? = nil
+    ) async -> Int {
+        guard let userDID = await client.currentDid else { return 0 }
+        let owner = await client.currentHandle
+        let outbound = userOutboundEngagedDIDs(userItems: userItems)
+        let engine = EngagementEngine(client: client)
+
+        // Pre-filter to already-flagged disengaged candidates whose
+        // activity we could read reliably, skipping ones already
+        // checked. This is the bounded candidate set — never the graph.
+        let candidates = loaded.filter { acc in
+            acc.ghostVerdict == nil
+                && acc.activityReadState == .read
+                && acc.interactedRecently == false
+        }.prefix(cap)
+
+        var checked = 0
+        let total = candidates.count
+        for account in candidates {
+            if Task.isCancelled { break }
+            await progress?(ScanProgress(
+                phase: .interactions,
+                current: checked,
+                total: total,
+                message: "Verifying flagged ghosts… \(checked) of \(total)"
+            ))
+            let (engineVerdict, inbound) = await engine.verifyGhostWithInbound(
+                candidateDID: account.did,
+                engagedDIDs: outbound,
+                userPostURIPrefix: "at://\(userDID)/",
+                candidatePostsCount: account.profile.postsCount
+            )
+            let stamped = account.withGhostReciprocity(
+                verdict: GhostVerdict(engineVerdict.classification),
+                inboundCount: inbound
+            )
+            if let liveIdx = loaded.firstIndex(where: { $0.did == account.did }) {
+                loaded[liveIdx] = stamped
+            }
+            if let owner { persist([stamped], owner: owner) }
+            checked += 1
+        }
+        await progress?(ScanProgress(
+            phase: .complete,
+            current: checked,
+            total: total,
+            message: "Verified \(checked) flagged \(checked == 1 ? "account" : "accounts")."
+        ))
+        return checked
+    }
+
     /// Bulk unfollow. The follow record URI is in `viewer.following` on
     /// each AnalyzedAccount's profile. Each real call goes through
     /// `RateLimit.withBackoff` inside ``ATProtoClient/deleteRecord(uri:)``
@@ -312,6 +449,7 @@ public actor FollowerService {
     public func clear() {
         loaded = []
         mutualFollowsCache = [:]
+        outboundEngagedDIDsCache = nil
     }
 
     /// Inject a snapshot from the SwiftData cache during cold-start
