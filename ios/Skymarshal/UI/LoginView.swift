@@ -226,7 +226,7 @@ private struct EasterEggOverlay: View {
     var body: some View {
         ZStack {
             Color.black.opacity(0.92).ignoresSafeArea()
-            Image("EasterAlf")
+            Image("ScopeHeader")
                 .resizable()
                 .scaledToFit()
                 .padding(32)

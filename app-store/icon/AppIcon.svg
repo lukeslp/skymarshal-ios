@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2f8fe0"/>
+      <stop offset="1" stop-color="#1657bd"/>
+    </linearGradient>
+  </defs>
+
+  <!-- full-bleed square; iOS applies the corner mask -->
+  <rect width="1024" height="1024" fill="url(#sky)"/>
+
+  <!-- radar scope: crosshair + three dotted (dot-matrix) range rings -->
+  <g fill="none" stroke="#ffffff" stroke-linecap="round">
+    <line x1="512" y1="150" x2="512" y2="874" stroke-opacity="0.18" stroke-width="8"/>
+    <line x1="150" y1="512" x2="874" y2="512" stroke-opacity="0.18" stroke-width="8"/>
+    <circle cx="512" cy="512" r="352" stroke-opacity="0.80" stroke-width="16" stroke-dasharray="1 50"/>
+    <circle cx="512" cy="512" r="256" stroke-opacity="0.40" stroke-width="10" stroke-dasharray="2 26"/>
+    <circle cx="512" cy="512" r="160" stroke-opacity="0.25" stroke-width="8"  stroke-dasharray="2 22"/>
+  </g>
+
+  <!-- "Blackbird": stealth-delta planform that also reads as swept wings -->
+  <path d="M512 228 L538 452 L806 700 L588 636 L560 800 L512 752 L464 800 L436 636 L218 700 L486 452 Z" fill="#0f2034"/>
+
+  <!-- orange lock-on: target brackets + center blip -->
+  <g fill="none" stroke="#ff7a1a" stroke-width="7" stroke-linecap="round">
+    <path d="M673 205 V185 H693"/>
+    <path d="M733 185 H753 V205"/>
+    <path d="M753 245 V265 H733"/>
+    <path d="M693 265 H673 V245"/>
+  </g>
+  <circle cx="713" cy="225" r="9" fill="#ff7a1a"/>
+</svg>
