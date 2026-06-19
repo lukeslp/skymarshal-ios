@@ -71,6 +71,8 @@ targets:
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
         ITSAppUsesNonExemptEncryption: false
+        WKAppBoundDomains:
+          - skymarshal.blue
         BGTaskSchedulerPermittedIdentifiers:
           - blue.skymarshal.ios.refresh
           - blue.skymarshal.ios.processing
