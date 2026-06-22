@@ -4,16 +4,39 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project intent
 
-The repo is now **iOS-first**. The Swift app at `ios/` is shipped to public TestFlight at v1.0.0 / build 5 and is preparing for App Store. The upstream Python CLI and the deployed React web client (`skymarshal.blue`) are no longer co-located here — they sit under `reference/` as snapshots that anchor parity decisions, **not** as runnable code.
+**Direction changed 2026-06-21 → "Option B" (Capacitor web-wrapper).** The native
+SwiftUI UX was the sticking point, so the shipping iOS app is being rebuilt as a
+**Capacitor wrapper of the `skymarshal-web` React client** (the app behind
+`skymarshal.blue`). That work lives in a **separate repo** —
+`~/workspace/skymarshal-web`, branch `feature/ios-capacitor-wrapper` — and is
+**validated end-to-end**: the client builds to a static bundle, wraps via
+Capacitor 8.4.1 (SPM), and runs natively on iOS under bundle id
+`blue.skymarshal.ios`. Full plan + status: `~/workspace/skymarshal-web/CAPACITOR_WRAPPER.md`.
 
-Scope: **content management only** — authenticate, search the user's own posts / replies / reposts / likes with highly dynamic filters, delete them safely, plus the Bluescreen follower-scan surface (automation-signal scoring + dry-run unfollow). Everything else from the Python upstream (firehose, network graphs, sentiment, analytics dashboards, egonet, follower cleanup beyond the existing Bluescreen surface) is **out of scope** unless explicitly requested. Sister xcodegen patterns at `reference/sister-templates/` (alt-text-apple) and `/Users/luke/workspace/whatcolor/ios/`.
+**This repo (`skymarshal-ios`) is now the native source + reference, not the
+active shipping target.** Going forward its value is:
+- the **safety-critical deletion engine** in `SkymarshalCore` (the sacred 429
+  ladder, resumable breadcrumb, preflight, typed-confirm) — being ported into the
+  Capacitor app as a native plugin (`SkymarshalDeletePlugin.swift`); keep it as the
+  canonical reference;
+- behavior parity, copy/brand voice, and the Bluescreen scoring logic.
+
+The native app stays buildable (TestFlight build 27) but is **on hold** — don't
+invest in native SwiftUI UI features unless explicitly asked. The Capacitor pattern
+to copy lives in `~/workspace/idea-tiles-app` and `~/workspace/orrery-app`.
+
+Scope is unchanged — **content management**: authenticate, search the user's own
+posts / replies / reposts / likes with dynamic filters, delete them safely, plus
+the Bluescreen follower-scan surface. Firehose, network graphs, sentiment,
+analytics dashboards, egonet remain **out of scope** unless explicitly requested.
 
 Note: `CLAUDE.md` is checked in — keep it concise and current. If you want a private scratch file, use `CLAUDE.local.md` (gitignored by convention) instead.
 
 ## What lives here today
 
 ```
-ios/                          # The active product — SwiftUI app, TestFlight v1.0.0/build 5
+ios/                          # Native source/reference (ON HOLD) — SwiftUI app, TestFlight build 27.
+                              #   Active shipping build is the Capacitor wrapper in ~/workspace/skymarshal-web.
   project.yml                 # xcodegen canonical source — never edit .xcodeproj directly
   Skymarshal/                 # App target: SwiftUI views, AppModel, App entry
   SkymarshalCore/             # Framework: Models, Services, Standards, Network, Storage
@@ -53,7 +76,12 @@ The Python and React clients here are **read-only references**. To run them, go 
 ## Commands
 
 ```bash
-# iOS — the active product
+# ACTIVE BUILD is the Capacitor wrapper in ~/workspace/skymarshal-web:
+#   cd ~/workspace/skymarshal-web && pnpm exec vite build && pnpm exec cap sync ios
+#   then build the "App" scheme (ios/App/App.xcodeproj). See CAPACITOR_WRAPPER.md.
+# The native iOS commands below are for the reference/source app (on hold).
+
+# iOS (native — reference/source, on hold)
 cd ios
 xcodegen generate                  # regenerate Skymarshal.xcodeproj from project.yml
 xcodebuild -scheme Skymarshal -destination 'platform=iOS Simulator,name=iPhone 17' test

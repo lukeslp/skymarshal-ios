@@ -2,6 +2,15 @@
 
 Living snapshot of objectives and boundaries. Product copy and build commands stay in [`README.md`](README.md); contributor rules in [`AGENTS.md`](AGENTS.md).
 
+> **Direction change — 2026-06-21: pivoting to "Option B" (Capacitor web-wrapper).**
+> The shipping iOS app is being rebuilt as a Capacitor wrapper of the
+> `skymarshal-web` React client (`skymarshal.blue`) — validated end-to-end, living
+> in `~/workspace/skymarshal-web` (branch `feature/ios-capacitor-wrapper`; see
+> `CAPACITOR_WRAPPER.md`). This native repo becomes the **reference + source** for
+> the deletion engine (ported as `SkymarshalDeletePlugin.swift`) and behavior
+> parity. The native milestones below are **on hold** pending final commitment to
+> the pivot — kept for reference and as the safety-critical port targets.
+
 ## Current milestone
 
 - **Distribution:** Public TestFlight at v1.0.0 / build 5; App Store submission gated on the 2026-06-10 adversarial-review fixes (see council log below).
