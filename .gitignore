@@ -57,6 +57,7 @@ htmlcov/
 
 # Node (residual — only inside reference/)
 node_modules/
+skymarshal-web/
 
 # Backup files
 *.bak

@@ -266,7 +266,7 @@ private struct LoginBackground: View {
                 LinearGradient(
                     colors: [
                         Color.black,
-                        Color(red: 0.05, green: 0.05, blue: 0.09),
+                        Theme.cinematicPageBackground,
                     ],
                     startPoint: .top,
                     endPoint: .bottom

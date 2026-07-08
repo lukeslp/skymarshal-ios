@@ -195,6 +195,7 @@ private struct MediaGallery: View {
                 }
             }
         }
+        .contentMargins(.trailing, 8, for: .scrollContent)
     }
 
     @ViewBuilder

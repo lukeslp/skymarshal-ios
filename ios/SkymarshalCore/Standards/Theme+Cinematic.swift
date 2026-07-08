@@ -49,6 +49,11 @@ extension Theme {
 
     /// Solid title fallback when gradient / color differentiation would fail review.
     public static let cinematicTitleSolid = Theme.scope
+
+    /// Deep navy used as the dark-mode gradient terminus on the login screen.
+    /// Raw hex 0x0D0D17 — intentionally darker than system black to create
+    /// a subtle warm-indigo depth on OLED displays.
+    public static let cinematicPageBackground = Color(uiColor: ThemeCinematicUIColor.hex(0x0D0D17))
 }
 
 private enum ThemeCinematicUIColor {

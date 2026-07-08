@@ -43,6 +43,7 @@ struct ActiveFilterChips: View {
                 .padding(.horizontal)
                 .padding(.vertical, 6)
             }
+            .contentMargins(.trailing, 24, for: .scrollContent)
         }
     }
 
