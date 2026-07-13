@@ -91,18 +91,24 @@ final class ScreenshotTest: XCTestCase {
         // alone is a strong frame, so search typing is best-effort: we only
         // type once the keyboard has actually attached (the signed-in account
         // auto-refreshes on launch and can drop focus mid-rebuild).
-        let searchField = app.searchFields.firstMatch
-        XCTAssertTrue(searchField.waitForExistence(timeout: 15),
+        // Custom elev2 search well (CinematicSearchField) — appears as a
+        // textField, not a system searchField.
+        let searchField = app.textFields.matching(
+            NSPredicate(format: "placeholderValue CONTAINS[c] 'search' OR label CONTAINS[c] 'search'")
+        ).firstMatch
+        let searchFallback = app.textFields.firstMatch
+        let searchTarget = searchField.waitForExistence(timeout: 5) ? searchField : searchFallback
+        XCTAssertTrue(searchTarget.waitForExistence(timeout: 15),
                       "search field never appeared")
         let keyboard = app.keyboards.firstMatch
         var typedSearch = false
         for _ in 1...3 {
-            searchField.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            searchTarget.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
             if keyboard.waitForExistence(timeout: 4) {
                 Thread.sleep(forTimeInterval: 0.5)
-                searchField.typeText("language")
+                searchTarget.typeText("language")
                 Thread.sleep(forTimeInterval: 1.0)
-                searchField.typeText("\n") // commit + dismiss the keyboard
+                searchTarget.typeText("\n") // commit + dismiss the keyboard
                 typedSearch = true
                 break
             }
@@ -115,11 +121,12 @@ final class ScreenshotTest: XCTestCase {
         snap("01-search", of: app)
 
         // ── 2. Filter sheet ────────────────────────────────────────────────
-        // accessibilityLabel is "Filters" or "Filters, active" — match the
-        // trailing 's' so the inner "Filter" text label can't shadow the
-        // real button. Case-insensitive (UI text is styled).
+        // Trailing slider on the cinematic search well opens Filters
+        // (accessibilityLabel "Advanced filters"). Fall back to the inline
+        // "Filters, active" chip when a filter is already on.
         let filterButton = app.buttons.matching(
-            NSPredicate(format: "label BEGINSWITH[c] 'filters'")).firstMatch
+            NSPredicate(format: "label ==[c] 'Advanced filters' OR label BEGINSWITH[c] 'filters'")
+        ).firstMatch
         XCTAssertTrue(filterButton.waitForExistence(timeout: 10),
                       "Filter button not found")
         let filtersNav = app.navigationBars["Filters"]

@@ -57,6 +57,7 @@ struct TypedConfirmSheet: View {
             .onAppear { fieldFocused = true }
         }
         .interactiveDismissDisabled()
+        .cinematicSheetChrome()
     }
 
     private var scopeLockCard: some View {

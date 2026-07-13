@@ -101,8 +101,7 @@ struct LoginView: View {
     private var climbAboardDeck: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Climb aboard")
-                .font(.subheadline.weight(.semibold))
-                .tracking(0.3)
+                .font(Theme.Mono.kicker(12))
                 .foregroundStyle(.secondary)
 
             TextField("yourname.bsky.social", text: $handle)
@@ -110,10 +109,31 @@ struct LoginView: View {
                 .keyboardType(.emailAddress)
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 11)
+                .background {
+                    RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                        .fill(Theme.elev2)
+                        .overlay {
+                            RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                                .strokeBorder(Theme.hairline, lineWidth: 1)
+                        }
+                }
                 .accessibilityLabel("Bluesky handle")
 
             SecureField("app password", text: $appPassword)
                 .textContentType(.password)
+                .font(Theme.Mono.body(15))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 11)
+                .background {
+                    RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                        .fill(Theme.elev2)
+                        .overlay {
+                            RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                                .strokeBorder(Theme.hairline, lineWidth: 1)
+                        }
+                }
                 .accessibilityLabel("App password")
 
             VStack(alignment: .leading, spacing: 8) {

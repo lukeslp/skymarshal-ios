@@ -61,7 +61,7 @@ struct EditActionBar: View {
 
             if selectionCount > 0 {
                 Text("\(selectionCount.formatted()) selected")
-                    .font(.caption.monospacedDigit())
+                    .font(Theme.Mono.tabular(12))
                     .foregroundStyle(.secondary)
                     .transition(.opacity.combined(with: .scale(scale: 0.9)))
             }
@@ -82,10 +82,7 @@ struct EditActionBar: View {
         .padding(.horizontal)
         .padding(.vertical, 10)
         .frame(minHeight: 44)
-        .background(.thinMaterial)
-        .overlay(alignment: .bottom) {
-            Divider().opacity(0.5)
-        }
+        .cinematicChromeStrip()
         .animation(reduceMotion ? nil : .snappy, value: selectionCount)
         .animation(reduceMotion ? nil : .snappy, value: allSelected)
     }

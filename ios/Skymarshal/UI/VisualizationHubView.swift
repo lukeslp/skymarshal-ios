@@ -2,8 +2,8 @@ import SwiftUI
 import SkymarshalCore
 
 /// Alpha hub for account / interaction / timeline visualizations. Gated by
-/// ``FeatureFlags/visualizationHubKey``. Shows explicit completeness — data is
-/// derived from the local cache only, not a full social graph.
+/// ``FeatureFlags/visualizationHubKey``. Visual language tracks the Figma Make
+/// Scope hub: elev1 Cards with accent icon wells + completeness Mono.
 @available(iOS 17, *)
 struct VisualizationHubView: View {
 
@@ -11,40 +11,59 @@ struct VisualizationHubView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    NavigationLink {
-                        AccountGraphVizView()
-                    } label: {
-                        hubRow(
-                            title: "Account graph",
-                            subtitle: "Scanned follow graph — ego summary",
-                            completeness: model.accounts.isEmpty ? "Unknown" : "Partial"
-                        )
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    archiveScanCard
+
+                    Text("VISUALIZATIONS")
+                        .font(Theme.Mono.kicker())
+                        .foregroundStyle(.tertiary)
+                        .padding(.top, 2)
+
+                    VStack(spacing: 8) {
+                        NavigationLink {
+                            AccountGraphVizView()
+                        } label: {
+                            hubCard(
+                                title: "Account Graph",
+                                subtitle: "Mutuals, bridges, clusters",
+                                systemImage: "person.2",
+                                completeness: model.accounts.isEmpty ? "Unknown" : "Partial"
+                            )
+                        }
+                        .buttonStyle(.plain)
+
+                        NavigationLink {
+                            InteractionGraphVizView()
+                        } label: {
+                            hubCard(
+                                title: "Interactions",
+                                subtitle: "All interactions, both dirs",
+                                systemImage: "chart.bar",
+                                completeness: model.items.isEmpty ? "Unknown" : "Partial"
+                            )
+                        }
+                        .buttonStyle(.plain)
+
+                        NavigationLink {
+                            TimelineHeatmapVizView(items: model.items)
+                        } label: {
+                            hubCard(
+                                title: "Timeline Heatmap",
+                                subtitle: "Posting hour × weekday",
+                                systemImage: "clock",
+                                completeness: model.items.isEmpty ? "Unknown" : "Partial"
+                            )
+                        }
+                        .buttonStyle(.plain)
                     }
-                    NavigationLink {
-                        InteractionGraphVizView()
-                    } label: {
-                        hubRow(
-                            title: "Interaction graph",
-                            subtitle: "Replies, likes, reposts in your archive",
-                            completeness: model.items.isEmpty ? "Unknown" : "Partial"
-                        )
-                    }
-                    NavigationLink {
-                        TimelineHeatmapVizView(items: model.items)
-                    } label: {
-                        hubRow(
-                            title: "Timeline heatmap",
-                            subtitle: "Posts + replies by hour and weekday",
-                            completeness: model.items.isEmpty ? "Unknown" : "Partial"
-                        )
-                    }
-                } header: {
-                    Text("Visualizations")
-                } footer: {
+
                     Text("Coverage is partial until every relationship is materialized. Nothing here leaves your device.")
+                        .font(Theme.Mono.caption(11))
+                        .foregroundStyle(.tertiary)
+                        .padding(.top, 4)
                 }
+                .padding(16)
             }
             .navigationTitle("Scope")
             .navigationBarTitleDisplayMode(.large)
@@ -57,27 +76,103 @@ struct VisualizationHubView: View {
         }
     }
 
-    private func hubRow(title: String, subtitle: String, completeness: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(title)
-                    .font(.headline)
-                Spacer()
-                ScopePill(
-                    value: completeness,
-                    emphasis: completeness == "Unknown" ? .muted : .scope
+    private var archiveScanCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("ARCHIVE SCAN")
+                .font(Theme.Mono.kicker())
+                .foregroundStyle(.tertiary)
+            HStack(spacing: 22) {
+                scanStat(value: model.items.count.formatted(), label: "records")
+                scanStat(
+                    value: model.accounts.isEmpty && model.items.isEmpty ? "—" : "Partial",
+                    label: "coverage"
+                )
+                scanStat(
+                    value: model.accounts.isEmpty ? "—" : model.accounts.count.formatted(),
+                    label: "accounts"
                 )
             }
-            Text(subtitle)
-                .font(.caption)
-                .foregroundStyle(.secondary)
         }
-        .padding(.vertical, 4)
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background {
+            RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                .fill(Theme.elev1)
+                .overlay {
+                    RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                        .strokeBorder(Theme.hairline, lineWidth: 1)
+                }
+        }
+    }
+
+    private func scanStat(value: String, label: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(value)
+                .font(Theme.Mono.tabular(18))
+                .fontWeight(.bold)
+                .foregroundStyle(.primary)
+            Text(label)
+                .font(Theme.Mono.kicker(10))
+                .foregroundStyle(.tertiary)
+        }
+    }
+
+    private func hubCard(
+        title: String,
+        subtitle: String,
+        systemImage: String,
+        completeness: String
+    ) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: systemImage)
+                .font(.subheadline.weight(.semibold))
+                .symbolRenderingMode(.monochrome)
+                .foregroundStyle(Theme.cinematicAccentA)
+                .frame(width: 34, height: 34)
+                .background {
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .fill(Theme.cinematicAccentA.opacity(0.14))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 9, style: .continuous)
+                                .strokeBorder(Theme.cinematicAccentA.opacity(0.35), lineWidth: 1)
+                        }
+                }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+                Text(subtitle)
+                    .font(Theme.Mono.caption(11))
+                    .foregroundStyle(.tertiary)
+            }
+
+            Spacer(minLength: 8)
+
+            VStack(alignment: .trailing, spacing: 4) {
+                Text(completeness.uppercased())
+                    .font(Theme.Mono.kicker(10))
+                    .foregroundStyle(
+                        completeness == "Unknown" ? Theme.danger : Theme.caution
+                    )
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .padding(13)
+        .background {
+            RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                .fill(Theme.elev1)
+                .overlay {
+                    RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                        .strokeBorder(Theme.hairline, lineWidth: 1)
+                }
+        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(title). \(subtitle). Data completeness \(completeness).")
     }
 }
-
 // MARK: - Account graph (alpha)
 
 @available(iOS 17, *)
@@ -95,7 +190,7 @@ private struct AccountGraphVizView: View {
             Text(explanation)
             if let raw = model.graphSnapshotSummaries[kind.rawValue] {
                 Text(raw)
-                    .font(Theme.Display.metricRegular(.caption2))
+                    .font(Theme.Mono.tabular(11))
                     .textSelection(.enabled)
                     .foregroundStyle(.secondary)
             }
@@ -139,6 +234,8 @@ private struct AccountGraphVizView: View {
         }
         .navigationTitle("Account graph")
         .navigationBarTitleDisplayMode(.inline)
+        .cinematicListChrome()
+        .listRowBackground(Theme.elev1)
     }
 }
 
@@ -162,7 +259,7 @@ private struct InteractionGraphVizView: View {
             Text(explanation)
             if let raw = model.graphSnapshotSummaries[kind.rawValue] {
                 Text(raw)
-                    .font(Theme.Display.metricRegular(.caption2))
+                    .font(Theme.Mono.tabular(11))
                     .textSelection(.enabled)
                     .foregroundStyle(.secondary)
             }
@@ -185,6 +282,8 @@ private struct InteractionGraphVizView: View {
         }
         .navigationTitle("Interactions")
         .navigationBarTitleDisplayMode(.inline)
+        .cinematicListChrome()
+        .listRowBackground(Theme.elev1)
     }
 }
 
@@ -212,7 +311,7 @@ private struct TimelineHeatmapVizView: View {
             Text(explanation)
             if let raw = model.graphSnapshotSummaries[GraphSnapshotKind.timelineHeatmap.rawValue] {
                 Text(raw)
-                    .font(Theme.Display.metricRegular(.caption2))
+                    .font(Theme.Mono.tabular(11))
                     .textSelection(.enabled)
                     .foregroundStyle(.secondary)
             }
@@ -241,6 +340,8 @@ private struct TimelineHeatmapVizView: View {
         }
         .navigationTitle("Heatmap")
         .navigationBarTitleDisplayMode(.inline)
+        .cinematicListChrome()
+        .listRowBackground(Theme.elev1)
     }
 
     private var hourRow: some View {
@@ -271,7 +372,7 @@ private struct TimelineHeatmapVizView: View {
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                     Text("\(v)")
-                        .font(.caption.monospacedDigit())
+                        .font(Theme.Mono.tabular(12))
                 }
                 .frame(maxWidth: .infinity)
             }

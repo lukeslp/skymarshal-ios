@@ -36,6 +36,7 @@ struct BluescreenFilterSheet: View {
             }
             .navigationTitle("Filters")
             .navigationBarTitleDisplayMode(.inline)
+            .cinematicListChrome()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
@@ -54,6 +55,8 @@ struct BluescreenFilterSheet: View {
             }
             .onAppear(perform: prefill)
         }
+        .cinematicSheetChrome()
+        .tint(Theme.cinematicAccentA)
     }
 
     // MARK: - Sections

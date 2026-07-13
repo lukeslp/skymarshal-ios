@@ -188,7 +188,7 @@ private struct StatusPills: View {
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(
-                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous)
                     .fill(Theme.chipTint(color))
             )
         }

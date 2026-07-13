@@ -15,6 +15,17 @@ Living snapshot of objectives and boundaries. Product copy and build commands st
 > surfaces, accent gradient tokens, tab IA Content / Patterns / Scope / About
 > (Scope default-on), Delete Review typed-confirm restyle. Cap shipping path
 > unchanged; this keeps native parity with the Make prototype.
+>
+> **2026-07-13 — Parity pass 2.** List rows → elev1, banners/chips → elev+hairline
+> (no thinMaterial), Type/ActiveFilter chips radius-sm + Mono, Filter sheets
+> cinematic chrome, Login elev2 wells, Bots menu icon+short word, Scope drill-ins
+> void chrome. Still open vs Make: List-vs-Card row model, search field chrome,
+> toolbar strips beyond type chips.
+>
+> **2026-07-13 — Parity pass 3 (local Make export).** Source:
+> `~/Downloads/skymarshal-figma`. Content/Patterns: elev2 `CinematicSearchField`
+> (replaced `.searchable`), void + hairline list rows, Patterns
+> Strict/Balanced/Loose segment. Scope hub: elev1 Card rail matching Make.
 
 ## Current milestone
 

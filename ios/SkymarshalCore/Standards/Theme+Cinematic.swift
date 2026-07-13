@@ -109,6 +109,37 @@ public extension View {
             .scrollContentBackground(.hidden)
             .background(Theme.void.ignoresSafeArea())
     }
+
+    /// Flat elev strip behind inline banners / chip rows (not `.thinMaterial`).
+    func cinematicChromeStrip() -> some View {
+        self
+            .background(Theme.elev1)
+            .overlay(alignment: .bottom) {
+                Rectangle()
+                    .fill(Theme.hairline)
+                    .frame(height: 1)
+            }
+    }
+
+    /// Make list language: hairline separators on void, no system gray rules.
+    func cinematicListRows() -> some View {
+        self
+            .listRowSeparatorTint(Theme.hairline)
+            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+    }
+
+    /// Sheet presentation corners matching Make modal radius (20).
+    func cinematicSheetChrome() -> some View {
+        self.presentationCornerRadius(Theme.Radius.lg)
+    }
+}
+
+@available(iOS 17, *)
+extension Theme {
+    /// List-row fill matching Make Content/Patterns: void idle, accent wash when selected.
+    public static func cinematicRowFill(selected: Bool) -> Color {
+        selected ? cinematicAccentA.opacity(0.10) : Color.clear
+    }
 }
 
 private enum ThemeCinematicUIColor {

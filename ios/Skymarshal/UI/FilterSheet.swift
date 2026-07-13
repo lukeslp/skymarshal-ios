@@ -61,6 +61,7 @@ struct FilterSheet: View {
                         .accessibilityHint("When on, the search field uses plus for required terms, minus to exclude, and quotes for phrases.")
                 } header: {
                     Text("Search field")
+                        .font(Theme.Mono.kicker())
                 } footer: {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Examples: +cats -dogs \"hot take\" hello world  OR  \\bcat\\b for whole-word match.")
@@ -68,6 +69,7 @@ struct FilterSheet: View {
                             .foregroundStyle(parseSummary.hasPrefix("Parse error") ? Theme.danger : .secondary)
                     }
                 }
+                .listRowBackground(Theme.elev1)
 
                 Section {
                     Picker("Media", selection: $draft.mediaFilter) {
@@ -79,11 +81,13 @@ struct FilterSheet: View {
                     Toggle("Search alt text too", isOn: $draft.includeAltTextInKeyword)
                 } header: {
                     Text("Photos & video")
+                        .font(Theme.Mono.kicker())
                 } footer: {
                     Text("Alt-text search lets you find that capybara post even when you didn't write the word \"capybara.\"")
                 }
+                .listRowBackground(Theme.elev1)
 
-                Section("Dates") {
+                Section {
                     Toggle("After…", isOn: $enableStartDate)
                     if enableStartDate {
                         DatePicker(
@@ -102,7 +106,11 @@ struct FilterSheet: View {
                             displayedComponents: .date
                         )
                     }
+                } header: {
+                    Text("Dates")
+                        .font(Theme.Mono.kicker())
                 }
+                .listRowBackground(Theme.elev1)
 
                 engagementSection(title: "Likes", min: $minLikes, max: $maxLikes)
                 engagementSection(title: "Reposts", min: $minReposts, max: $maxReposts)
@@ -117,9 +125,11 @@ struct FilterSheet: View {
                         .autocorrectionDisabled()
                 } header: {
                     Text("Subject (likes & reposts)")
+                        .font(Theme.Mono.kicker())
                 } footer: {
                     Text("URI filter matches the liked or reposted post. Handle filter matches the subject author. Posts and replies ignore these fields.")
                 }
+                .listRowBackground(Theme.elev1)
 
                 Section {
                     TextField("DID substring in URI", text: Binding(
@@ -133,10 +143,13 @@ struct FilterSheet: View {
                     .autocorrectionDisabled()
                 } header: {
                     Text("Author DID")
+                        .font(Theme.Mono.kicker())
                 }
+                .listRowBackground(Theme.elev1)
             }
             .navigationTitle("Filters")
             .navigationBarTitleDisplayMode(.inline)
+            .cinematicListChrome()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
@@ -152,23 +165,31 @@ struct FilterSheet: View {
             .onChange(of: keyword) { _, _ in refreshParseSummary() }
             .onChange(of: draft.advancedKeywordGrammar) { _, _ in refreshParseSummary() }
         }
+        .cinematicSheetChrome()
+        .tint(Theme.cinematicAccentA)
     }
 
     @ViewBuilder
     private func engagementSection(title: String, min: Binding<String>, max: Binding<String>) -> some View {
-        Section(title) {
+        Section {
             HStack {
                 TextField("min", text: min)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.center)
+                    .font(Theme.Mono.tabular(15))
                     .accessibilityLabel("\(title) minimum")
                 Text("–").foregroundStyle(.secondary).accessibilityHidden(true)
                 TextField("max", text: max)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.center)
+                    .font(Theme.Mono.tabular(15))
                     .accessibilityLabel("\(title) maximum")
             }
+        } header: {
+            Text(title)
+                .font(Theme.Mono.kicker())
         }
+        .listRowBackground(Theme.elev1)
     }
 
     private func prefill() {

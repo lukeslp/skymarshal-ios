@@ -130,14 +130,27 @@ struct ContentListView: View {
                         .background(Theme.info.opacity(0.12))
                         .accessibilityIdentifier("content_bg_scope_refresh_note")
                 }
+                // Make Content: search well → type chips → sort/select.
+                CinematicSearchField(
+                    text: $keyword,
+                    prompt: "Search posts, replies, likes…",
+                    onAdvanced: {
+                        draftFilters = filters
+                        showFilterSheet = true
+                    }
+                )
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .padding(.bottom, 6)
+
                 // Pill-chip row — lifted from skymarshal-web's
                 // ContentManagement pattern. Each chip carries its
                 // category count, so a glance tells you "9,832 Posts,
                 // 856 Replies" without opening anything.
                 TypeChipsRow(selected: $selectedTypes, counts: model.summary)
 
-                // Inline Sort + Filter — always reachable while `.searchable`
-                // is focused (toolbar menus are not). Mirrors Scope tab layout.
+                // Inline Sort + Select — always reachable (custom search
+                // no longer collapses the toolbar the way `.searchable` did).
                 HStack(spacing: 12) {
                     Menu {
                         Picker("Sort", selection: $sortOrder) {
@@ -154,27 +167,27 @@ struct ContentListView: View {
                         }
                         .lineLimit(1)
                         .fixedSize(horizontal: true, vertical: false)
-                        .foregroundStyle(.tint)
+                        .foregroundStyle(Theme.cinematicAccentA)
                     }
                     .accessibilityLabel("Sort: \(sortOrder.label)")
                     .accessibilityHint("Tap to change sort order")
 
-                    Button {
-                        draftFilters = filters
-                        showFilterSheet = true
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: filters.hasActiveFilters
-                                  ? "line.3.horizontal.decrease.circle.fill"
-                                  : "line.3.horizontal.decrease.circle")
-                                .font(.footnote)
-                            Text("Filter")
-                                .font(.footnote.weight(.medium))
+                    if filters.hasActiveFilters {
+                        Button {
+                            draftFilters = filters
+                            showFilterSheet = true
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                                    .font(.footnote)
+                                Text("Filter")
+                                    .font(.footnote.weight(.medium))
+                            }
+                            .foregroundStyle(Theme.cinematicAccentA)
                         }
-                        .foregroundStyle(.tint)
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Filters, active")
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(filters.hasActiveFilters ? "Filters, active" : "Filters")
 
                     Spacer(minLength: 8)
 
@@ -196,12 +209,13 @@ struct ContentListView: View {
                         }
                     }
                     .buttonStyle(.plain)
-                    .foregroundStyle(.tint)
+                    .foregroundStyle(Theme.cinematicAccentA)
                     .accessibilityLabel(editMode.isEditing ? "Exit selection mode" : "Enter selection mode")
                 }
                 .padding(.horizontal)
                 .padding(.top, 2)
                 .padding(.bottom, 4)
+                .cinematicChromeStrip()
 
                 ActiveFilterChips(filters: $filters)
 
@@ -273,7 +287,7 @@ struct ContentListView: View {
                     .padding(.horizontal)
                     .padding(.vertical, 6)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.thinMaterial)
+                    .cinematicChromeStrip()
                     .accessibilityElement(children: .combine)
                 }
 
@@ -308,10 +322,9 @@ struct ContentListView: View {
                         ForEach(filteredItems) { item in
                             ContentRow(item: item)
                                 .listRowBackground(
-                                    selection.contains(item.id)
-                                    ? Color.accentColor.opacity(0.08)
-                                    : Color(.systemBackground)
+                                    Theme.cinematicRowFill(selected: selection.contains(item.id))
                                 )
+                                .cinematicListRows()
                                 .contentShape(Rectangle())
                                 .onTapGesture {
                                     if !editMode.isEditing {
@@ -428,15 +441,13 @@ struct ContentListView: View {
                 // occlusion).
             }
             .environment(\.editMode, $editMode)
-            .searchable(text: $keyword, placement: .navigationBarDrawer(displayMode: .always))
             // Safety pin per technical-committee Greybeard/Safety verdict:
             // if the user types "Trump" → 47 results → Edit → Select All →
-            // then mis-taps the search clear-X, keyword resets to "" and
-            // the visible list jumps to thousands. Without this guard,
-            // `selection` still holds the 47 item IDs but the user can't
-            // see them — they could bulk-delete content they didn't
-            // intend. Drop any selected item that's no longer visible
-            // under the new filter.
+            // then clears search, keyword resets to "" and the visible
+            // list jumps to thousands. Without this guard, `selection`
+            // still holds the 47 item IDs but the user can't see them —
+            // they could bulk-delete content they didn't intend. Drop any
+            // selected item that's no longer visible under the new filter.
             .onChange(of: keyword) { pruneSelectionToVisible() }
             .onChange(of: selectedTypes) { pruneSelectionToVisible() }
             .onChange(of: filters) { _, _ in pruneSelectionToVisible() }
@@ -693,15 +704,14 @@ struct ContentRow: View {
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(item.contentType.stripeColor)
                     Text(item.contentType.label.uppercased())
-                        .font(Theme.Display.metric(.caption2).weight(.semibold))
-                        .tracking(0.12)
+                        .font(Theme.Mono.kicker(11))
                         .foregroundStyle(.secondary)
                     if let date = item.createdAt {
                         Text("·")
-                            .font(Theme.Display.metricRegular(.caption2))
+                            .font(Theme.Mono.caption(11))
                             .foregroundStyle(.tertiary)
                         Text(date, style: .date)
-                            .font(Theme.Display.metricRegular(.caption2))
+                            .font(Theme.Mono.caption(11))
                             .foregroundStyle(.tertiary)
                     }
                     Spacer()
@@ -725,7 +735,7 @@ struct ContentRow: View {
                     metric(count: item.repostCount, symbol: "arrow.2.squarepath")
                     metric(count: item.replyCount, symbol: "bubble.left")
                 }
-                .font(Theme.Display.metricRegular(.caption2))
+                .font(Theme.Mono.tabular(11))
                 .foregroundStyle(.secondary)
                 .padding(.top, 1)
             }
@@ -752,18 +762,18 @@ struct EngagementBadge: View {
     var body: some View {
         HStack(spacing: 2) {
             Image(systemName: "flame.fill")
-                .font(Theme.Display.metric(.caption2).weight(.semibold))
+                .font(Theme.Mono.kicker(11))
                 .symbolRenderingMode(.monochrome)
                 .accessibilityHidden(true)
             Text("\(score)")
-                .font(Theme.Display.metricRegular(.caption2))
+                .font(Theme.Mono.tabular(11))
         }
-        .foregroundStyle(.tint)
+        .foregroundStyle(Theme.cinematicAccentA)
         .padding(.horizontal, 6)
         .padding(.vertical, 2)
         .background(
             RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous)
-                .fill(.tint.opacity(0.18))
+                .fill(Theme.cinematicAccentA.opacity(0.18))
         )
         .accessibilityLabel("Engagement score \(score)")
     }

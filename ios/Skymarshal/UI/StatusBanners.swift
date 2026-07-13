@@ -40,8 +40,7 @@ struct LoadProgressBannerLite: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 8)
-        .background(.thinMaterial)
-        .overlay(alignment: .bottom) { Divider().opacity(0.5) }
+        .cinematicChromeStrip()
         .onAppear { if !reduceMotion { pulse.toggle() } }
     }
 }
