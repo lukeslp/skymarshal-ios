@@ -2,7 +2,7 @@ import WidgetKit
 import SwiftUI
 import SkymarshalCore
 
-// MARK: - 1. Hygiene Summary
+// MARK: - 1. Hygiene Summary (Reciprocity cues focused widget, modern sans-serif font)
 
 struct HygieneSummaryWidget: Widget {
     let kind = "HygieneSummaryWidget"
@@ -54,7 +54,7 @@ struct HygieneSummaryView: View {
     }
 }
 
-// MARK: - 2. People To Engage
+// MARK: - 2. People To Engage (Mutual engagement and reply cues, consistent classy sans-serif font)
 
 struct PeopleToEngageWidget: Widget {
     let kind = "PeopleToEngageWidget"
@@ -110,7 +110,7 @@ struct PeopleToEngageView: View {
     }
 }
 
-// MARK: - 3. Post Taking Off
+// MARK: - 3. Post Taking Off (Trending post insights widget, modern sans-serif font)
 
 struct PostTakingOffWidget: Widget {
     let kind = "PostTakingOffWidget"
@@ -165,7 +165,7 @@ struct PostTakingOffView: View {
     }
 }
 
-// MARK: - 4. Follower Trend
+// MARK: - 4. Follower Trend (Follower count and recent trend sparkline, all text in classy sans-serif)
 
 struct FollowerTrendWidget: Widget {
     let kind = "FollowerTrendWidget"
@@ -246,7 +246,7 @@ struct Sparkline: Shape {
     }
 }
 
-// MARK: - 5. Reply Back Of The Day
+// MARK: - 5. Reply Back Of The Day (Reciprocity nudge, not cleanup, clean sans-serif font)
 
 struct ReplyBackOfTheDayWidget: Widget {
     let kind = "ReplyBackOfTheDayWidget"
@@ -310,15 +310,15 @@ struct ReplyBackOfTheDayView: View {
     @ViewBuilder private var lockScreen: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text("REPLY BACK")
-                .font(.caption2.weight(.semibold))
+                .font(WidgetStyle.caption.weight(.semibold))
             if let fan = pick {
-                Text(fan.title).font(.headline).lineLimit(1)
+                Text(fan.title).font(WidgetStyle.body).lineLimit(1)
                 Text("@\(fan.handle) · \(fan.theyEngagedYou)×")
-                    .font(.caption2)
+                    .font(WidgetStyle.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             } else {
-                Text("Run a scan").font(.caption)
+                Text("Run a scan").font(WidgetStyle.caption)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

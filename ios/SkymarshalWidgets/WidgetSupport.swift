@@ -1,3 +1,5 @@
+// Updated: All widget fonts now use Open Sans (if available) or a rounded system sans-serif. No monospaced fonts remain.
+
 import WidgetKit
 import SwiftUI
 import SkymarshalCore
@@ -46,16 +48,25 @@ struct SnapshotProvider: TimelineProvider {
 
 // MARK: - Shared style helpers
 
-/// Visual tokens matching the app: IBM Plex Mono via `Theme.Mono`, the
-/// semantic `Theme` color set. Kept here so all five widget views read
-/// the same vocabulary.
+/// Visual tokens matching the app: modern sans serif fonts via Open Sans (if available)
+/// or a rounded system font fallback.
 enum WidgetStyle {
-    static let kicker = Theme.Mono.kicker(10)
-    static let body = Theme.Mono.body(12)
-    static let caption = Theme.Mono.caption(10)
+    static func font(_ size: CGFloat) -> Font {
+        if UIFont(name: "OpenSans", size: size) != nil {
+            return .custom("OpenSans", size: size)
+        } else {
+            return .system(size: size, design: .rounded)
+        }
+    }
 
-    /// Big tabular number font, scaled per widget.
-    static func metric(_ size: CGFloat) -> Font { Theme.Mono.tabular(size) }
+    static let kicker = font(10).weight(.semibold)
+    static let body = font(12)
+    static let caption = font(10)
+
+    /// Big number font, scaled per widget.
+    static func metric(_ size: CGFloat) -> Font {
+        font(size).weight(.medium)
+    }
 }
 
 /// A small label/value stat block used across the hygiene widgets.
@@ -76,7 +87,7 @@ struct WidgetStat: View {
     }
 }
 
-/// Section kicker (uppercase mono) used as a widget header.
+/// Section kicker (uppercase) used as a widget header.
 struct WidgetKicker: View {
     let text: String
     var tint: Color = Theme.scope
@@ -104,3 +115,4 @@ extension Date {
         return "\(days / 7)w"
     }
 }
+
