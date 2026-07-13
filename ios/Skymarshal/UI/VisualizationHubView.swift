@@ -48,6 +48,7 @@ struct VisualizationHubView: View {
             }
             .navigationTitle("Scope")
             .navigationBarTitleDisplayMode(.large)
+            .cinematicListChrome()
             .onAppear {
                 ColdLaunchSignposts.event("tab_scope_appear")
                 ScopeExperimentTelemetry.recordScopeHubAppearance()
@@ -118,7 +119,7 @@ private struct AccountGraphVizView: View {
                     ContentUnavailableView(
                         "No follower scan",
                         systemImage: "person.2.slash",
-                        description: Text("Run a scan on the Followers tab, then return here.")
+                        description: Text("Run a scan on the Patterns tab, then return here.")
                     )
                 }
             } else {

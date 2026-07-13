@@ -11,6 +11,11 @@ Living snapshot of objectives and boundaries. Product copy and build commands st
 > parity. The native milestones below are **on hold** pending final commitment to
 > the pivot — kept for reference and as the safety-critical port targets.
 
+> **2026-07-13 — Figma Make visual landed on native chrome.** OLED void/elev
+> surfaces, accent gradient tokens, tab IA Content / Patterns / Scope / About
+> (Scope default-on), Delete Review typed-confirm restyle. Cap shipping path
+> unchanged; this keeps native parity with the Make prototype.
+
 ## Current milestone
 
 - **Distribution:** Public TestFlight at v1.0.0 / build 5; App Store submission gated on the 2026-06-10 adversarial-review fixes (see council log below).

@@ -90,7 +90,11 @@ struct LoginView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background {
                 RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
-                    .fill(.ultraThinMaterial)
+                    .fill(Theme.elev1)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                            .strokeBorder(Theme.caution.opacity(0.35), lineWidth: 1)
+                    }
             }
     }
 
@@ -124,7 +128,11 @@ struct LoginView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
             RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
-                .fill(.ultraThinMaterial)
+                .fill(Theme.elev1)
+                .overlay {
+                    RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                        .strokeBorder(Theme.hairline, lineWidth: 1)
+                }
         }
     }
 
@@ -140,7 +148,11 @@ struct LoginView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background {
                 RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
-                    .fill(.ultraThinMaterial)
+                    .fill(Theme.elev1)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                            .strokeBorder(Theme.danger.opacity(0.35), lineWidth: 1)
+                    }
             }
     }
 

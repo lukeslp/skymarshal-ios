@@ -144,7 +144,7 @@ final class AccessibilityRegressionTests: XCTestCase {
         // The Content navigation bar arrives once the stubbed content
         // mounts; gate on it before probing inside the list.
         XCTAssert(
-            app.navigationBars["My Content"].waitForExistence(timeout: 15),
+            app.navigationBars["Content"].waitForExistence(timeout: 15),
             "Content tab nav bar missing after stub seed at AX5"
         )
 
@@ -175,7 +175,7 @@ final class AccessibilityRegressionTests: XCTestCase {
         app.launch()
 
         // Navigate to the Scope tab. The tab is the third item once the
-        // visualization hub flag is on (Content, Followers, Scope).
+        // visualization hub flag is on (Content, Patterns, Scope).
         let scopeTab = app.tabBars.buttons["Scope"]
         if scopeTab.waitForExistence(timeout: 10) {
             scopeTab.tap()

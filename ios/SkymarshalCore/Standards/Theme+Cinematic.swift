@@ -1,17 +1,20 @@
 import SwiftUI
 import UIKit
 
-/// Cinematic OLED chrome: rounded display typography, small corner radii,
-/// and accent gradient endpoints for wordmarks and primary actions.
-/// Glass stays on nav/hero panels only — list rows use flat surfaces.
+/// Cinematic OLED chrome from the Skymarshal Figma Make prototype:
+/// void / elev surfaces, rounded display typography, small radii, and
+/// blue→violet accent gradient. Glass stays on nav/hero panels only —
+/// list rows use flat elev fills.
 @available(iOS 17, *)
 extension Theme {
 
     public enum Radius {
-        /// Chips, inline controls, compact buttons.
+        /// Chips, inline controls, compact buttons (Make: 6).
         public static let sm: CGFloat = 6
-        /// Deck panels, grouped field stacks.
+        /// Deck panels, grouped field stacks (Make: 10).
         public static let md: CGFloat = 10
+        /// Sheet / modal top corners (Make: 20).
+        public static let lg: CGFloat = 20
     }
 
     public enum Display {
@@ -29,14 +32,54 @@ extension Theme {
         }
     }
 
-    /// Gradient start (electric blue) — tuned slightly brighter in dark mode.
-    public static let cinematicAccentA = Color(uiColor: UIColor { trait in
-        trait.userInterfaceStyle == .dark ? ThemeCinematicUIColor.hex(0x6AA8FF) : ThemeCinematicUIColor.hex(0x3D7CFF)
+    // MARK: - Surface ladder (Figma Make OLED)
+
+    /// Pure void / system background. Screen root chrome.
+    public static let void = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? ThemeCinematicUIColor.hex(0x000000)
+            : .systemBackground
     })
 
-    /// Gradient end (violet) — tuned for OLED legibility on dark backgrounds.
+    /// First elevation — cards, decks (Make `#121218`).
+    public static let elev1 = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? ThemeCinematicUIColor.hex(0x121218)
+            : .secondarySystemBackground
+    })
+
+    /// Second elevation — inset fields, nested panels (Make `#1A1A26`).
+    public static let elev2 = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? ThemeCinematicUIColor.hex(0x1A1A26)
+            : .tertiarySystemBackground
+    })
+
+    /// Third elevation — pressed / elevated chips (Make `#222230`).
+    public static let elev3 = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? ThemeCinematicUIColor.hex(0x222230)
+            : .quaternarySystemFill
+    })
+
+    /// Hairline border on elev surfaces (Make `rgba(255,255,255,0.08)`).
+    public static let hairline = Color.primary.opacity(0.08)
+
+    /// Medium hairline for focus / modal edges (Make `0.13`).
+    public static let hairlineMed = Color.primary.opacity(0.13)
+
+    /// Gradient start (electric blue) — Make `#3D7CFF`; slightly brighter in dark for OLED.
+    public static let cinematicAccentA = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? ThemeCinematicUIColor.hex(0x3D7CFF)
+            : ThemeCinematicUIColor.hex(0x3D7CFF)
+    })
+
+    /// Gradient end (violet) — Make `#C44CFF`.
     public static let cinematicAccentB = Color(uiColor: UIColor { trait in
-        trait.userInterfaceStyle == .dark ? ThemeCinematicUIColor.hex(0xE080FF) : ThemeCinematicUIColor.hex(0xC44CFF)
+        trait.userInterfaceStyle == .dark
+            ? ThemeCinematicUIColor.hex(0xC44CFF)
+            : ThemeCinematicUIColor.hex(0xC44CFF)
     })
 
     public static var cinematicTitleGradient: LinearGradient {
@@ -50,10 +93,22 @@ extension Theme {
     /// Solid title fallback when gradient / color differentiation would fail review.
     public static let cinematicTitleSolid = Theme.scope
 
-    /// Deep navy used as the dark-mode gradient terminus on the login screen.
-    /// Raw hex 0x0D0D17 — intentionally darker than system black to create
-    /// a subtle warm-indigo depth on OLED displays.
-    public static let cinematicPageBackground = Color(uiColor: ThemeCinematicUIColor.hex(0x0D0D17))
+    /// Login / root OLED terminus — Make void black with a hair of indigo depth.
+    public static let cinematicPageBackground = Color(uiColor: UIColor { trait in
+        trait.userInterfaceStyle == .dark
+            ? ThemeCinematicUIColor.hex(0x000000)
+            : .systemBackground
+    })
+}
+
+@available(iOS 17, *)
+public extension View {
+    /// Applies void list chrome used across Content / Patterns / Scope / About.
+    func cinematicListChrome() -> some View {
+        self
+            .scrollContentBackground(.hidden)
+            .background(Theme.void.ignoresSafeArea())
+    }
 }
 
 private enum ThemeCinematicUIColor {

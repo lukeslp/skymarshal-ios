@@ -1,7 +1,15 @@
 import SwiftUI
 import SkymarshalCore
 
-/// The "About Skymarshal" sheet. Modeled on whatcolor's
+/// How About is hosted — sheet keeps Done; tab is a first-class root surface
+/// matching the Figma Make IA (Content / Patterns / Scope / About).
+@available(iOS 17, *)
+enum AboutPresentation {
+    case sheet
+    case tab
+}
+
+/// The "About Skymarshal" surface. Modeled on whatcolor's
 /// `UITableViewController.insetGrouped` shape but native SwiftUI.
 ///
 /// Seven sections — Header / Privacy / Feature lab / Data / Accessibility / Credit / Source.
@@ -9,10 +17,12 @@ import SkymarshalCore
 /// load-bearing claim of this product; it deserves the second slot.
 @available(iOS 17, *)
 struct AboutView: View {
+    var presentation: AboutPresentation = .sheet
+
     @Environment(\.dismiss) private var dismiss
     @AppStorage("sm.reduceMotionOverride") private var motionOverride: Bool = false
     @AppStorage(FeatureFlags.backupRestoreKey) private var featureBackupRestore: Bool = false
-    @AppStorage(FeatureFlags.visualizationHubKey) private var featureVisualizationHub: Bool = false
+    @AppStorage(FeatureFlags.visualizationHubKey) private var featureVisualizationHub: Bool = true
     @AppStorage(FeatureFlags.advancedSearchGrammarKey) private var featureAdvancedSearchGrammar: Bool = false
     @AppStorage(FeatureFlags.wordPatternsKey) private var featureWordPatterns: Bool = false
     @AppStorage(FeatureFlags.contentPowerToolsExpandedKey) private var contentPowerToolsExpanded: Bool = false
@@ -20,7 +30,7 @@ struct AboutView: View {
     private var versionLine: String {
         let v = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
         let b = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "?"
-        return "Version \(v) (build \(b))"
+        return "v\(v) · build \(b)"
     }
 
     var body: some View {
@@ -34,11 +44,14 @@ struct AboutView: View {
                 creditSection
                 sourceSection
             }
+            .cinematicListChrome()
             .navigationTitle("About")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
+                if presentation == .sheet {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Done") { dismiss() }
+                    }
                 }
             }
         }
@@ -47,18 +60,26 @@ struct AboutView: View {
     @ViewBuilder
     private var headerSection: some View {
         Section {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .center, spacing: 8) {
+                Text("✦")
+                    .font(.system(size: 34, weight: .bold, design: .rounded))
+                    .foregroundStyle(Theme.cinematicTitleGradient)
+                    .accessibilityHidden(true)
                 Text("Skymarshal")
-                    .font(.title2.weight(.semibold))
+                    .font(Theme.Display.title(.title2))
+                    .foregroundStyle(Theme.cinematicTitleGradient)
                 Text("Air-traffic control for your Bluesky.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 Text(versionLine)
-                    .font(.caption.monospacedDigit())
+                    .font(Theme.Mono.caption())
                     .foregroundStyle(.tertiary)
+                    .textCase(.none)
                     .padding(.top, 2)
             }
-            .padding(.vertical, 4)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .listRowBackground(Theme.elev1)
             .accessibilityElement(children: .combine)
             .accessibilityLabel("Skymarshal. Air-traffic control for your Bluesky. \(versionLine)")
         }
@@ -70,8 +91,12 @@ struct AboutView: View {
             Text("Data Not Collected in App Store terms: nothing is sent to Skymarshal servers — there are none. Your handle, archive, and scans stay on this device except when Skymarshal calls Bluesky’s XRPC APIs. No third-party analytics SDKs. Optional Feature lab counters (for example Scope navigation experiments) are stored **only** in local preferences on this device and are never transmitted.")
                 .font(.callout)
                 .foregroundStyle(.primary)
+                .listRowBackground(Theme.elev1)
         } header: {
-            Text("Privacy").font(.subheadline.weight(.semibold))
+            Text("Privacy")
+                .font(Theme.Mono.kicker())
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
         }
     }
 
@@ -79,15 +104,21 @@ struct AboutView: View {
     private var featureLabSection: some View {
         Section {
             Toggle("Scope tab (visualization hub)", isOn: $featureVisualizationHub)
+                .listRowBackground(Theme.elev1)
             Toggle("Advanced search grammar", isOn: $featureAdvancedSearchGrammar)
+                .listRowBackground(Theme.elev1)
             Toggle("Word patterns in Insights", isOn: $featureWordPatterns)
+                .listRowBackground(Theme.elev1)
             Toggle("Full Content tools strip", isOn: $contentPowerToolsExpanded)
+                .listRowBackground(Theme.elev1)
         } header: {
             Text("Feature lab")
-                .font(.subheadline.weight(.semibold))
+                .font(Theme.Mono.kicker())
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
                 .accessibilityIdentifier("about_feature_lab_section_header")
         } footer: {
-            Text("Optional surfaces default off except where noted. Scope adds a third tab when on. Content strip shows counts and average engagement under the search bar.")
+            Text("Scope ships on by default (Make parity). Other optional surfaces stay opt-in. Content strip shows counts and average engagement under the search bar.")
                 .font(.caption2)
         }
     }
@@ -96,15 +127,20 @@ struct AboutView: View {
     private var dataToolsSection: some View {
         Section {
             Toggle("Experimental backup & restore", isOn: $featureBackupRestore)
+                .listRowBackground(Theme.elev1)
             if featureBackupRestore {
                 NavigationLink {
                     BackupRestoreView()
                 } label: {
                     Text("Backup & restore…")
                 }
+                .listRowBackground(Theme.elev1)
             }
         } header: {
-            Text("Data").font(.subheadline.weight(.semibold))
+            Text("Data")
+                .font(Theme.Mono.kicker())
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
         } footer: {
             Text("Off by default. Import only JSON you exported from Skymarshal for the **same** signed-in handle; the app blocks handle or DID mismatches. Use a trusted device.")
                 .font(.caption2)
@@ -123,9 +159,13 @@ struct AboutView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            .listRowBackground(Theme.elev1)
             .accessibilityHint("When on, suppresses animations even when the system Reduce Motion is off")
         } header: {
-            Text("Accessibility").font(.subheadline.weight(.semibold))
+            Text("Accessibility")
+                .font(Theme.Mono.kicker())
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
         }
     }
 
@@ -135,28 +175,35 @@ struct AboutView: View {
             HStack(spacing: 10) {
                 Image(systemName: "person.crop.circle.fill")
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(.tint)
+                    .foregroundStyle(Theme.cinematicAccentA)
                     .accessibilityHidden(true)
                 Text("Made by Luke Steuber")
                     .font(.callout)
             }
+            .listRowBackground(Theme.elev1)
 
             Link(destination: URL(string: "https://lukesteuber.com")!) {
                 row(icon: "globe", text: "lukesteuber.com")
             }
+            .listRowBackground(Theme.elev1)
             .accessibilityHint("Opens in Safari")
 
             Link(destination: URL(string: "https://bsky.app/profile/lukesteuber.com")!) {
                 row(icon: "at", text: "@lukesteuber.com on Bluesky")
             }
+            .listRowBackground(Theme.elev1)
             .accessibilityHint("Opens Bluesky profile in Safari")
 
             Link(destination: URL(string: "mailto:luke@lukesteuber.com")!) {
                 row(icon: "envelope", text: "luke@lukesteuber.com")
             }
+            .listRowBackground(Theme.elev1)
             .accessibilityHint("Composes a new email")
         } header: {
-            Text("Credit").font(.subheadline.weight(.semibold))
+            Text("Credit")
+                .font(Theme.Mono.kicker())
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
         }
     }
 
@@ -167,24 +214,25 @@ struct AboutView: View {
                 row(icon: "chevron.left.forwardslash.chevron.right",
                     text: "GitHub: lukeslp/skymarshal-ios")
             }
+            .listRowBackground(Theme.elev1)
             .accessibilityHint("Opens repo in Safari")
 
             Link(destination: URL(string: "https://github.com/lukeslp/skymarshal-ios/blob/main/LICENSE")!) {
                 row(icon: "doc.text", text: "MIT License")
             }
+            .listRowBackground(Theme.elev1)
             .accessibilityHint("Opens license file in Safari")
 
-            // SIL OFL 1.1 §2 — the OFL copyright + license must be
-            // "easily viewable by the user" of the embedded font. The
-            // bundled `IBMPlexMono-OFL.txt` sits in the app bundle but
-            // is not user-reachable on iOS; this Link surface satisfies
-            // the obligation against App Review.
             Link(destination: URL(string: "https://github.com/IBM/plex/blob/master/LICENSE.txt")!) {
                 row(icon: "textformat", text: "Typography: IBM Plex Mono · SIL OFL 1.1")
             }
+            .listRowBackground(Theme.elev1)
             .accessibilityHint("Opens IBM Plex Mono Open Font License in Safari")
         } header: {
-            Text("Source").font(.subheadline.weight(.semibold))
+            Text("Source")
+                .font(Theme.Mono.kicker())
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
         } footer: {
             Text("Open-source. Free. Not for sale. Skymarshal is not affiliated with Bluesky Social PBC. IBM Plex Mono © 2017 IBM Corp., bundled under SIL OFL 1.1.")
                 .font(.caption2)
@@ -197,7 +245,8 @@ struct AboutView: View {
         HStack(spacing: 10) {
             Image(systemName: icon)
                 .frame(width: 22)
-                .foregroundStyle(.tint)
+                .foregroundStyle(Theme.cinematicAccentA)
+                .symbolRenderingMode(.monochrome)
                 .accessibilityHidden(true)
             Text(text)
                 .font(.callout)
@@ -214,5 +263,5 @@ struct AboutView: View {
 
 @available(iOS 17, *)
 #Preview {
-    AboutView()
+    AboutView(presentation: .sheet)
 }

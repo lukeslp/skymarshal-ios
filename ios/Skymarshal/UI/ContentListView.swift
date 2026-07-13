@@ -340,8 +340,9 @@ struct ContentListView: View {
                     model.startLoad(forceRefresh: true)
                 }
             }
-            .navigationTitle("My Content")
+            .navigationTitle("Content")
             .navigationBarTitleDisplayMode(.inline)
+            .cinematicListChrome()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Menu {
@@ -454,7 +455,7 @@ struct ContentListView: View {
                 }
             }
             .sheet(isPresented: $showAbout) {
-                AboutView()
+                AboutView(presentation: .sheet)
             }
             .sheet(isPresented: $showInsights) {
                 AnalyticsInsightsView(items: model.items)

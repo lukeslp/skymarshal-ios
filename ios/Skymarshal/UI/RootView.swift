@@ -4,7 +4,8 @@ import SkymarshalCore
 @available(iOS 17, *)
 struct RootView: View {
     @State private var model = AppModel.liveDefault()
-    @AppStorage(FeatureFlags.visualizationHubKey) private var featureVisualizationHub: Bool = false
+    /// Figma Make ships Scope as a first-class tab — default on.
+    @AppStorage(FeatureFlags.visualizationHubKey) private var featureVisualizationHub: Bool = true
     @AppStorage(FeatureFlags.webShellKey) private var featureWebShell: Bool = false
     @State private var showPostUpdateFeatureDiscovery = false
 
@@ -20,23 +21,26 @@ struct RootView: View {
                     ContentListView()
                         .tabItem { Label("Content", systemImage: "tray.full") }
                     BluescreenView()
-                        .tabItem { Label("Followers", systemImage: "person.2") }
+                        .tabItem { Label("Patterns", systemImage: "person.2") }
                     if featureVisualizationHub {
                         VisualizationHubView()
                             .tabItem { Label("Scope", systemImage: "scope") }
                     }
+                    AboutView(presentation: .tab)
+                        .tabItem { Label("About", systemImage: "info.circle") }
                     if featureWebShell {
                         WebShellView()
                             .tabItem { Label("Web", systemImage: "globe") }
                     }
                 }
+                .tint(Theme.cinematicAccentA)
             } else {
                 LoginView()
             }
         }
         .environment(model)
         .sheet(isPresented: $showPostUpdateFeatureDiscovery) {
-            AboutView()
+            AboutView(presentation: .sheet)
                 .onDisappear {
                     guard !ProcessInfo.processInfo.arguments.contains("-uitestForceFeatureDiscovery") else { return }
                     let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""

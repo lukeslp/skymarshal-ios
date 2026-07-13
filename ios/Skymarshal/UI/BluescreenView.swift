@@ -341,8 +341,9 @@ struct BluescreenView: View {
                     .listStyle(.plain)
                 }
             }
-            .navigationTitle("Followers")
+            .navigationTitle("Patterns")
             .navigationBarTitleDisplayMode(.inline)
+            .cinematicListChrome()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Menu {

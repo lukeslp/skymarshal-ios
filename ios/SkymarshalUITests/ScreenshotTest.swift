@@ -62,7 +62,7 @@ final class ScreenshotTest: XCTestCase {
         app.launch()
 
         // ── Gate: signed-in Content tab or the LoginView ──────────────────
-        let contentNav = app.navigationBars["My Content"]
+        let contentNav = app.navigationBars["Content"]
         let signInButton = app.buttons["Sign in"]
         let gateDeadline = Date().addingTimeInterval(30)
         while !contentNav.exists && !signInButton.exists && Date() < gateDeadline {
@@ -159,14 +159,14 @@ final class ScreenshotTest: XCTestCase {
         Thread.sleep(forTimeInterval: 2.5)
         snap("03-media-results", of: app)
 
-        // ── 4. Followers scoring ───────────────────────────────────────────
-        var followersTab = app.tabBars.buttons["Followers"]
-        if !followersTab.exists { followersTab = app.buttons["Followers"].firstMatch }
+        // ── 4. Patterns scoring ────────────────────────────────────────────
+        var followersTab = app.tabBars.buttons["Patterns"]
+        if !followersTab.exists { followersTab = app.buttons["Patterns"].firstMatch }
         XCTAssertTrue(followersTab.waitForExistence(timeout: 10),
-                      "Followers tab not reachable")
+                      "Patterns tab not reachable")
         followersTab.tap()
-        XCTAssertTrue(app.navigationBars["Followers"].waitForExistence(timeout: 10),
-                      "Followers screen never appeared")
+        XCTAssertTrue(app.navigationBars["Patterns"].waitForExistence(timeout: 10),
+                      "Patterns screen never appeared")
 
         // Fresh sessions land on the empty state; the scan reads the follow
         // list and scores it locally — no writes. Kicking it off is safe.

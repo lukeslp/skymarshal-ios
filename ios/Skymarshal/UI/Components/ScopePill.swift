@@ -77,7 +77,7 @@ public struct ScopePill: View {
         .padding(.horizontal, 8)
         .padding(.vertical, 3)
         .background(
-            RoundedRectangle(cornerRadius: 3, style: .continuous)
+            RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous)
                 .fill(emphasis.background)
         )
         .accessibilityElement(children: .combine)
