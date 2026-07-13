@@ -323,6 +323,7 @@
 		9B8E00C55929255BB0E05348 /* BackupRestoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupRestoreView.swift; sourceTree = "<group>"; };
 		9F9F29B67CBCC9B0D7EF82B3 /* ReduceMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReduceMotion.swift; sourceTree = "<group>"; };
 		9FAC32C76753E6DF41BB9650 /* FollowerFilters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowerFilters.swift; sourceTree = "<group>"; };
+		A3301E113000BF25007E9C39 /* WIDGETS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = WIDGETS.md; sourceTree = "<group>"; };
 		A3D884AC9F343474B2875C22 /* BluescreenAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluescreenAnalyzerTests.swift; sourceTree = "<group>"; };
 		A5B0A7C5AA29D876F6594571 /* CacheHydration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheHydration.swift; sourceTree = "<group>"; };
 		A613CF3556C8B2315EE1AD39 /* ScopeExperimentTelemetry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScopeExperimentTelemetry.swift; sourceTree = "<group>"; };
@@ -531,6 +532,7 @@
 				D58E0144DAC95C06C00E8639 /* SkymarshalWidgets.entitlements */,
 				AE98A569A7B209603929A237 /* SkymarshalWidgets.swift */,
 				25CB995E61D9CA919FCE989B /* WidgetSupport.swift */,
+				A3301E113000BF25007E9C39 /* WIDGETS.md */,
 			);
 			path = SkymarshalWidgets;
 			sourceTree = "<group>";
