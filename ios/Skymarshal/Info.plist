@@ -29,6 +29,8 @@
 	<string>27</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.social-networking</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>IBMPlexMono-Regular.otf</string>
