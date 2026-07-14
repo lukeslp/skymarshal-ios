@@ -16,6 +16,7 @@ struct BluescreenView: View {
     @State private var selection: Set<String> = []
     @State private var editMode: EditMode = .inactive
     @State private var detailAccount: AnalyzedAccount? = nil
+    @State private var expandedAccountIDs: Set<String> = []
 
     /// Opt-in capped ghost-verify batch state. `ghostVerifyTask` lets
     /// the banner cancel; `ghostVerifyProgress` drives the progress line.
@@ -119,6 +120,32 @@ struct BluescreenView: View {
         @Bindable var model = model
         NavigationStack {
             VStack(spacing: 0) {
+                CinematicScreenHeader(
+                    title: "Patterns",
+                    subtitle: "\(model.accounts.count.formatted()) FOLLOWING"
+                ) {
+                    Label(
+                        "\(model.scanSummary.bots) flagged",
+                        systemImage: "shield.lefthalf.filled"
+                    )
+                    .font(Theme.Mono.kicker(10))
+                    .foregroundStyle(Theme.danger)
+                    .symbolRenderingMode(.monochrome)
+                    .padding(.horizontal, 9)
+                    .frame(minHeight: 32)
+                    .background {
+                        RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous)
+                            .fill(Theme.chipTint(Theme.danger))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous)
+                                    .strokeBorder(Theme.danger.opacity(0.4), lineWidth: 1)
+                            }
+                    }
+                    .accessibilityLabel(
+                        "\(model.scanSummary.bots) accounts with high automation signals"
+                    )
+                }
+
                 CinematicSearchField(
                     text: $keyword,
                     prompt: "Search handle or name",
@@ -284,7 +311,21 @@ struct BluescreenView: View {
                 } else {
                     List(selection: $selection) {
                         ForEach(filtered) { account in
-                            AccountRow(account: account)
+                            AccountRow(
+                                account: account,
+                                isExpanded: expandedAccountIDs.contains(account.did),
+                                onToggleExpansion: {
+                                    let update = {
+                                        if expandedAccountIDs.contains(account.did) {
+                                            expandedAccountIDs.remove(account.did)
+                                        } else {
+                                            expandedAccountIDs.insert(account.did)
+                                        }
+                                    }
+                                    if reduceMotion { update() }
+                                    else { withAnimation(.snappy) { update() } }
+                                }
+                            )
                                 .listRowBackground(
                                     Theme.cinematicRowFill(selected: selection.contains(account.did))
                                 )
@@ -308,6 +349,9 @@ struct BluescreenView: View {
                                 .accessibilityAction(named: Text("Unfollow")) {
                                     pendingUnfollow = [account.did]
                                 }
+                                .accessibilityAction(named: Text("Open account details")) {
+                                    detailAccount = account
+                                }
                                 .tag(account.did)
                         }
                     }
@@ -318,6 +362,11 @@ struct BluescreenView: View {
             .navigationBarTitleDisplayMode(.inline)
             .cinematicListChrome()
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Color.clear
+                        .frame(width: 1, height: 1)
+                        .accessibilityHidden(true)
+                }
                 ToolbarItem(placement: .topBarLeading) {
                     Menu {
                         Button("Scan now") { model.startScan() }

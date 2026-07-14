@@ -70,6 +70,26 @@ final class AccessibilityRegressionTests: XCTestCase {
         XCTAssert(app.buttons["Sign in"].exists)
     }
 
+    func test_firstRunOnboarding_reachesSignInWithoutGestureOnlyControls() throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["UITEST_FORCE_ONBOARDING"] = "1"
+        app.launch()
+
+        XCTAssert(app.staticTexts["Skymarshal"].waitForExistence(timeout: 5))
+        let next = app.buttons["Next"]
+        for _ in 0..<3 {
+            XCTAssert(next.waitForExistence(timeout: 2))
+            next.tap()
+        }
+
+        let signInHandoff = app.buttons["Sign in"]
+        XCTAssert(signInHandoff.waitForExistence(timeout: 2))
+        signInHandoff.tap()
+
+        XCTAssert(app.textFields["Bluesky handle"].waitForExistence(timeout: 3))
+        XCTAssert(app.secureTextFields["App password"].exists)
+    }
+
     func test_launchAtAX5_featureDiscovery_about_featureLabHeader() throws {
         let app = XCUIApplication()
         app.launchArguments = [

@@ -26,6 +26,15 @@ Living snapshot of objectives and boundaries. Product copy and build commands st
 > `~/Downloads/skymarshal-figma`. Content/Patterns: elev2 `CinematicSearchField`
 > (replaced `.searchable`), void + hairline list rows, Patterns
 > Strict/Balanced/Loose segment. Scope hub: elev1 Card rail matching Make.
+>
+> **2026-07-13 — Parity pass 4 (five-gap closeout).** Content and Patterns now
+> use large in-page titles with live handle/count subtitles. Patterns rows show
+> inline automation-signal bars and accessible expandable evidence. Scope has
+> real-cache Account Graph, Post Graph, Interactions, and heatmap drill-ins
+> (no Make fixture data). First-run onboarding is a four-step, skippable
+> carousel. Advanced Search now follows Make's required/excluded/phrase/type/
+> date IA with a live on-device estimate while preserving native media,
+> engagement, subject, and DID filters under More filters.
 
 ## Current milestone
 
@@ -57,7 +66,7 @@ Shipped in-repo: on-device **Insights** analytics, **saved search presets**, **c
 
 - **Reliability + review docs:** Archive load checkpoints ([`docs/ARCHIVE_LOAD_CHECKPOINTS.md`](docs/ARCHIVE_LOAD_CHECKPOINTS.md)), device soak gate ([`docs/SOAK_PROTOCOL.md`](docs/SOAK_PROTOCOL.md)), consensus implementation delta ([`docs/archive/consensus-skymarshal-ios-delta-2026-05-14.md`](docs/archive/consensus-skymarshal-ios-delta-2026-05-14.md)), Scope IA placeholder ([`docs/archive/scope-ia-decision-2026-05-14.md`](docs/archive/scope-ia-decision-2026-05-14.md)).
 - Row min-height: **ContentRow** / **AccountRow** use **56 pt** minimum (see [`docs/CONTRIBUTOR_UX.md`](docs/CONTRIBUTOR_UX.md)); further density polish remains non-blocking.
-- Keep README test counts / build numbers aligned with CI or manual verification after substantive changes (current `SkymarshalTests`: **185** `func test_` methods).
+- Keep README test counts / build numbers aligned with CI or manual verification after substantive changes (latest run: **272** passing `SkymarshalTests` unit tests).
 
 ## Session refresh & Keychain persistence (2026-05-13)
 

@@ -59,6 +59,7 @@ final class ScreenshotTest: XCTestCase {
         XCUIDevice.shared.orientation = .portrait
 
         let app = XCUIApplication()
+        app.launchArguments.append("-uitestSkipOnboarding")
         app.launch()
 
         // ── Gate: signed-in Content tab or the LoginView ──────────────────
@@ -129,7 +130,7 @@ final class ScreenshotTest: XCTestCase {
         ).firstMatch
         XCTAssertTrue(filterButton.waitForExistence(timeout: 10),
                       "Filter button not found")
-        let filtersNav = app.navigationBars["Filters"]
+        let filtersNav = app.navigationBars["Advanced Search"]
         for _ in 1...3 {
             filterButton.tap()
             if filtersNav.waitForExistence(timeout: 4) { break }
@@ -160,7 +161,7 @@ final class ScreenshotTest: XCTestCase {
         snap("02-filters", of: app)
 
         // ── 3. Filtered results (media thumbnails) ─────────────────────────
-        let applyButton = app.buttons["Apply"]
+        let applyButton = app.buttons["Apply Search"].firstMatch
         XCTAssertTrue(applyButton.waitForExistence(timeout: 5), "Apply not found")
         applyButton.tap()
         Thread.sleep(forTimeInterval: 2.5)

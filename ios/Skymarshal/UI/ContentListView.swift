@@ -130,6 +130,12 @@ struct ContentListView: View {
                         .background(Theme.info.opacity(0.12))
                         .accessibilityIdentifier("content_bg_scope_refresh_note")
                 }
+
+                CinematicScreenHeader(
+                    title: "Content",
+                    subtitle: model.currentHandle.map { "@\($0)" } ?? "YOUR BLUESKY ARCHIVE"
+                )
+
                 // Make Content: search well → type chips → sort/select.
                 CinematicSearchField(
                     text: $keyword,
@@ -357,6 +363,11 @@ struct ContentListView: View {
             .navigationBarTitleDisplayMode(.inline)
             .cinematicListChrome()
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Color.clear
+                        .frame(width: 1, height: 1)
+                        .accessibilityHidden(true)
+                }
                 ToolbarItem(placement: .topBarLeading) {
                     Menu {
                         Button("Refresh") {
@@ -453,10 +464,13 @@ struct ContentListView: View {
             .onChange(of: filters) { _, _ in pruneSelectionToVisible() }
             .onChange(of: sortOrder) { _, _ in pruneSelectionToVisible() }
             .sheet(isPresented: $showFilterSheet) {
-                FilterSheet(draft: $draftFilters, keyword: $keyword)
-                    .onDisappear {
-                        filters = draftFilters
-                    }
+                FilterSheet(
+                    draft: $draftFilters,
+                    keyword: $keyword,
+                    selectedTypes: $selectedTypes,
+                    items: model.items,
+                    onApply: { filters = draftFilters }
+                )
             }
             .sheet(item: $detailItem) { item in
                 PostDetailView(item: item) {

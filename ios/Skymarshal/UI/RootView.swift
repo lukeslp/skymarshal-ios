@@ -7,7 +7,10 @@ struct RootView: View {
     /// Figma Make ships Scope as a first-class tab — default on.
     @AppStorage(FeatureFlags.visualizationHubKey) private var featureVisualizationHub: Bool = true
     @AppStorage(FeatureFlags.webShellKey) private var featureWebShell: Bool = false
+    @AppStorage("sm.onboarding.completed") private var onboardingCompleted = false
     @State private var showPostUpdateFeatureDiscovery = false
+    @State private var coldStartReady = false
+    @State private var forcedOnboardingDismissed = false
 
     var body: some View {
         Group {
@@ -16,7 +19,14 @@ struct RootView: View {
             // hydration. Sign-in stays the gate for any mutation,
             // but read-only browsing of cached data works while
             // signed out (the LastScannedBanner explains).
-            if model.isAuthenticated || !model.accounts.isEmpty || !model.items.isEmpty {
+            if !coldStartReady {
+                ZStack {
+                    Theme.void.ignoresSafeArea()
+                    ProgressView()
+                        .tint(Theme.cinematicAccentA)
+                        .accessibilityLabel("Opening Skymarshal")
+                }
+            } else if model.isAuthenticated || !model.accounts.isEmpty || !model.items.isEmpty {
                 TabView {
                     ContentListView()
                         .tabItem { Label("Content", systemImage: "tray.full") }
@@ -34,6 +44,11 @@ struct RootView: View {
                     }
                 }
                 .tint(Theme.cinematicAccentA)
+            } else if shouldShowOnboarding {
+                OnboardingView {
+                    onboardingCompleted = true
+                    forcedOnboardingDismissed = true
+                }
             } else {
                 LoginView()
             }
@@ -58,11 +73,24 @@ struct RootView: View {
                 // root cause of the "logged out after a while" report.
                 await model.tryRestoreSession()
                 await model.seedUITestMinimalContentIfNeeded()
+                coldStartReady = true
                 presentFeatureLabDiscoveryIfNeeded()
                 BackgroundTaskCoordinator.scheduleProcessingPass()
                 BackgroundTaskCoordinator.scheduleAppRefreshPass()
             }
         }
+    }
+
+    private var skipOnboardingForUITests: Bool {
+        ProcessInfo.processInfo.arguments.contains { $0.hasPrefix("-uitest") }
+            || ProcessInfo.processInfo.environment["UITEST_RESET_FEATURE_DEFAULTS"] == "1"
+    }
+
+    private var shouldShowOnboarding: Bool {
+        if ProcessInfo.processInfo.environment["UITEST_FORCE_ONBOARDING"] == "1" {
+            return !forcedOnboardingDismissed
+        }
+        return !onboardingCompleted && !skipOnboardingForUITests
     }
 
     private func presentFeatureLabDiscoveryIfNeeded() {

@@ -8,7 +8,7 @@ This is the iOS app. Native SwiftUI, iOS 17+. No third-party dependencies. App p
 
 ## Status
 
-Public TestFlight v1.0.0, build 5. Session refresh + Keychain persistence + visual restyle (Plex Mono tabular metrics, Saturn buttons, cinematic OLED chrome) are all in this build. **185** XCTest cases in `SkymarshalTests` pass (`-only-testing:SkymarshalTests`).
+Public TestFlight v1.0.0, build 5. The native reference app now also carries the Figma Make parity surface: cinematic OLED chrome, first-run onboarding, structured Advanced Search, expandable Patterns rows, and local-cache Scope graphs. **272** unit tests in `SkymarshalTests` passed at the latest full-suite checkpoint.
 
 A short-lived `v1.0.1` working label was retired in May 2026. Nothing shipped under it; the scope folded back into the in-progress 1.0.0.
 
@@ -16,13 +16,13 @@ TestFlight Public Link in [`docs/TESTFLIGHT_PUBLIC_LINK.md`](docs/TESTFLIGHT_PUB
 
 ## What it does
 
-**Content tab.** Search every post, reply, repost, and like in your archive. Filter by keyword, content type, date range, engagement count, alt-text, presence of media. Optional **advanced keyword grammar** (phrases, required/excluded terms, word boundaries) and URI filters — gated by `sm.feature.advancedSearchGrammar` (default off). Sort results (newest/oldest/highest or lowest engagement). Save named filter presets per account. Open **Insights** for on-device analytics (engagement distribution, posting hours/days, top words) plus optional **word-pattern stats** (lexicon hits; not sentiment) behind `sm.feature.wordPatterns`. Swipe-delete one at a time or Select All from a search result and delete a hundred at once. Bulk delete shows a **preflight scope** (how many Bluesky records will actually delete vs. skipped selections). Bulk delete ≥ 100 items goes through a typed-confirm sheet so the intent is unambiguous.
+**Content tab.** Search every post, reply, repost, and like in your archive. Advanced Search provides required terms, excluded terms, exact phrases, content types, dates, and a live estimate against the loaded archive; media, engagement, alt-text, subject, and DID filters remain available under More filters. Sort results (newest/oldest/highest or lowest engagement). Save named filter presets per account. Open **Insights** for on-device analytics (engagement distribution, posting hours/days, top words) plus optional **word-pattern stats** (lexicon hits; not sentiment) behind `sm.feature.wordPatterns`. Swipe-delete one at a time or Select All from a search result and delete a hundred at once. Bulk delete shows a **preflight scope** (how many Bluesky records will actually delete vs. skipped selections). Bulk delete ≥ 100 items goes through a typed-confirm sheet so the intent is unambiguous.
 
-**Scope tab (optional).** Local-cache summaries for account scan, interaction counts, and timeline heatmap; persisted **graph snapshot** metadata for honesty about completeness — gated by `sm.feature.visualizationHub` (default off).
+**Scope tab.** Local-cache Account Graph, Post Graph, attributed interaction timeline, and posting heatmap. Every relationship comes from cached content or scanned accounts; missing relationships are labeled rather than synthesized. Scope is default-on via `sm.feature.visualizationHub`.
 
 **About → Backup & restore (optional).** Import Skymarshal JSON exports with handle/DID checks and merge-or-replace apply — gated by `sm.feature.backupRestore` (default off).
 
-**Followers tab.** Pull your full follow list and score every account against six bot signals plus inactivity and follower asymmetry. Sort, filter, segmented bot-sensitivity preset (Strict / Balanced / Loose). One-tap **cleanup presets** (inactive, automation signals, disengaged, follower skew). Optional **dry-run unfollow** previews unfollows (bulk confirmation and single-account sheet) with **no XRPC writes** when the toggle is on. Bulk unfollow uses the same rate-limit safety net as bulk delete. Per-account "this isn't an automated account" whitelist for false positives.
+**Patterns tab.** Pull your full follow list and score every account against six automation signals plus inactivity and follower asymmetry. Inline score tracks and expandable evidence keep the reasoning visible without forcing a detail sheet. Sort, filter, and choose a Strict / Balanced / Loose sensitivity preset. One-tap **cleanup presets** cover inactivity, automation signals, disengagement, and follower skew. Optional **dry-run unfollow** previews unfollows with **no XRPC writes** when the toggle is on. Bulk unfollow uses the same rate-limit safety net as bulk delete. Per-account whitelisting handles false positives.
 
 **Profile explorer.** From an account sheet, open read-only **followers** and **following** lists (paginated XRPC) — not a full Bluesky client timeline.
 
@@ -72,7 +72,7 @@ ios/
     Assets.xcassets/       # AppIcon, LaunchBird, DotBird, EasterAlf, ColorSets
     Info.plist
     PrivacyInfo.xcprivacy
-  SkymarshalTests/         # XCTest — 185 unit test methods
+  SkymarshalTests/         # XCTest — 272 passing unit tests at latest checkpoint
   SkymarshalUITests/       # XCUITest — 2 AX5 regression cases
   project.yml              # xcodegen spec
 docs/                      # README hub, ARCHITECTURE, CONTRIBUTOR_UX, GAP, review artifacts
