@@ -75,6 +75,7 @@ struct RootView: View {
                 await model.seedUITestMinimalContentIfNeeded()
                 coldStartReady = true
                 presentFeatureLabDiscoveryIfNeeded()
+                model.startMostRecentContentRefresh()
                 BackgroundTaskCoordinator.scheduleProcessingPass()
                 BackgroundTaskCoordinator.scheduleAppRefreshPass()
             }
@@ -98,6 +99,7 @@ struct RootView: View {
             showPostUpdateFeatureDiscovery = true
             return
         }
+        guard !ProcessInfo.processInfo.arguments.contains(where: { $0.hasPrefix("-uitest") }) else { return }
         guard model.isAuthenticated || !model.items.isEmpty || !model.accounts.isEmpty else { return }
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
         let key = "sm.featureDiscoveryPresentedForVersion"

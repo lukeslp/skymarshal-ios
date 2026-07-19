@@ -261,7 +261,7 @@ struct ContentListView: View {
                    model.loadProgress == nil,
                    !model.isLoading {
                     LastScannedBanner(lastScannedAt: lastScanned) {
-                        model.startLoad(forceRefresh: true)
+                        model.startMostRecentContentRefresh()
                     }
                 }
 
@@ -356,7 +356,7 @@ struct ContentListView: View {
                 }
                 .listStyle(.plain)
                 .refreshable {
-                    model.startLoad(forceRefresh: true)
+                    await model.refreshMostRecentContent()
                 }
             }
             .navigationTitle("Content")
@@ -370,7 +370,10 @@ struct ContentListView: View {
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     Menu {
-                        Button("Refresh") {
+                        Button("Refresh recent") {
+                            model.startMostRecentContentRefresh()
+                        }
+                        Button("Refresh full archive") {
                             model.startLoad(forceRefresh: true)
                         }
                         Button {

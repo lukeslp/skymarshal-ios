@@ -8,11 +8,9 @@ This is the iOS app. Native SwiftUI, iOS 17+. No third-party dependencies. App p
 
 ## Status
 
-Public TestFlight v1.0.0, build 5. The native reference app now also carries the Figma Make parity surface: cinematic OLED chrome, first-run onboarding, structured Advanced Search, expandable Patterns rows, and local-cache Scope graphs. **272** unit tests in `SkymarshalTests` passed at the latest full-suite checkpoint.
+The native source is **v1.0.2, build 27** and carries the Figma Make parity surface: cinematic OLED chrome, first-run onboarding, structured Advanced Search, expandable Patterns rows, and local-cache Scope graphs. On 2026-07-18, **275 unit tests and 12 non-credential UI tests passed**; the credentialed screenshot test remains a separate release operation. Verify App Store Connect before stating which build is currently on TestFlight.
 
-A short-lived `v1.0.1` working label was retired in May 2026. Nothing shipped under it; the scope folded back into the in-progress 1.0.0.
-
-TestFlight Public Link in [`docs/TESTFLIGHT_PUBLIC_LINK.md`](docs/TESTFLIGHT_PUBLIC_LINK.md). App Store submission is gated by the pre-ship checklist in [`PROJECT_PLAN.md`](PROJECT_PLAN.md): a resumable-delete breadcrumb fix, a USPTO TESS check on the name, a "Patterns" rename for the Followers tab heading, and a reviewer-notes file citing `com.atproto.repo.deleteRecord` as a documented public AT Protocol lexicon.
+TestFlight Public Link in [`docs/TESTFLIGHT_PUBLIC_LINK.md`](docs/TESTFLIGHT_PUBLIC_LINK.md). App Store submission is gated by the operational checklist in [`docs/SUBMISSION_DECISION.md`](docs/SUBMISSION_DECISION.md): create the reviewer account, record the USPTO name check, complete the ≥10k-content soak artifact, verify screenshot sets, and capture TestFlight health evidence.
 
 ## What it does
 
@@ -22,7 +20,7 @@ TestFlight Public Link in [`docs/TESTFLIGHT_PUBLIC_LINK.md`](docs/TESTFLIGHT_PUB
 
 **About → Backup & restore (optional).** Import Skymarshal JSON exports with handle/DID checks and merge-or-replace apply — gated by `sm.feature.backupRestore` (default off).
 
-**Patterns tab.** Pull your full follow list and score every account against six automation signals plus inactivity and follower asymmetry. Inline score tracks and expandable evidence keep the reasoning visible without forcing a detail sheet. Sort, filter, and choose a Strict / Balanced / Loose sensitivity preset. One-tap **cleanup presets** cover inactivity, automation signals, disengagement, and follower skew. Optional **dry-run unfollow** previews unfollows with **no XRPC writes** when the toggle is on. Bulk unfollow uses the same rate-limit safety net as bulk delete. Per-account whitelisting handles false positives.
+**Patterns tab.** Pull your full follow list and score every account against six automation signals plus inactivity and follower asymmetry. Inline score tracks and expandable evidence keep the reasoning visible without forcing a detail sheet. Sort, filter, and choose a Strict / Balanced / Loose sensitivity preset. One-tap **cleanup presets** cover inactivity, automation signals, disengagement, and follower skew. Optional **dry-run unfollow** previews unfollows with **no XRPC writes** when the toggle is on. Bulk unfollow uses the same rate-limit safety net as bulk delete. Per-account whitelisting handles false positives. AT Protocol's exact `handle.invalid` sentinel is displayed neutrally as **Unverified handle** and is not treated as evidence that an account is automated, deleted, or inactive.
 
 **Profile explorer.** From an account sheet, open read-only **followers** and **following** lists (paginated XRPC) — not a full Bluesky client timeline.
 
@@ -36,7 +34,7 @@ Your app password is **never persisted** — it's used once to obtain an AT Prot
 
 ## Accessibility
 
-v1.0 floor: WCAG 1.4.11 color contrast in both light and dark mode; Reduce Motion respected at every animation site (plus an in-app override); Dynamic Type to AX5 without truncation on primary views; VoiceOver labels on every interactive element; Switch Control reach via `.accessibilityAction(named:)` on every destructive row action; live-region announcements for silent state changes (selection prune, sign-in error). One XCUITest at AX5 catches Dynamic Type regressions.
+v1.0 floor: WCAG 1.4.11 color contrast in both light and dark mode; Reduce Motion respected at every animation site (plus an in-app override); Dynamic Type to AX5 without truncation on primary views; VoiceOver labels on every interactive element; Switch Control reach via `.accessibilityAction(named:)` on every destructive row action; live-region announcements for silent state changes (selection prune, sign-in error). XCUITests at AX5 cover login, content, Insights, and Scope regressions.
 
 ## Build
 
@@ -72,8 +70,8 @@ ios/
     Assets.xcassets/       # AppIcon, LaunchBird, DotBird, EasterAlf, ColorSets
     Info.plist
     PrivacyInfo.xcprivacy
-  SkymarshalTests/         # XCTest — 272 passing unit tests at latest checkpoint
-  SkymarshalUITests/       # XCUITest — 2 AX5 regression cases
+  SkymarshalTests/         # XCTest — 275 passing unit tests at latest checkpoint
+  SkymarshalUITests/       # XCUITest — 12 passing non-credential UI tests
   project.yml              # xcodegen spec
 docs/                      # README hub, ARCHITECTURE, CONTRIBUTOR_UX, GAP, review artifacts
 reference/                 # frozen Python + TS lift — see reference/README.md

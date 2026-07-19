@@ -17,6 +17,10 @@ public struct BskyProfile: Hashable, Sendable, Codable, Identifiable {
     public let viewer: ViewerState?
 
     public var id: String { did }
+    /// AT Protocol sentinel for a handle that could not be verified.
+    /// This is an identity-resolution state, not evidence that the
+    /// account is deleted, inactive, or automated.
+    public var hasUnverifiedHandle: Bool { handle == "handle.invalid" }
 
     public init(
         did: String,

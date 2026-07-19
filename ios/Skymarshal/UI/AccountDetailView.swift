@@ -248,6 +248,8 @@ struct AccountDetailView: View {
                     .foregroundStyle(pill.color)
                     .padding(.horizontal, 8).padding(.vertical, 4)
                     .background(pill.color.opacity(0.15), in: .capsule)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(pill.label)
                 }
                 Spacer()
             }
@@ -257,8 +259,14 @@ struct AccountDetailView: View {
     private var activeStatusPills: [(icon: String, label: String, color: Color)] {
         var out: [(String, String, Color)] = []
         if account.isMutual { out.append(("person.2.fill", "Mutual", .accentColor)) }
-        if account.isDeleted { out.append(("xmark.octagon.fill", "Deleted", Theme.danger)) }
-        else if account.isInactive { out.append(("moon.zzz.fill", "Inactive", Theme.caution)) }
+        if account.profile.hasUnverifiedHandle {
+            out.append(("questionmark.circle", "Unverified handle", .secondary))
+        }
+        if account.isDeleted && !account.profile.hasUnverifiedHandle {
+            out.append(("xmark.octagon.fill", "Deleted", Theme.danger))
+        } else if account.isInactive {
+            out.append(("moon.zzz.fill", "Inactive", Theme.caution))
+        }
         if account.profile.viewer?.muted == true { out.append(("speaker.slash.fill", "Muted", .secondary)) }
         if account.profile.viewer?.blockedBy == true { out.append(("hand.raised.fill", "Blocks you", Theme.danger)) }
         if account.profile.viewer?.blocking != nil { out.append(("hand.raised.fill", "You block", .secondary)) }
@@ -698,8 +706,7 @@ public enum BotFlagSeverity: Sendable, Equatable {
         let f = flag.lowercased()
         // High — confident bot signals
         if f.contains("mass following")
-            || f.contains("no posts despite")
-            || f.contains("deleted account") {
+            || f.contains("no posts despite") {
             return .high
         }
         // Medium — strong but not conclusive

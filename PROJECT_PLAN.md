@@ -2,19 +2,20 @@
 
 Living snapshot of objectives and boundaries. Product copy and build commands stay in [`README.md`](README.md); contributor rules in [`AGENTS.md`](AGENTS.md).
 
-> **Direction change — 2026-06-21: pivoting to "Option B" (Capacitor web-wrapper).**
-> The shipping iOS app is being rebuilt as a Capacitor wrapper of the
+> **Direction change — 2026-06-21: explored "Option B" (Capacitor web-wrapper).**
+> A Capacitor wrapper of the
 > `skymarshal-web` React client (`skymarshal.blue`) — validated end-to-end, living
 > in `~/workspace/skymarshal-web` (branch `feature/ios-capacitor-wrapper`; see
-> `CAPACITOR_WRAPPER.md`). This native repo becomes the **reference + source** for
+> `CAPACITOR_WRAPPER.md`) remains a proposed v1.1/alternative. This native repo is
+> active again for parity and release hardening and remains the **reference + source** for
 > the deletion engine (ported as `SkymarshalDeletePlugin.swift`) and behavior
-> parity. The native milestones below are **on hold** pending final commitment to
-> the pivot — kept for reference and as the safety-critical port targets.
+> parity. An explicit shipping decision is still required before either path is
+> described as the current distributed build.
 
 > **2026-07-13 — Figma Make visual landed on native chrome.** OLED void/elev
 > surfaces, accent gradient tokens, tab IA Content / Patterns / Scope / About
-> (Scope default-on), Delete Review typed-confirm restyle. Cap shipping path
-> unchanged; this keeps native parity with the Make prototype.
+> (Scope default-on), Delete Review typed-confirm restyle. The Capacitor prototype
+> remains available; this keeps native parity with the Make prototype.
 >
 > **2026-07-13 — Parity pass 2.** List rows → elev1, banners/chips → elev+hairline
 > (no thinMaterial), Type/ActiveFilter chips radius-sm + Mono, Filter sheets
@@ -38,9 +39,10 @@ Living snapshot of objectives and boundaries. Product copy and build commands st
 
 ## Current milestone
 
-- **Distribution:** Public TestFlight at v1.0.0 / build 5; App Store submission gated on the 2026-06-10 adversarial-review fixes (see council log below).
+- **Source release:** Native v1.0.2 / build 27. App Store Connect and TestFlight state require external verification; submission remains gated by [`docs/SUBMISSION_DECISION.md`](docs/SUBMISSION_DECISION.md).
 - **Launch pricing (decided 2026-06-10):** Free, no IAP at launch. Supersedes the 2026-05-14 tiering ($2.99/mo / $19.99/yr / $49.99 lifetime). A paywall is a v1.1 decision; early adopters get grandfathered if one ships.
 - **Quality bar:** Full `xcodebuild test` green before release-worthy changes; preserve 429 backoff and deletion URI semantics ([`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)).
+- **Invalid-handle safety:** `handle.invalid` is an unverified-handle sentinel only. Native scans prefer the detailed profile handle, status-based bulk filters do not infer bot/deleted/inactive state from the sentinel, and cold-start hydration recomputes only affected cached scan rows.
 
 ## Expansion plan (approved for planning)
 
@@ -66,7 +68,7 @@ Shipped in-repo: on-device **Insights** analytics, **saved search presets**, **c
 
 - **Reliability + review docs:** Archive load checkpoints ([`docs/ARCHIVE_LOAD_CHECKPOINTS.md`](docs/ARCHIVE_LOAD_CHECKPOINTS.md)), device soak gate ([`docs/SOAK_PROTOCOL.md`](docs/SOAK_PROTOCOL.md)), consensus implementation delta ([`docs/archive/consensus-skymarshal-ios-delta-2026-05-14.md`](docs/archive/consensus-skymarshal-ios-delta-2026-05-14.md)), Scope IA placeholder ([`docs/archive/scope-ia-decision-2026-05-14.md`](docs/archive/scope-ia-decision-2026-05-14.md)).
 - Row min-height: **ContentRow** / **AccountRow** use **56 pt** minimum (see [`docs/CONTRIBUTOR_UX.md`](docs/CONTRIBUTOR_UX.md)); further density polish remains non-blocking.
-- Keep README test counts / build numbers aligned with CI or manual verification after substantive changes (latest run: **272** passing `SkymarshalTests` unit tests).
+- Keep README test counts / build numbers aligned with CI or manual verification after substantive changes (2026-07-18: **275 unit tests + 12 non-credential UI tests passing**).
 
 ## Session refresh & Keychain persistence (2026-05-13)
 
@@ -153,7 +155,7 @@ Full findings in the session plan (cynic + breaker + executive council). Status 
 
 - **CLOSED:** Bluescreen→Patterns rename (zero user-facing "Bluescreen" strings remain; tab is "Followers", audit copy says "Patterns we noticed"). Content CSV/JSON export (`Exporter.swift`). Alt-text search (covered by `includeAltTextInKeyword`; the dedicated `altTextContains` field is dropped).
 - **REOPENED then fixed 2026-06-10:** reviewer-notes lexicon citation (`com.atproto.repo.deleteRecord`) — was missing from both `app-store/SUBMISSION_NOTES.md` and `ios/fastlane/metadata/review_information/notes.txt`; both now carry it. Demo-account decline replaced with provided-credentials copy; the account itself still needs creating (manual).
-- **NEW ship-blockers from the breaker pass (all in flight 2026-06-10):** tolerant `createdAt` parsing + fail-closed date filters (bare `ISO8601DateFormatter` rejected the fractional-second timestamps the official client writes, so nil-dated items passed date filters — a date-scoped bulk delete could select the whole archive); delete-loop survivability (cancellation, `Retry-After` parsing, pacing, circuit breaker, idle-timer hold); refresh-failure triage (network blips no longer wipe the Keychain session); 20k-load truncation honesty; SwiftData duplicate-key crash guard; chunked breadcrumb recovery.
+- **NEW ship-blockers from the breaker pass (subsequently fixed):** tolerant `createdAt` parsing + fail-closed date filters (bare `ISO8601DateFormatter` rejected the fractional-second timestamps the official client writes, so nil-dated items passed date filters — a date-scoped bulk delete could select the whole archive); delete-loop survivability (cancellation, `Retry-After` parsing, pacing, circuit breaker, idle-timer hold); refresh-failure triage (network blips no longer wipe the Keychain session); 20k-load truncation honesty; SwiftData duplicate-key crash guard; chunked breadcrumb recovery.
 
 ### Kill criteria (restated measurably, 2026-06-10)
 

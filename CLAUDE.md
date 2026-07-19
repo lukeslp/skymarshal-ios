@@ -4,26 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project intent
 
-**Direction changed 2026-06-21 → "Option B" (Capacitor web-wrapper).** The native
-SwiftUI UX was the sticking point, so the shipping iOS app is being rebuilt as a
-**Capacitor wrapper of the `skymarshal-web` React client** (the app behind
-`skymarshal.blue`). That work lives in a **separate repo** —
+**Direction changed 2026-06-21 toward "Option B" (Capacitor web-wrapper).** That
+prototype lives in a **separate repo** —
 `~/workspace/skymarshal-web`, branch `feature/ios-capacitor-wrapper` — and is
 **validated end-to-end**: the client builds to a static bundle, wraps via
 Capacitor 8.4.1 (SPM), and runs natively on iOS under bundle id
 `blue.skymarshal.ios`. Full plan + status: `~/workspace/skymarshal-web/CAPACITOR_WRAPPER.md`.
 
-**This repo (`skymarshal-ios`) is now the native source + reference, not the
-active shipping target.** Going forward its value is:
+Native development resumed in July for Figma Make parity and release hardening.
+This repo is the active native source at **1.0.2 / build 27**; the Capacitor path
+remains a proposed v1.1/alternative until an explicit shipping decision is made.
+App Store Connect and TestFlight state are external and must be checked before
+claiming which build is currently distributed. This repo also remains the source for:
 - the **safety-critical deletion engine** in `SkymarshalCore` (the sacred 429
-  ladder, resumable breadcrumb, preflight, typed-confirm) — being ported into the
+  ladder, resumable breadcrumb, preflight, typed-confirm) — prototyped for the
   Capacitor app as a native plugin (`SkymarshalDeletePlugin.swift`); keep it as the
   canonical reference;
 - behavior parity, copy/brand voice, and the Bluescreen scoring logic.
-
-The native app stays buildable (TestFlight build 27) but is **on hold** — don't
-invest in native SwiftUI UI features unless explicitly asked. The Capacitor pattern
-to copy lives in `~/workspace/idea-tiles-app` and `~/workspace/orrery-app`.
 
 Scope is unchanged — **content management**: authenticate, search the user's own
 posts / replies / reposts / likes with dynamic filters, delete them safely, plus
@@ -35,12 +32,11 @@ Note: `CLAUDE.md` is checked in — keep it concise and current. If you want a p
 ## What lives here today
 
 ```
-ios/                          # Native source/reference (ON HOLD) — SwiftUI app, TestFlight build 27.
-                              #   Active shipping build is the Capacitor wrapper in ~/workspace/skymarshal-web.
+ios/                          # Active native SwiftUI source — version 1.0.2, build 27.
   project.yml                 # xcodegen canonical source — never edit .xcodeproj directly
   Skymarshal/                 # App target: SwiftUI views, AppModel, App entry
   SkymarshalCore/             # Framework: Models, Services, Standards, Network, Storage
-  SkymarshalTests/            # 233 test methods; xcodebuild test green
+  SkymarshalTests/            # 275 unit tests; verified green 2026-07-18
                               #   (ScreenshotTest needs SKY_TEST_HANDLE/_APP_PASSWORD;
                               #   -skip-testing:SkymarshalUITests/ScreenshotTest in dev runs)
   SkymarshalUITests/          # UI harness with sm.feature.* flag bridge
@@ -76,12 +72,10 @@ The Python and React clients here are **read-only references**. To run them, go 
 ## Commands
 
 ```bash
-# ACTIVE BUILD is the Capacitor wrapper in ~/workspace/skymarshal-web:
+# Proposed Capacitor v1.1/alternative lives in ~/workspace/skymarshal-web:
 #   cd ~/workspace/skymarshal-web && pnpm exec vite build && pnpm exec cap sync ios
 #   then build the "App" scheme (ios/App/App.xcodeproj). See CAPACITOR_WRAPPER.md.
-# The native iOS commands below are for the reference/source app (on hold).
-
-# iOS (native — reference/source, on hold)
+# Native iOS
 cd ios
 xcodegen generate                  # regenerate Skymarshal.xcodeproj from project.yml
 xcodebuild -scheme Skymarshal -destination 'platform=iOS Simulator,name=iPhone 17' test
@@ -112,9 +106,9 @@ cd ios && fastlane upload_listing      # metadata only, from ios/fastlane/metada
 - **UTF-8 byte-offset facet parsing trap.** AT Proto facet `byteStart` / `byteEnd` are UTF-8 byte indices. When post bodies eventually render tappable mentions/links, `NSRange` / `String.Index` math will silently corrupt offsets on any emoji or non-ASCII character. Use `text.utf8.distance(...)` with `samePosition(in: text.utf8)`.
 - **No-SPM-deps stance is sustainable for ~8 endpoints**, not forever. Trigger to adopt ATProtoKit (or similar): (a) rich-text facet emission for posting, or (b) lexicon drift outpacing hand-rolled `ATProtoTypes.swift`. Neither is in the v1.x brief.
 
-## iOS port — public TestFlight, App-Store-bound
+## Native iOS source — App-Store-bound
 
-The iOS app at `ios/` is on public TestFlight at v1.0.0 / build 5. Marketing version was briefly tagged 1.0.1 during the visual-restyle work; reverted at commit `9ca2e84` so build 5 carries 1.0.0. Architecture:
+The source at `ios/` is version 1.0.2 / build 27. The last known App Store Connect/TestFlight state must be verified externally before release claims are updated. Architecture:
 
 - **xcodegen-driven** — `ios/project.yml` is canonical; `Skymarshal.xcodeproj` regenerates from it. Never edit the xcodeproj directly.
 - **Two-target framework split** — `SkymarshalCore` (framework, all models / services / standards / network / storage, no SwiftUI), `Skymarshal` (app, SwiftUI views + AppModel observer).

@@ -115,9 +115,9 @@ public struct FollowerFilters: Hashable, Sendable {
         // Follows-heavy only (ratio < 0.1, follows someone). High-ratio
         // popular accounts are not "bad" and are not cull candidates.
         if showBadRatio && !(a.ratio < 0.1 && a.profile.followsCount > 0) { return false }
-        // Fail-safe inactivity. Two reliable signals never depend on an
-        // AppView read: `isDeleted` (handle.invalid) and `postsCount == 0`
-        // (the profile object itself reports zero posts). A *time-based*
+        // Fail-safe inactivity. A separately established deletion or
+        // profile-reported `postsCount == 0` never depends on an AppView
+        // read. A *time-based*
         // inactivity verdict (`isInactive` from a stale last-post date)
         // is only trusted when the activity read was reliable
         // (`activityReadState == .read`). A throttled/gated `.unknown`

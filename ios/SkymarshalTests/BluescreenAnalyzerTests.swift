@@ -49,11 +49,14 @@ final class BluescreenAnalyzerTests: XCTestCase {
 
     // MARK: - botScore
 
-    func test_botScore_handleInvalid_short_circuits_to_one() {
-        let p = profile(handle: "handle.invalid")
-        let result = BluescreenAnalyzer.botScore(for: p)
-        XCTAssertEqual(result.score, 1.0)
-        XCTAssertEqual(result.flags, ["Deleted account (handle.invalid)"])
+    func test_handleInvalid_alone_isUnverified_notBotDeletedOrInactive() {
+        let p = profile(handle: "handle.invalid", followers: 234, following: 183, posts: 87)
+        let result = BluescreenAnalyzer.analyze(profile: p)
+        XCTAssertTrue(p.hasUnverifiedHandle)
+        XCTAssertEqual(result.botScore, 0)
+        XCTAssertTrue(result.botFlags.isEmpty)
+        XCTAssertFalse(result.isDeleted)
+        XCTAssertFalse(result.isInactive)
     }
 
     func test_botScore_massFollowing_veryLowRatio_scoresHigh() {
@@ -219,11 +222,17 @@ final class BluescreenAnalyzerTests: XCTestCase {
     }
 
     func test_summary_botsCount_uses06Threshold() {
-        let bot = BluescreenAnalyzer.analyze(profile: profile(handle: "handle.invalid"))
+        let bot = BluescreenAnalyzer.analyze(
+            profile: profile(followers: 30, following: 1000)
+        )
+        let unverified = BluescreenAnalyzer.analyze(
+            profile: profile(handle: "handle.invalid", followers: 234, following: 183, posts: 87)
+        )
         let normal = BluescreenAnalyzer.analyze(profile: profile())
-        let s = BluescreenAnalyzer.summarize([bot, bot, normal])
-        XCTAssertEqual(s.bots, 2)
-        XCTAssertEqual(s.deleted, 2)
+        let s = BluescreenAnalyzer.summarize([bot, unverified, normal])
+        XCTAssertEqual(s.bots, 1)
+        XCTAssertEqual(s.deleted, 0)
+        XCTAssertEqual(s.inactive, 0)
         XCTAssertEqual(s.totalAnalyzed, 3)
     }
 

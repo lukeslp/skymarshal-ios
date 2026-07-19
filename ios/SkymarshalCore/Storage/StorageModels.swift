@@ -427,6 +427,32 @@ public final class AnalyzedAccountRecord {
             reciprocityGapInboundCount: reciprocityGapInboundCount
         )
     }
+
+    /// Recompute analyzer-derived fields on rows written by versions that
+    /// treated `handle.invalid` as deleted. Only the affected row changes;
+    /// user whitelist and lazy ghost data remain sticky through `update`.
+    /// Returns true when the persisted record was contaminated and repaired.
+    @discardableResult
+    public func repairUnverifiedHandleClassificationIfNeeded() -> Bool {
+        guard handle == "handle.invalid" else { return false }
+
+        let cached = toAnalyzedAccount()
+        let recomputed = BluescreenAnalyzer.analyze(
+            profile: cached.profile,
+            lastPostDate: cached.lastPostDate,
+            engagementScore: cached.engagementScore,
+            interactedRecently: cached.interactedRecently,
+            activityReadState: cached.activityReadState
+        )
+        let needsRepair = cached.botScore != recomputed.botScore
+            || cached.botFlags != recomputed.botFlags
+            || cached.isDeleted != recomputed.isDeleted
+            || cached.isInactive != recomputed.isInactive
+        guard needsRepair else { return false }
+
+        update(from: recomputed, scannedAt: scannedAt)
+        return true
+    }
 }
 
 /// Saved search preset for the Content tab — keyword + structured filters + sort.

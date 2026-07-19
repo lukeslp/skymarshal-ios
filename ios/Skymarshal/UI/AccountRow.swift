@@ -5,6 +5,7 @@ import SkymarshalCore
 /// rhythm: leading color stripe + inline metadata + body + metric row.
 /// The leading stripe color encodes status tier (red bot/deleted,
 /// orange suspect, yellow inactive, accent mutual, gray default).
+/// An unverified AT Protocol handle is shown separately as a neutral pill.
 @available(iOS 17, *)
 struct AccountRow: View {
     let account: AnalyzedAccount
@@ -157,7 +158,7 @@ struct AccountRow: View {
     }
 
     private var stripeColor: Color {
-        if account.isDeleted { return Theme.danger }
+        if account.isDeleted && !account.profile.hasUnverifiedHandle { return Theme.danger }
         // Whitelist override: a user-confirmed real human shouldn't
         // wear a danger/caution stripe just because of low post volume.
         if !account.userWhitelisted {
@@ -173,7 +174,7 @@ struct AccountRow: View {
     /// 3pt visual cue is redundant; this label is the non-visual
     /// equivalent that Switch Control / VoiceOver users hear.
     private var stripeAccessibilityLabel: String {
-        if account.isDeleted { return "Deleted account" }
+        if account.isDeleted && !account.profile.hasUnverifiedHandle { return "Deleted account" }
         if !account.userWhitelisted {
             if account.botScore >= 0.6 { return "High automation signals" }
             if account.botScore >= 0.3 { return "Moderate automation signals" }
@@ -237,7 +238,11 @@ private struct StatusPills: View {
                     .foregroundStyle(.tint)
                     .accessibilityLabel("Mutual")
             }
-            if account.isDeleted {
+            if account.profile.hasUnverifiedHandle {
+                Pill(systemImage: "questionmark.circle", text: "unverified", color: .secondary)
+                    .accessibilityLabel("Unverified handle")
+            }
+            if account.isDeleted && !account.profile.hasUnverifiedHandle {
                 Pill(systemImage: "xmark.octagon.fill", text: "del", color: Theme.danger)
                     .accessibilityLabel("Deleted account")
             } else if account.isInactive {
