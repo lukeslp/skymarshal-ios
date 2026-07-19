@@ -55,7 +55,7 @@ platform :ios do
     sh "cd .. && ./scripts/capture_screenshots.sh 'iPad Pro 13-inch (M5)' ipad-13"
   end
 
-  desc "Upload screenshots from ../screenshots-appstore/ to App Store Connect"
+  desc "Upload finished marketing screenshots from ../screenshots-marketing/ to App Store Connect"
   lane :upload_screenshots do
     # Stage capture-script output into deliver's per-locale layout. Device
     # class is inferred from pixel dimensions; the filename prefix only
@@ -70,7 +70,7 @@ platform :ios do
     }.each do |src, prefix|
       # [0-9][0-9]- matches 10- and above; the old 0[1-9]- glob silently
       # dropped any tenth screenshot from the upload.
-      files = Dir[File.expand_path("../screenshots-appstore/#{src}/[0-9][0-9]-*.png", __dir__)].sort
+      files = Dir[File.expand_path("../screenshots-marketing/#{src}/[0-9][0-9]-*.png", __dir__)].sort
       files.each do |f|
         destination = File.join(staging, "#{prefix}-#{File.basename(f)}")
         # XCTAttachment output is usually opaque, but iPad captures can

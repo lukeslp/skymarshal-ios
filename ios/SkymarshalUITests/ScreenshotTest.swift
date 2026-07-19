@@ -107,7 +107,7 @@ final class ScreenshotTest: XCTestCase {
             searchTarget.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
             if keyboard.waitForExistence(timeout: 4) {
                 Thread.sleep(forTimeInterval: 0.5)
-                searchTarget.typeText("language")
+                searchTarget.typeText("the")
                 Thread.sleep(forTimeInterval: 1.0)
                 searchTarget.typeText("\n") // commit + dismiss the keyboard
                 typedSearch = true
@@ -224,7 +224,23 @@ final class ScreenshotTest: XCTestCase {
                 Thread.sleep(forTimeInterval: 2.0)
                 snap("05-account-detail", of: app)
                 let close = app.buttons["Close"].firstMatch
-                if close.exists, close.isHittable { close.tap() }
+                if close.exists, close.isHittable {
+                    close.tap()
+                    _ = accountNav.waitForNonExistence(timeout: 5)
+                }
+            }
+        }
+
+        // ── 6. Scope overview ──────────────────────────────────────────────
+        // The visual overview gives the store story a distinct final feature
+        // instead of repeating another archive-list frame.
+        let scope = app.buttons["Scope"].firstMatch
+        if scope.waitForExistence(timeout: 5), scope.isHittable {
+            scope.tap()
+            let scopeNav = app.navigationBars["Scope"]
+            if scopeNav.waitForExistence(timeout: 10) {
+                Thread.sleep(forTimeInterval: 2.0)
+                snap("06-scope", of: app)
             }
         }
     }
