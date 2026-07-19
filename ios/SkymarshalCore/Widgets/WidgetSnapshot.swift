@@ -99,6 +99,40 @@ public struct WidgetSnapshot: Codable, Hashable, Sendable {
         }
     }
 
+    /// A recent post by someone who regularly engages with the user.
+    /// The app refreshes these recommendations; the widget remains network-free.
+    public struct RecommendedPost: Codable, Hashable, Sendable, Identifiable {
+        public let uri: String
+        public let handle: String
+        public let displayName: String?
+        public let text: String
+        public let likeCount: Int
+        public let repostCount: Int
+        public let replyCount: Int
+        public let indexedAt: Date
+        public let authorEngagement: Int
+
+        public var id: String { uri }
+        public var authorTitle: String {
+            if let displayName, !displayName.isEmpty { return displayName }
+            return "@\(handle)"
+        }
+
+        public init(uri: String, handle: String, displayName: String?, text: String,
+                    likeCount: Int, repostCount: Int, replyCount: Int,
+                    indexedAt: Date, authorEngagement: Int) {
+            self.uri = uri
+            self.handle = handle
+            self.displayName = displayName
+            self.text = text
+            self.likeCount = likeCount
+            self.repostCount = repostCount
+            self.replyCount = replyCount
+            self.indexedAt = indexedAt
+            self.authorEngagement = authorEngagement
+        }
+    }
+
     /// One day in the follower-count history sparkline.
     public struct FollowerPoint: Codable, Hashable, Sendable, Identifiable {
         public let date: Date
@@ -114,6 +148,8 @@ public struct WidgetSnapshot: Codable, Hashable, Sendable {
 
     public let hygieneSummary: HygieneSummary
     public let peopleToEngage: [FanNudge]
+    /// Optional preserves decoding of snapshots written by earlier builds.
+    public let recommendedPosts: [RecommendedPost]?
     public let topPost: TopPost?
     public let followerHistory: [FollowerPoint]
     public let generatedAt: Date
@@ -121,12 +157,14 @@ public struct WidgetSnapshot: Codable, Hashable, Sendable {
     public init(
         hygieneSummary: HygieneSummary,
         peopleToEngage: [FanNudge],
+        recommendedPosts: [RecommendedPost]? = nil,
         topPost: TopPost?,
         followerHistory: [FollowerPoint],
         generatedAt: Date
     ) {
         self.hygieneSummary = hygieneSummary
         self.peopleToEngage = peopleToEngage
+        self.recommendedPosts = recommendedPosts
         self.topPost = topPost
         self.followerHistory = followerHistory
         self.generatedAt = generatedAt
@@ -163,6 +201,15 @@ public extension WidgetSnapshot {
                 FanNudge(handle: "rio.bsky.social", displayName: "Rio", theyEngagedYou: 4, lastInteraction: now),
                 FanNudge(handle: "sam.bsky.social", displayName: "Sam", theyEngagedYou: 3, lastInteraction: now)
             ],
+            recommendedPosts: [
+                RecommendedPost(
+                    uri: "at://did:plc:example/app.bsky.feed.post/example",
+                    handle: "mara.bsky.social", displayName: "Mara",
+                    text: "A small idea that unexpectedly turned into a very good conversation.",
+                    likeCount: 259, repostCount: 33, replyCount: 12,
+                    indexedAt: now, authorEngagement: 9
+                )
+            ],
             topPost: TopPost(
                 text: "the deploy went through on the first try and now i am suspicious",
                 likeCount: 214,
@@ -183,6 +230,7 @@ public extension WidgetSnapshot {
                 follows: 0, followers: 0, ratio: 0
             ),
             peopleToEngage: [],
+            recommendedPosts: [],
             topPost: nil,
             followerHistory: [],
             generatedAt: Date()

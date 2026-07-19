@@ -100,8 +100,7 @@ public enum WidgetSnapshotBuilder {
         // user is NOT mutually following — the "reply back?" set. Ranked
         // by engagement intensity, then recency of their last post.
         let candidates = accounts.filter { account in
-            guard !account.isMutual else { return false }
-            return account.interactedRecently == true || account.engagementScore > 0
+            account.interactedRecently == true || account.engagementScore > 0
         }
         let ranked = candidates.sorted { lhs, rhs in
             if lhs.engagementScore != rhs.engagementScore {

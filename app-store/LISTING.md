@@ -1,6 +1,6 @@
 # Skymarshal — App Store listing
 
-Last revised 2026-05-10. Paste these into App Store Connect when submitting.
+Last revised 2026-07-19. Paste these into App Store Connect when submitting.
 
 Reconciliation note (2026-05-12): canonical execution now lives in
 `APP_STORE_CONNECT_PASTE_SESSION.md` and canonical field values live in
@@ -40,12 +40,11 @@ notes, and a single functional mention in the description.
 ## Promotional text (170 chars, updateable without re-review)
 
 ```
-Search every post, reply, repost, and like in your archive — tidy in bulk. Score your follow list for bots and inactive accounts. App password only, nothing tracked.
+Search and safely clean your archive. Private widgets surface rising posts worth joining, your top post, and clear follower trends. Nothing tracked.
 ```
 
-168 chars. Leads with the two value propositions in their natural order
-(content first, follower-cleanup second — matches the in-app tab order).
-Privacy posture last because it's table-stakes for power users.
+Leads with safe archive cleanup, then makes the five network-free widgets
+the update hook. Privacy posture remains the closing promise.
 
 For future updates, swap the lead sentence to highlight the new feature
 and keep the privacy line as the consistent footer.
@@ -83,7 +82,7 @@ FOLLOWER CLEANUP
   signals: mass-following, no posts, missing profile bits, suspiciously
   round numbers, very-new accounts flooding follows, and bad ratios.
 • Flag inactive accounts (no posts in N days, configurable).
-• Catch deleted accounts (handle.invalid).
+• Label unverified handles without treating them as deleted.
 • Sort by follower ratio, account age, post frequency, mutuality, or
   influence tier (mega, macro, micro, nano).
 • Bulk unfollow with the same rate-limit safety net the bulk delete uses.
@@ -94,6 +93,16 @@ DYNAMIC SEARCH
   when you didn't write the word "capybara."
 • Combine date range + engagement bounds to surface "dead threads"
   (low engagement) or "old bangers" (high engagement, distant past).
+
+FIVE PRIVATE WIDGETS
+• Worth Joining surfaces rising posts from people who regularly engage
+  with you, balancing that relationship with current post momentum.
+• Follow Snapshot shows follower, following, and inactive-account counts.
+• Your Top Post clearly shows engagement on one of your own posts.
+• Follower Trend keeps a simple recent-count sparkline on your Home Screen.
+• Join In puts one timely conversation on your Home or Lock Screen.
+• Widgets read a snapshot written by the app after a scan. The extension
+  makes no network requests of its own and adds no new tracking.
 
 PRIVACY
 • Sign in with an app password, not your main password. Generate a
@@ -140,7 +149,7 @@ Four rules respected:
 ## Keywords (100 char cap, comma-separated)
 
 ```
-posts,replies,reposts,likes,archive,manage,delete,follower,unfollow,atproto,bulk,clean,filter
+posts,replies,reposts,likes,archive,delete,follower,unfollow,widget,bulk,clean,filter,atproto
 ```
 
 93 chars. Indexes are additive: words in the app name + subtitle are
@@ -166,23 +175,25 @@ Words deliberately not included and why:
 
 ---
 
-## What's New (4000 char cap; first version)
+## What's New (4000 char cap; v1.0.2)
 
 ```
-First flight.
+Five new widgets keep useful signals close without vague scores or obligation.
 
-Skymarshal does two things: searches every post, reply, repost, and like
-in your archive, and scores your follow list for automation signals and
-inactive accounts. Bulk delete and bulk unfollow on top, with the
-rate-limit safety nets they deserve.
+• Worth Joining: rising posts from people who regularly engage with you
+• Join In: one timely conversation on your Home or Lock Screen
+• Follow Snapshot: clear follower, following, and inactive-account counts
+• Your Top Post: engagement on one of your own posts
+• Follower Trend: a simple recent-count sparkline
+• Clearer account signals, including neutral handling of unverified handles
 
-App password only. No tracking. No server. Your archive stays on your
-phone.
+Recommendations balance existing engagement with recent post momentum. The
+widget extension reads an on-device snapshot and makes no network requests.
+App password only. No tracking. No server.
 ```
 
-For subsequent versions, replace with a 1–3 sentence summary of the
-release's marquee feature. Keep the "App password only…" line as a
-permanent footer in update notes — repetition is reassuring, not stale.
+Keep the "App password only…" line as a permanent footer in update notes —
+repetition is reassuring, not stale.
 
 ---
 

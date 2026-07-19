@@ -218,9 +218,9 @@ final class AppModel {
                 hydratedFromCache = false
                 hydratedOwnerHandle = nil
                 await followers.clear()
-                startLoad(forceRefresh: true)
+                startMostRecentContentRefresh()
             } else if items.isEmpty {
-                startLoad(forceRefresh: false)
+                startMostRecentContentRefresh()
             }
             evaluateDeleteInterruptionRecovery()
         } catch {
@@ -358,7 +358,50 @@ final class AppModel {
         }
     }
 
+    func startMostRecentContentRefresh() {
+        loadTask?.cancel()
+        loadTask = Task { [weak self] in
+            guard let self else { return }
+            await self.refreshMostRecentContent()
+        }
+    }
+
     func cancelLoad() { loadTask?.cancel() }
+
+    func refreshMostRecentContent() async {
+        guard isAuthenticated else { return }
+        errorMessage = nil
+        isLoading = true
+        defer { isLoading = false }
+        do {
+            let svc = content
+            _ = try await svc.refreshMostRecentContent { [weak self] progress in
+                guard let self else { return }
+                let snapshot = await svc.loadedSnapshot
+                let summary = await svc.summarize()
+                await MainActor.run {
+                    self.loadProgress = progress
+                    self.items = snapshot
+                    self.summary = summary
+                }
+            }
+            self.items = await svc.loadedSnapshot
+            self.summary = await svc.summarize()
+            self.loadProgress = nil
+            self.lastContentScannedAt = Date()
+            self.archiveTruncated = await svc.lastLoadTruncated
+            writeWidgetSnapshot()
+        } catch is CancellationError {
+            self.items = await content.loadedSnapshot
+            self.summary = await content.summarize()
+            self.loadProgress = nil
+        } catch {
+            self.items = await content.loadedSnapshot
+            self.summary = await content.summarize()
+            errorMessage = error.localizedDescription
+            self.loadProgress = nil
+        }
+    }
 
     private func runLoad(forceRefresh: Bool) async {
         errorMessage = nil
@@ -484,7 +527,7 @@ final class AppModel {
             return
         }
         deleteInterruptionNotice =
-            "A bulk delete of \(payload.itemIDs.count) items may have been interrupted before Skymarshal finished. Some records may already be gone on Bluesky. Pull to refresh or run Refresh archive to reconcile this device."
+            "A bulk delete of \(payload.itemIDs.count) items may have been interrupted before Skymarshal finished. Some records may already be gone on Bluesky. Run Refresh full archive to reconcile this device."
     }
 
     func delete(uris: [String]) async -> (deleted: Int, errors: [String]) {
@@ -678,6 +721,24 @@ final class AppModel {
         )
         if WidgetSnapshotStore.write(snapshot) {
             WidgetCenter.shared.reloadAllTimelines()
+        }
+        let currentAccounts = accounts
+        Task { [client] in
+            let recommendations = await EngagementRecommendationService.fetch(
+                client: client, accounts: currentAccounts
+            )
+            guard !recommendations.isEmpty else { return }
+            let enriched = WidgetSnapshot(
+                hygieneSummary: snapshot.hygieneSummary,
+                peopleToEngage: snapshot.peopleToEngage,
+                recommendedPosts: recommendations,
+                topPost: snapshot.topPost,
+                followerHistory: snapshot.followerHistory,
+                generatedAt: Date()
+            )
+            if WidgetSnapshotStore.write(enriched) {
+                WidgetCenter.shared.reloadAllTimelines()
+            }
         }
     }
 

@@ -2,7 +2,7 @@ import WidgetKit
 import SwiftUI
 import SkymarshalCore
 
-// MARK: - 1. Hygiene Summary (Reciprocity cues focused widget, modern sans-serif font)
+// MARK: - 1. Follow Snapshot
 
 struct HygieneSummaryWidget: Widget {
     let kind = "HygieneSummaryWidget"
@@ -11,8 +11,8 @@ struct HygieneSummaryWidget: Widget {
             HygieneSummaryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("Follow Hygiene")
-        .description("Ghosts, reciprocity gaps, and your follower ratio at a glance.")
+        .configurationDisplayName("Follow Snapshot")
+        .description("Plain-language follower, following, and inactive-account counts.")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
@@ -25,22 +25,21 @@ struct HygieneSummaryView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            WidgetKicker(text: "Follow Hygiene")
+            WidgetKicker(text: "Follow snapshot")
             if family == .systemSmall {
                 VStack(alignment: .leading, spacing: 6) {
-                    WidgetStat(value: "\(h.ghosts)", label: "Ghosts", tint: Theme.danger)
-                    WidgetStat(value: "\(h.reciprocityGaps)", label: "Reply back", tint: Theme.caution)
-                    WidgetStat(value: ratioText, label: "Ratio", tint: Theme.scope)
+                    WidgetStat(value: "\(h.followers)", label: "Followers", tint: Theme.scope)
+                    WidgetStat(value: "\(h.follows)", label: "Following", tint: Theme.success)
+                    WidgetStat(value: "\(h.inactive)", label: "Inactive", tint: Theme.warn)
                 }
             } else {
                 HStack(alignment: .top, spacing: 14) {
-                    WidgetStat(value: "\(h.ghosts)", label: "Ghosts", tint: Theme.danger)
-                    WidgetStat(value: "\(h.reciprocityGaps)", label: "Reply back", tint: Theme.caution)
+                    WidgetStat(value: "\(h.followers)", label: "Followers", tint: Theme.scope)
+                    WidgetStat(value: "\(h.follows)", label: "Following", tint: Theme.success)
                     WidgetStat(value: "\(h.inactive)", label: "Inactive", tint: Theme.warn)
-                    WidgetStat(value: ratioText, label: "Ratio", tint: Theme.scope)
                 }
                 Spacer(minLength: 0)
-                Text("\(h.followers) followers / \(h.follows) follows")
+                Text("Updated after your latest scan")
                     .font(WidgetStyle.caption)
                     .foregroundStyle(.secondary)
             }
@@ -49,12 +48,9 @@ struct HygieneSummaryView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
-    private var ratioText: String {
-        String(format: "%.2f", h.ratio)
-    }
 }
 
-// MARK: - 2. People To Engage (Mutual engagement and reply cues, consistent classy sans-serif font)
+// MARK: - 2. Worth Joining
 
 struct PeopleToEngageWidget: Widget {
     let kind = "PeopleToEngageWidget"
@@ -63,8 +59,8 @@ struct PeopleToEngageWidget: Widget {
             PeopleToEngageView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("Reply Back")
-        .description("Fans who engaged you that you have not replied to yet.")
+        .configurationDisplayName("Worth Joining")
+        .description("Rising posts from people who regularly engage with you.")
         .supportedFamilies([.systemMedium, .systemLarge])
     }
 }
@@ -77,27 +73,27 @@ struct PeopleToEngageView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            WidgetKicker(text: "Reply back?", tint: Theme.caution)
-            let fans = Array(entry.snapshot.peopleToEngage.prefix(rowLimit))
-            if fans.isEmpty {
-                Text("No neglected fans. Run a scan to find people worth replying to.")
+            WidgetKicker(text: "Worth joining", tint: Theme.caution)
+            let posts = Array((entry.snapshot.recommendedPosts ?? []).prefix(rowLimit))
+            if posts.isEmpty {
+                Text("Run a follower scan to find timely posts from people who engage with you.")
                     .font(WidgetStyle.body)
                     .foregroundStyle(.secondary)
             } else {
                 VStack(alignment: .leading, spacing: 6) {
-                    ForEach(fans) { fan in
+                    ForEach(posts) { post in
                         HStack(spacing: 8) {
                             VStack(alignment: .leading, spacing: 1) {
-                                Text(fan.title)
+                                Text(post.authorTitle)
                                     .font(WidgetStyle.body)
                                     .lineLimit(1)
-                                Text("@\(fan.handle)")
+                                Text(post.text)
                                     .font(WidgetStyle.caption)
                                     .foregroundStyle(.secondary)
                                     .lineLimit(1)
                             }
                             Spacer(minLength: 4)
-                            Text("\(fan.theyEngagedYou)×")
+                            Text("\(post.likeCount)♥")
                                 .font(WidgetStyle.metric(13))
                                 .foregroundStyle(Theme.caution)
                         }
@@ -119,8 +115,8 @@ struct PostTakingOffWidget: Widget {
             PostTakingOffView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("Taking Off")
-        .description("Your top post and how it is doing.")
+        .configurationDisplayName("Your Top Post")
+        .description("Your own best-performing recent post at a glance.")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
@@ -131,7 +127,7 @@ struct PostTakingOffView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            WidgetKicker(text: "Taking off", tint: Theme.like)
+            WidgetKicker(text: "Your top post", tint: Theme.like)
             if let post = entry.snapshot.topPost {
                 Text(post.text.isEmpty ? "(no text)" : post.text)
                     .font(WidgetStyle.body)
@@ -246,7 +242,7 @@ struct Sparkline: Shape {
     }
 }
 
-// MARK: - 5. Reply Back Of The Day (Reciprocity nudge, not cleanup, clean sans-serif font)
+// MARK: - 5. Worth Joining Spotlight
 
 struct ReplyBackOfTheDayWidget: Widget {
     let kind = "ReplyBackOfTheDayWidget"
@@ -255,8 +251,8 @@ struct ReplyBackOfTheDayWidget: Widget {
             ReplyBackOfTheDayView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("Reply of the Day")
-        .description("One neglected fan to reply to today.")
+        .configurationDisplayName("Join In")
+        .description("One timely post from someone who regularly engages with you.")
         .supportedFamilies([.systemSmall, .accessoryRectangular])
     }
 }
@@ -267,11 +263,11 @@ struct ReplyBackOfTheDayView: View {
 
     /// Deterministic per-day pick so the spotlight is stable through the
     /// day and rotates across the neglected set day to day.
-    private var pick: WidgetSnapshot.FanNudge? {
-        let fans = entry.snapshot.peopleToEngage
-        guard !fans.isEmpty else { return nil }
+    private var pick: WidgetSnapshot.RecommendedPost? {
+        let posts = entry.snapshot.recommendedPosts ?? []
+        guard !posts.isEmpty else { return nil }
         let day = Calendar.current.ordinality(of: .day, in: .era, for: Date()) ?? 0
-        return fans[day % fans.count]
+        return posts[day % posts.count]
     }
 
     var body: some View {
@@ -284,21 +280,21 @@ struct ReplyBackOfTheDayView: View {
 
     @ViewBuilder private var homeScreen: some View {
         VStack(alignment: .leading, spacing: 6) {
-            WidgetKicker(text: "Reply of the day", tint: Theme.caution)
-            if let fan = pick {
-                Text(fan.title)
+            WidgetKicker(text: "Worth joining", tint: Theme.caution)
+            if let post = pick {
+                Text(post.authorTitle)
                     .font(WidgetStyle.metric(16))
                     .lineLimit(1)
-                Text("@\(fan.handle)")
+                Text(post.text)
                     .font(WidgetStyle.caption)
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                    .lineLimit(2)
                 Spacer(minLength: 0)
-                Text("engaged you \(fan.theyEngagedYou)×")
+                Text("\(post.likeCount) likes · \(post.replyCount) replies")
                     .font(WidgetStyle.body)
                     .foregroundStyle(Theme.caution)
             } else {
-                Text("Nobody to reply back to. Run a scan.")
+                Text("Run a follower scan to find a timely post.")
                     .font(WidgetStyle.body)
                     .foregroundStyle(.secondary)
             }
@@ -309,11 +305,11 @@ struct ReplyBackOfTheDayView: View {
 
     @ViewBuilder private var lockScreen: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("REPLY BACK")
+            Text("WORTH JOINING")
                 .font(WidgetStyle.caption.weight(.semibold))
-            if let fan = pick {
-                Text(fan.title).font(WidgetStyle.body).lineLimit(1)
-                Text("@\(fan.handle) · \(fan.theyEngagedYou)×")
+            if let post = pick {
+                Text(post.authorTitle).font(WidgetStyle.body).lineLimit(1)
+                Text("\(post.likeCount) likes · \(post.replyCount) replies")
                     .font(WidgetStyle.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)

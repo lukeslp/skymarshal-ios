@@ -24,7 +24,7 @@ FOLLOWER CLEANUP
   signals: mass-following, no posts, missing profile bits, suspiciously
   round numbers, very-new accounts flooding follows, and bad ratios.
 - Flag inactive accounts (no posts in N days, configurable).
-- Catch deleted accounts (handle.invalid).
+- Flag unverified handles without treating them as deleted or automated.
 - Sort by follower ratio, account age, post frequency, mutuality, or
   influence tier (mega, macro, micro, nano).
 - Bulk unfollow with the same rate-limit safety net the bulk delete uses.
@@ -35,6 +35,16 @@ DYNAMIC SEARCH
   when you didn't write the word "capybara."
 - Combine date range + engagement bounds to surface "dead threads"
   (low engagement) or "old bangers" (high engagement, distant past).
+
+FIVE PRIVATE WIDGETS
+- Worth Joining surfaces rising posts from people who regularly engage
+  with you, balancing that relationship with current post momentum.
+- Follow Snapshot shows follower, following, and inactive-account counts.
+- Your Top Post clearly shows engagement on one of your own posts.
+- Follower Trend keeps a simple recent-count sparkline on your Home Screen.
+- Join In puts one timely conversation on your Home or Lock Screen.
+- Widgets read a snapshot written by the app after a scan. The extension
+  makes no network requests of its own and adds no new tracking.
 
 PRIVACY
 - Sign in with an app password, not your main password. Generate a

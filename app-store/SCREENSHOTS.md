@@ -7,7 +7,7 @@ the capture source.
 
 ## Release set
 
-Ship the same six-frame sequence for both current device classes:
+The current staged set is the same six-frame sequence for both device classes:
 
 | # | iPhone 6.9" | iPad 13" | Story |
 | --- | --- | --- | --- |
@@ -22,6 +22,16 @@ The first four frames establish safe access, archive search, precision filters,
 and reviewable results. The final two make the follower-analysis and
 human-review safeguards tangible. Do not add a generic app-icon frame: every
 slot should explain a distinct capability.
+
+### Widget media gap
+
+Version 1.0.2 also includes five network-free widgets, but the checked-in media
+set does not yet show them. Before final submission, add one authentic seventh
+frame per device class using a real Home Screen composition with Worth Joining,
+Your Top Post, and Follower Trend populated from the same demo scan. Keep the app
+visible in the background or adjacent device frame so the relationship is clear;
+do not fabricate widget chrome in the renderer. The six current frames are safe
+to stage now and remain the fallback if the real widget capture is not ready.
 
 ## Capture and upload
 
@@ -43,7 +53,7 @@ that has transparency.
 
 ## Preflight
 
-- Six opaque PNGs in each class.
+- Six opaque PNGs in each class now; seven after the authentic widget frame lands.
 - iPhone 6.9": `1320 × 2868`.
 - iPad 13": `2064 × 2752`.
 - Use the pinned 9:41 / full-battery status bar from the capture script.
