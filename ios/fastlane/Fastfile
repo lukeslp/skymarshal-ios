@@ -1,3 +1,5 @@
+require "shellwords"
+
 default_platform(:ios)
 
 # Auth: deliver picks up the App Store Connect API key automatically from
@@ -60,8 +62,20 @@ platform :ios do
     }.each do |src, prefix|
       # [0-9][0-9]- matches 10- and above; the old 0[1-9]- glob silently
       # dropped any tenth screenshot from the upload.
-      files = Dir[File.expand_path("../screenshots-appstore/#{src}/[0-9][0-9]-*.png", __dir__)]
-      files.each { |f| FileUtils.cp(f, File.join(staging, "#{prefix}-#{File.basename(f)}")) }
+      files = Dir[File.expand_path("../screenshots-appstore/#{src}/[0-9][0-9]-*.png", __dir__)].sort
+      files.each do |f|
+        destination = File.join(staging, "#{prefix}-#{File.basename(f)}")
+        # XCTAttachment output is usually opaque, but iPad captures can
+        # occasionally retain an alpha channel. App Store Connect requires
+        # flat screenshots, so composite those onto white while staging.
+        has_alpha = `sips -g hasAlpha #{Shellwords.escape(f)} 2>/dev/null`.include?("hasAlpha: yes")
+        if has_alpha
+          UI.user_error!("ImageMagick is required to flatten #{File.basename(f)}. Install it with `brew install imagemagick`.") unless system("command -v magick >/dev/null 2>&1")
+          sh "magick #{Shellwords.escape(f)} -background white -alpha remove -alpha off #{Shellwords.escape(destination)}"
+        else
+          FileUtils.cp(f, destination)
+        end
+      end
       staged[prefix] = files
     end
     # overwrite_screenshots wipes EVERY device class in the locale, not just
