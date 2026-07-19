@@ -76,6 +76,7 @@ struct LoginView: View {
                 }
             }
         }
+        .preferredColorScheme(.dark)
     }
 
     @ViewBuilder
@@ -193,9 +194,8 @@ struct LoginView: View {
     }
 }
 
-/// Dot-matrix spy-bird hero + wordmark. The bird itself is the same
-/// silhouette as the AppIcon, rendered as cyan dots on the gradient with
-/// a single orange visor accent — matches the launch screen. Hidden
+/// Bird-guardian hero + wordmark. The symbol matches the App Icon and
+/// launch screen: folded wings around a watchful central bird. Hidden
 /// from VoiceOver as decorative; the wordmark below labels the section.
 @available(iOS 17, *)
 private struct DotBirdHeader: View {

@@ -58,7 +58,8 @@ targets:
         CFBundleVersion: "27"
         LSApplicationCategoryType: public.app-category.social-networking
         UILaunchScreen:
-          UIImageName: ScopeHeader
+          UIImageName: LaunchBird
+          UIColorName: LaunchBackground
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
           UISceneConfigurations: {}
