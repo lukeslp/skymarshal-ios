@@ -46,6 +46,10 @@ struct HygieneSummaryView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(
+            "Follow snapshot. \(h.followers) followers, following \(h.follows) accounts, \(h.inactive) inactive accounts."
+        )
     }
 
 }
@@ -103,6 +107,21 @@ struct PeopleToEngageView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilitySummary)
+    }
+
+    /// Plain-language spoken summary — counts read as words ("12 likes"),
+    /// never the "12♥" glyph string shown visually.
+    private var accessibilitySummary: String {
+        let posts = Array((entry.snapshot.recommendedPosts ?? []).prefix(rowLimit))
+        guard !posts.isEmpty else {
+            return "Worth joining. Run a follower scan to find timely posts from people who engage with you."
+        }
+        let rows = posts.map { post in
+            "\(post.authorTitle): \(post.text), \(post.likeCount) like\(post.likeCount == 1 ? "" : "s")"
+        }
+        return "Worth joining. " + rows.joined(separator: ". ")
     }
 }
 
@@ -151,6 +170,20 @@ struct PostTakingOffView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilitySummary)
+    }
+
+    private var accessibilitySummary: String {
+        guard let post = entry.snapshot.topPost else {
+            return "Your top post. No posts yet. Load your content to see what is taking off."
+        }
+        let body = post.text.isEmpty ? "No text" : post.text
+        return "Your top post: \(body). "
+            + "\(post.likeCount) like\(post.likeCount == 1 ? "" : "s"), "
+            + "\(post.repostCount) repost\(post.repostCount == 1 ? "" : "s"), "
+            + "\(post.replyCount) repl\(post.replyCount == 1 ? "y" : "ies"). "
+            + "Posted \(post.indexedAt.widgetRelative) ago."
     }
 
     private func metric(_ value: String, _ label: String, _ tint: Color) -> some View {
@@ -203,6 +236,18 @@ struct FollowerTrendView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilitySummary)
+    }
+
+    /// Spoken trend summary computed from the same history the sparkline
+    /// draws — the shape itself is invisible to VoiceOver.
+    private var accessibilitySummary: String {
+        guard let delta, delta != 0 else {
+            return "Followers steady over the last week, currently \(latest)."
+        }
+        let direction = delta > 0 ? "up" : "down"
+        return "Followers \(direction) \(abs(delta)) over the last week, currently \(latest)."
     }
 
     private var delta: Int? {
@@ -301,6 +346,17 @@ struct ReplyBackOfTheDayView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilitySummary)
+    }
+
+    private var accessibilitySummary: String {
+        guard let post = pick else {
+            return "Worth joining. Run a follower scan to find a timely post."
+        }
+        return "Worth joining. \(post.authorTitle): \(post.text). "
+            + "\(post.likeCount) like\(post.likeCount == 1 ? "" : "s"), "
+            + "\(post.replyCount) repl\(post.replyCount == 1 ? "y" : "ies")."
     }
 
     @ViewBuilder private var lockScreen: some View {
@@ -318,6 +374,8 @@ struct ReplyBackOfTheDayView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilitySummary)
     }
 }
 
