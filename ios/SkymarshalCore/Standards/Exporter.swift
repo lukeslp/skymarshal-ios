@@ -16,12 +16,13 @@ public enum Exporter {
         handle: String?,
         did: String? = nil
     ) throws -> ExportPayload {
+        let dateFormatter = ISO8601DateFormatter()
         let envelope = ContentExportEnvelope(
             handle: handle,
             did: did,
-            exportedAt: ISO8601DateFormatter().string(from: Date()),
+            exportedAt: dateFormatter.string(from: Date()),
             itemCount: items.count,
-            items: items.map(ContentExportRow.init)
+            items: items.map { ContentExportRow($0, dateFormatter: dateFormatter) }
         )
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -35,6 +36,7 @@ public enum Exporter {
     }
 
     public static func contentCSV(_ items: [ContentItem]) -> ExportPayload {
+        let dateFormatter = ISO8601DateFormatter()
         var lines: [String] = []
         lines.append([
             "uri", "cid", "contentType", "createdAt",
@@ -47,7 +49,7 @@ public enum Exporter {
                 csvEscape(item.uri),
                 csvEscape(item.cid),
                 csvEscape(item.contentType.rawValue),
-                csvEscape(item.createdAt.map { ISO8601DateFormatter().string(from: $0) } ?? ""),
+                csvEscape(item.createdAt.map { dateFormatter.string(from: $0) } ?? ""),
                 String(item.likeCount),
                 String(item.repostCount),
                 String(item.replyCount),
@@ -72,11 +74,12 @@ public enum Exporter {
         _ accounts: [AnalyzedAccount],
         handle: String?
     ) throws -> ExportPayload {
+        let dateFormatter = ISO8601DateFormatter()
         let envelope = FollowersExportEnvelope(
             handle: handle,
-            exportedAt: ISO8601DateFormatter().string(from: Date()),
+            exportedAt: dateFormatter.string(from: Date()),
             accountCount: accounts.count,
-            accounts: accounts.map(FollowerExportRow.init)
+            accounts: accounts.map { FollowerExportRow($0, dateFormatter: dateFormatter) }
         )
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -90,6 +93,7 @@ public enum Exporter {
     }
 
     public static func followersCSV(_ accounts: [AnalyzedAccount]) -> ExportPayload {
+        let dateFormatter = ISO8601DateFormatter()
         var lines: [String] = []
         lines.append([
             "did", "handle", "displayName", "followersCount", "followsCount",
@@ -115,7 +119,7 @@ public enum Exporter {
                 String(acc.accountAgeDays),
                 String(acc.postsPerDay),
                 String(acc.profileCompleteness),
-                csvEscape(acc.lastPostDate.map { ISO8601DateFormatter().string(from: $0) } ?? ""),
+                csvEscape(acc.lastPostDate.map { dateFormatter.string(from: $0) } ?? ""),
                 acc.daysSinceLastPost.map(String.init) ?? "",
                 acc.isInactive ? "true" : "false",
                 acc.isDeleted ? "true" : "false",
@@ -198,12 +202,12 @@ private struct ContentExportRow: Encodable {
     let altText: String?
     let deletionURI: String?
 
-    init(_ item: ContentItem) {
+    init(_ item: ContentItem, dateFormatter: ISO8601DateFormatter) {
         self.uri = item.uri
         self.cid = item.cid
         self.contentType = item.contentType.rawValue
         self.text = item.text
-        self.createdAt = item.createdAt.map { ISO8601DateFormatter().string(from: $0) }
+        self.createdAt = item.createdAt.map { dateFormatter.string(from: $0) }
         self.likeCount = item.likeCount
         self.repostCount = item.repostCount
         self.replyCount = item.replyCount
@@ -243,7 +247,7 @@ private struct FollowerExportRow: Encodable {
     let isMutual: Bool
     let engagementScore: Double
 
-    init(_ acc: AnalyzedAccount) {
+    init(_ acc: AnalyzedAccount, dateFormatter: ISO8601DateFormatter) {
         self.did = acc.did
         self.handle = acc.handle
         self.displayName = acc.profile.displayName
@@ -258,7 +262,7 @@ private struct FollowerExportRow: Encodable {
         self.accountAgeDays = acc.accountAgeDays
         self.postsPerDay = acc.postsPerDay
         self.profileCompleteness = acc.profileCompleteness
-        self.lastPostDate = acc.lastPostDate.map { ISO8601DateFormatter().string(from: $0) }
+        self.lastPostDate = acc.lastPostDate.map { dateFormatter.string(from: $0) }
         self.daysSinceLastPost = acc.daysSinceLastPost
         self.isInactive = acc.isInactive
         self.isDeleted = acc.isDeleted

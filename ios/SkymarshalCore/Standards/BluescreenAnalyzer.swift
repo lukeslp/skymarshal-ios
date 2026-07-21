@@ -21,11 +21,6 @@ public enum BluescreenAnalyzer {
     /// a (weight, score) pair; the final value is the weighted average,
     /// clamped. `flags` lists the human-readable factors that triggered.
     public static func botScore(for profile: BskyProfile) -> (score: Double, flags: [String]) {
-        // Short-circuit: deleted account always 1.0
-        if profile.handle == "handle.invalid" {
-            return (1.0, ["Deleted account (handle.invalid)"])
-        }
-
         var flags: [String] = []
         var factors: [(weight: Double, score: Double)] = []
 
@@ -177,17 +172,19 @@ public enum BluescreenAnalyzer {
             Int(now.timeIntervalSince($0) / 86_400)
         }
 
-        let isDeleted = profile.handle == "handle.invalid"
+        // `handle.invalid` means the handle is unverified. It does not
+        // establish account deletion; no deletion signal is currently
+        // available in the profile shape consumed by this analyzer.
+        let isDeleted = false
         // Time-based inactivity (a stale last-post date) is only honest
         // when the activity read was reliable. When `activityReadState`
         // is `.unknown` (throttled / gated / errored), an empty or stale
         // last-post read is suppressed so a throttle can't masquerade as
-        // inactivity. The two reliable, read-independent signals
-        // (`isDeleted`, `postsCount == 0`) always stand.
+        // inactivity. A profile-reported zero post count remains a
+        // reliable, read-independent signal.
         let timeInactive = activityReadState == .read
             && (daysSinceLast.map { $0 > inactivityDays } ?? false)
-        let isInactive: Bool = isDeleted
-            || profile.postsCount == 0
+        let isInactive: Bool = profile.postsCount == 0
             || timeInactive
 
         let isMutual = profile.viewer?.followedBy != nil

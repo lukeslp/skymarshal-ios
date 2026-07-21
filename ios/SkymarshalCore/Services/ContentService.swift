@@ -143,6 +143,57 @@ public actor ContentService {
     /// on any endpoint with more pages remaining. See ``LoadProgress/truncated``.
     public private(set) var lastLoadTruncated: Bool = false
 
+    /// Fetch only the newest page from each content endpoint and merge it
+    /// into the current snapshot. This is the fast path for app launch and
+    /// pull-to-refresh; full archive refresh remains available through
+    /// ``ensureContentLoaded(forceRefresh:progress:)``.
+    @discardableResult
+    public func refreshMostRecentContent(
+        progress: (@Sendable (LoadProgress) async -> Void)? = nil
+    ) async throws -> [ContentItem] {
+        guard let did = await client.currentDid else {
+            throw ATProtoError(status: 401, message: "Not authenticated")
+        }
+
+        let owner = await client.currentHandle ?? did
+
+        let postsResponse = try await client.getAuthorFeed(actor: did, limit: 100)
+        let posts = postsResponse.feed.map(Self.toContentItem)
+        mergeFreshItems(posts)
+        persist(posts, owner: owner)
+        await progress?(LoadProgress(
+            phase: .posts,
+            itemsLoaded: loadedContent.count,
+            pagesFetched: 1,
+            isComplete: false
+        ))
+
+        let likesResponse = try await client.getActorLikes(actor: did, limit: 100)
+        let likes = likesResponse.feed.map { view -> ContentItem in
+            let base = Self.toContentItem(view)
+            return ContentItem(
+                uri: base.uri, cid: base.cid,
+                deletionURI: view.post.viewer?.like,
+                contentType: .likes,
+                text: base.text, createdAt: base.createdAt,
+                likeCount: base.likeCount, repostCount: base.repostCount,
+                replyCount: base.replyCount, media: base.media,
+                linkCard: base.linkCard, textLinks: base.textLinks,
+                subjectAuthorHandle: view.post.author.handle
+            )
+        }
+        mergeFreshItems(likes)
+        persist(likes, owner: owner)
+        await progress?(LoadProgress(
+            phase: .done,
+            itemsLoaded: loadedContent.count,
+            pagesFetched: 2,
+            isComplete: true
+        ))
+
+        return loadedContent
+    }
+
     /// Fetch the user's complete posts/replies/reposts/likes set from the
     /// PDS via cursor pagination. Both endpoints are looped to exhaustion
     /// (or the page cap), with `progress` called after every page so the
@@ -297,6 +348,29 @@ public actor ContentService {
     /// loading from an offline backup.
     public func setLoadedContent(_ items: [ContentItem]) {
         self.loadedContent = items
+    }
+
+    private func mergeFreshItems(_ freshItems: [ContentItem]) {
+        guard !freshItems.isEmpty else { return }
+        var byID: [String: ContentItem] = [:]
+        for item in loadedContent {
+            byID[item.id] = item
+        }
+        for item in freshItems {
+            byID[item.id] = item
+        }
+        loadedContent = byID.values.sorted {
+            switch ($0.createdAt, $1.createdAt) {
+            case let (lhs?, rhs?):
+                return lhs > rhs
+            case (_?, nil):
+                return true
+            case (nil, _?):
+                return false
+            case (nil, nil):
+                return $0.id < $1.id
+            }
+        }
     }
 
     /// How ``applyBackupImport`` should combine imported rows with the live cache.

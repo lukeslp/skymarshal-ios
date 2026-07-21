@@ -76,6 +76,7 @@ struct LoginView: View {
                 }
             }
         }
+        .preferredColorScheme(.dark)
     }
 
     @ViewBuilder
@@ -90,15 +91,18 @@ struct LoginView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background {
                 RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
-                    .fill(.ultraThinMaterial)
+                    .fill(Theme.elev1)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                            .strokeBorder(Theme.caution.opacity(0.35), lineWidth: 1)
+                    }
             }
     }
 
     private var climbAboardDeck: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Climb aboard")
-                .font(.subheadline.weight(.semibold))
-                .tracking(0.3)
+                .font(Theme.Mono.kicker(12))
                 .foregroundStyle(.secondary)
 
             TextField("yourname.bsky.social", text: $handle)
@@ -106,10 +110,31 @@ struct LoginView: View {
                 .keyboardType(.emailAddress)
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 11)
+                .background {
+                    RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                        .fill(Theme.elev2)
+                        .overlay {
+                            RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                                .strokeBorder(Theme.hairline, lineWidth: 1)
+                        }
+                }
                 .accessibilityLabel("Bluesky handle")
 
             SecureField("app password", text: $appPassword)
                 .textContentType(.password)
+                .font(Theme.Mono.body(15))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 11)
+                .background {
+                    RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                        .fill(Theme.elev2)
+                        .overlay {
+                            RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                                .strokeBorder(Theme.hairline, lineWidth: 1)
+                        }
+                }
                 .accessibilityLabel("App password")
 
             VStack(alignment: .leading, spacing: 8) {
@@ -124,7 +149,11 @@ struct LoginView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
             RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
-                .fill(.ultraThinMaterial)
+                .fill(Theme.elev1)
+                .overlay {
+                    RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                        .strokeBorder(Theme.hairline, lineWidth: 1)
+                }
         }
     }
 
@@ -140,7 +169,11 @@ struct LoginView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background {
                 RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
-                    .fill(.ultraThinMaterial)
+                    .fill(Theme.elev1)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
+                            .strokeBorder(Theme.danger.opacity(0.35), lineWidth: 1)
+                    }
             }
     }
 
@@ -161,9 +194,8 @@ struct LoginView: View {
     }
 }
 
-/// Dot-matrix spy-bird hero + wordmark. The bird itself is the same
-/// silhouette as the AppIcon, rendered as cyan dots on the gradient with
-/// a single orange visor accent — matches the launch screen. Hidden
+/// Bird-guardian hero + wordmark. The symbol matches the App Icon and
+/// launch screen: folded wings around a watchful central bird. Hidden
 /// from VoiceOver as decorative; the wordmark below labels the section.
 @available(iOS 17, *)
 private struct DotBirdHeader: View {

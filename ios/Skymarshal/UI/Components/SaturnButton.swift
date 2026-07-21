@@ -1,20 +1,9 @@
 // SaturnButton.swift
 //
-// Skymarshal's primary CTA button style — 6pt continuous corner radius,
-// 1pt ink-toned border, paper-toned fill on idle, scope-blue tint on
-// press. Optional `.primaryCinematic` uses the OLED accent gradient for
-// hero surfaces (Login). Replaces `.borderedProminent` on Sign in /
-// Begin scan so those surfaces stop reading as generic iOS first-launch
-// flows.
-//
-// Inputs:   SwiftUI `ButtonStyle.Configuration` (label + isPressed).
-// Outputs:  a `View` rendering the configured button.
-//
-// **Token shim:** v1.0.1 references `Color(.systemBackground)` for fill
-// and `Color.primary.opacity(0.32)` for the stroke. These are the
-// placeholders until `Theme+Saturn.swift` ships paper / hairline tokens
-// in v1.0.2. When v1.0.2 lands, swap the two lines flagged with
-// `// v1.0.2 shim ↓`. Keep the comment until both are replaced.
+// Skymarshal's primary CTA button style — radius-sm continuous corners,
+// hairline border, elev1 fill on idle, scope-blue tint on press.
+// Optional `.primaryCinematic` uses the OLED accent gradient for
+// hero surfaces (Login / Patterns Begin scan).
 
 import SwiftUI
 import SkymarshalCore
@@ -62,21 +51,21 @@ private struct SaturnButtonBody: View {
                 return Theme.chipTint(Theme.danger)
             }
         }
-        // v1.0.2 shim ↓
-        return emphasis == .ghost ? Color.clear : Color(.systemBackground)
+        // Primary idle fill is elev1 (Make cards), not systemBackground.
+        return emphasis == .ghost ? Color.clear : Theme.elev1
     }
 
     private var stroke: Color {
-        if !isEnabled { return Color.primary.opacity(0.18) }
+        if !isEnabled { return Theme.hairlineMed }
         switch emphasis {
         case .primaryCinematic where !cinematicSolidForAccessibility:
             return Color.white.opacity(configuration.isPressed ? 0.55 : 0.38)
         case .primaryCinematic:
-            return configuration.isPressed ? Theme.scope.opacity(0.85) : Color.primary.opacity(0.28)
+            return configuration.isPressed ? Theme.scope.opacity(0.85) : Theme.hairlineMed
         case .primary:
-            return configuration.isPressed ? Theme.scope : Color.primary.opacity(0.32)
+            return configuration.isPressed ? Theme.cinematicAccentA : Theme.hairlineMed
         case .ghost:
-            return configuration.isPressed ? Theme.scope : Color.primary.opacity(0.32)
+            return configuration.isPressed ? Theme.cinematicAccentA : Theme.hairlineMed
         case .destructive:
             return Theme.danger
         }

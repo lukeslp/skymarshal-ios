@@ -26,13 +26,6 @@ final class BotFlagSeverityTests: XCTestCase {
         )
     }
 
-    func test_deletedAccount_isHigh() {
-        XCTAssertEqual(
-            BotFlagSeverity.classify("Deleted account (handle.invalid)"),
-            .high
-        )
-    }
-
     // MARK: - Medium severity (strong but not conclusive)
 
     func test_highFollowingLowRatio_isMedium() {

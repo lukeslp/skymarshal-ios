@@ -59,10 +59,11 @@ final class ScreenshotTest: XCTestCase {
         XCUIDevice.shared.orientation = .portrait
 
         let app = XCUIApplication()
+        app.launchArguments.append("-uitestSkipOnboarding")
         app.launch()
 
         // ── Gate: signed-in Content tab or the LoginView ──────────────────
-        let contentNav = app.navigationBars["My Content"]
+        let contentNav = app.navigationBars["Content"]
         let signInButton = app.buttons["Sign in"]
         let gateDeadline = Date().addingTimeInterval(30)
         while !contentNav.exists && !signInButton.exists && Date() < gateDeadline {
@@ -91,18 +92,24 @@ final class ScreenshotTest: XCTestCase {
         // alone is a strong frame, so search typing is best-effort: we only
         // type once the keyboard has actually attached (the signed-in account
         // auto-refreshes on launch and can drop focus mid-rebuild).
-        let searchField = app.searchFields.firstMatch
-        XCTAssertTrue(searchField.waitForExistence(timeout: 15),
+        // Custom elev2 search well (CinematicSearchField) — appears as a
+        // textField, not a system searchField.
+        let searchField = app.textFields.matching(
+            NSPredicate(format: "placeholderValue CONTAINS[c] 'search' OR label CONTAINS[c] 'search'")
+        ).firstMatch
+        let searchFallback = app.textFields.firstMatch
+        let searchTarget = searchField.waitForExistence(timeout: 5) ? searchField : searchFallback
+        XCTAssertTrue(searchTarget.waitForExistence(timeout: 15),
                       "search field never appeared")
         let keyboard = app.keyboards.firstMatch
         var typedSearch = false
         for _ in 1...3 {
-            searchField.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            searchTarget.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
             if keyboard.waitForExistence(timeout: 4) {
                 Thread.sleep(forTimeInterval: 0.5)
-                searchField.typeText("language")
+                searchTarget.typeText("the")
                 Thread.sleep(forTimeInterval: 1.0)
-                searchField.typeText("\n") // commit + dismiss the keyboard
+                searchTarget.typeText("\n") // commit + dismiss the keyboard
                 typedSearch = true
                 break
             }
@@ -115,14 +122,15 @@ final class ScreenshotTest: XCTestCase {
         snap("01-search", of: app)
 
         // ── 2. Filter sheet ────────────────────────────────────────────────
-        // accessibilityLabel is "Filters" or "Filters, active" — match the
-        // trailing 's' so the inner "Filter" text label can't shadow the
-        // real button. Case-insensitive (UI text is styled).
+        // Trailing slider on the cinematic search well opens Filters
+        // (accessibilityLabel "Advanced filters"). Fall back to the inline
+        // "Filters, active" chip when a filter is already on.
         let filterButton = app.buttons.matching(
-            NSPredicate(format: "label BEGINSWITH[c] 'filters'")).firstMatch
+            NSPredicate(format: "label ==[c] 'Advanced filters' OR label BEGINSWITH[c] 'filters'")
+        ).firstMatch
         XCTAssertTrue(filterButton.waitForExistence(timeout: 10),
                       "Filter button not found")
-        let filtersNav = app.navigationBars["Filters"]
+        let filtersNav = app.navigationBars["Advanced Search"]
         for _ in 1...3 {
             filterButton.tap()
             if filtersNav.waitForExistence(timeout: 4) { break }
@@ -153,20 +161,20 @@ final class ScreenshotTest: XCTestCase {
         snap("02-filters", of: app)
 
         // ── 3. Filtered results (media thumbnails) ─────────────────────────
-        let applyButton = app.buttons["Apply"]
+        let applyButton = app.buttons["Apply Search"].firstMatch
         XCTAssertTrue(applyButton.waitForExistence(timeout: 5), "Apply not found")
         applyButton.tap()
         Thread.sleep(forTimeInterval: 2.5)
         snap("03-media-results", of: app)
 
-        // ── 4. Followers scoring ───────────────────────────────────────────
-        var followersTab = app.tabBars.buttons["Followers"]
-        if !followersTab.exists { followersTab = app.buttons["Followers"].firstMatch }
+        // ── 4. Patterns scoring ────────────────────────────────────────────
+        var followersTab = app.tabBars.buttons["Patterns"]
+        if !followersTab.exists { followersTab = app.buttons["Patterns"].firstMatch }
         XCTAssertTrue(followersTab.waitForExistence(timeout: 10),
-                      "Followers tab not reachable")
+                      "Patterns tab not reachable")
         followersTab.tap()
-        XCTAssertTrue(app.navigationBars["Followers"].waitForExistence(timeout: 10),
-                      "Followers screen never appeared")
+        XCTAssertTrue(app.navigationBars["Patterns"].waitForExistence(timeout: 10),
+                      "Patterns screen never appeared")
 
         // Fresh sessions land on the empty state; the scan reads the follow
         // list and scores it locally — no writes. Kicking it off is safe.
@@ -216,7 +224,23 @@ final class ScreenshotTest: XCTestCase {
                 Thread.sleep(forTimeInterval: 2.0)
                 snap("05-account-detail", of: app)
                 let close = app.buttons["Close"].firstMatch
-                if close.exists, close.isHittable { close.tap() }
+                if close.exists, close.isHittable {
+                    close.tap()
+                    _ = accountNav.waitForNonExistence(timeout: 5)
+                }
+            }
+        }
+
+        // ── 6. Scope overview ──────────────────────────────────────────────
+        // The visual overview gives the store story a distinct final feature
+        // instead of repeating another archive-list frame.
+        let scope = app.buttons["Scope"].firstMatch
+        if scope.waitForExistence(timeout: 5), scope.isHittable {
+            scope.tap()
+            let scopeNav = app.navigationBars["Scope"]
+            if scopeNav.waitForExistence(timeout: 10) {
+                Thread.sleep(forTimeInterval: 2.0)
+                snap("06-scope", of: app)
             }
         }
     }

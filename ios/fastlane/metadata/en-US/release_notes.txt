@@ -1,9 +1,12 @@
-First flight.
+Five new widgets keep useful signals close without vague scores or obligation.
 
-Skymarshal does two things: searches every post, reply, repost, and like
-in your archive, and scores your follow list for automation signals and
-inactive accounts. Bulk delete and bulk unfollow on top, with the
-rate-limit safety nets they deserve.
+- Worth Joining: rising posts from people who regularly engage with you
+- Join In: one timely conversation on your Home or Lock Screen
+- Follow Snapshot: clear follower, following, and inactive-account counts
+- Your Top Post: engagement on one of your own posts
+- Follower Trend: a simple recent-count sparkline
+- Clearer account signals, including neutral handling of unverified handles
 
-App password only. No tracking. No server. Your archive stays on your
-phone.
+Recommendations balance existing engagement with recent post momentum. The
+widget extension reads an on-device snapshot and makes no network requests.
+App password only. No tracking. No server.

@@ -107,4 +107,73 @@ final class CacheHydrationEquivalenceTests: XCTestCase {
             Set(legacyRows.map(\.compositeKey))
         )
     }
+
+    func test_accountHydration_repairsOnlyContaminatedUnverifiedHandleRow() throws {
+        let container = try SkymarshalSchema.makeContainer(inMemory: true)
+        let context = ModelContext(container)
+        let owner = "scanner.bsky.social"
+        let createdAt = "2020-01-01T00:00:00Z"
+        let unverifiedProfile = BskyProfile(
+            did: "did:plc:unverified",
+            handle: "handle.invalid",
+            displayName: "Unverified",
+            description: "bio",
+            avatar: "https://x/avatar",
+            banner: "https://x/banner",
+            followersCount: 234,
+            followsCount: 183,
+            postsCount: 87,
+            createdAt: createdAt
+        )
+        let contaminated = AnalyzedAccount(
+            profile: unverifiedProfile,
+            ratio: 1.28,
+            botScore: 1,
+            botFlags: ["Deleted account (handle.invalid)"],
+            influenceScore: 1,
+            influenceTier: .nano,
+            accountAgeDays: 1,
+            postsPerDay: 1,
+            profileCompleteness: 1,
+            lastPostDate: nil,
+            daysSinceLastPost: nil,
+            isInactive: true,
+            isDeleted: true,
+            isMutual: false,
+            engagementScore: 0,
+            interactedRecently: nil,
+            activityReadState: .unknown,
+            userWhitelisted: true
+        )
+        context.insert(AnalyzedAccountRecord(account: contaminated, ownerHandle: owner))
+
+        let unrelatedProfile = BskyProfile(
+            did: "did:plc:unrelated",
+            handle: "unrelated.bsky.social",
+            followersCount: 30,
+            followsCount: 1000,
+            postsCount: 50,
+            createdAt: createdAt
+        )
+        let unrelated = BluescreenAnalyzer.analyze(profile: unrelatedProfile)
+        context.insert(AnalyzedAccountRecord(account: unrelated, ownerHandle: owner))
+        try context.save()
+
+        let rows = CacheHydration.analyzedAccountRecords(for: owner, context: context)
+        XCTAssertEqual(rows.count, 2, "Repair must not delete unrelated scan data")
+
+        let repaired = try XCTUnwrap(
+            rows.first { $0.did == "did:plc:unverified" }?.toAnalyzedAccount()
+        )
+        XCTAssertEqual(repaired.botScore, 0)
+        XCTAssertTrue(repaired.botFlags.isEmpty)
+        XCTAssertFalse(repaired.isDeleted)
+        XCTAssertFalse(repaired.isInactive)
+        XCTAssertTrue(repaired.userWhitelisted)
+
+        let untouched = try XCTUnwrap(
+            rows.first { $0.did == "did:plc:unrelated" }?.toAnalyzedAccount()
+        )
+        XCTAssertEqual(untouched.botScore, unrelated.botScore)
+    }
 }

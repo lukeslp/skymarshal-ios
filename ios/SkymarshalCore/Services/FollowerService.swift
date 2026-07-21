@@ -689,12 +689,14 @@ public actor FollowerService {
         }
     }
 
-    /// Replace the profile's count fields and (if originally absent) any
-    /// missing description / banner with values from the detailed profile.
+    /// Replace the profile's handle/count fields and (if originally absent)
+    /// any missing description / banner with values from the detailed profile.
+    /// The detailed handle is authoritative for this scan: a basic
+    /// getFollows row can carry stale `handle.invalid` identity data.
     private func mergeCounts(into base: BskyProfile, from detail: BskyProfile) -> BskyProfile {
         BskyProfile(
             did: base.did,
-            handle: base.handle,
+            handle: detail.handle,
             displayName: base.displayName ?? detail.displayName,
             description: base.description?.isEmpty == false ? base.description : detail.description,
             avatar: base.avatar ?? detail.avatar,

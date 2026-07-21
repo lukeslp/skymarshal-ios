@@ -13,6 +13,13 @@ Use after Week 1–3 engineering + soak work. **Do not edit the council plan fil
 | 5 | [XRPC_DRIFT_RUNBOOK.md](XRPC_DRIFT_RUNBOOK.md) committed | this repo |
 | 6 | [PUBLIC_RESPONSE_PLAYBOOK.md](PUBLIC_RESPONSE_PLAYBOOK.md) committed | this repo |
 
+## Latest verification (2026-07-18)
+
+- **YES — gate 3:** 275 unit tests and 12 non-credential UI tests passed on the iPhone 17 simulator; `ScreenshotTest` remains a credentialed release operation.
+- **YES — gates 5–6:** both required runbooks are present in `docs/`.
+- **PENDING — gates 1, 2, and 4:** `docs/soak/` contains only the observation template; the ≥10k-content recording, trace, 429 scenario, and JWT mid-flow evidence have not been recorded.
+- **PENDING — release ops:** verify App Store Connect state, reviewer credentials, screenshots, and paste-session readiness externally before checking these boxes.
+
 ## Release-ops (Bucket D)
 
 | Item | Status | Doc |

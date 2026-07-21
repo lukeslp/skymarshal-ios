@@ -5,9 +5,22 @@ import SkymarshalCore
 /// rhythm: leading color stripe + inline metadata + body + metric row.
 /// The leading stripe color encodes status tier (red bot/deleted,
 /// orange suspect, yellow inactive, accent mutual, gray default).
+/// An unverified AT Protocol handle is shown separately as a neutral pill.
 @available(iOS 17, *)
 struct AccountRow: View {
     let account: AnalyzedAccount
+    var isExpanded: Bool
+    var onToggleExpansion: () -> Void
+
+    init(
+        account: AnalyzedAccount,
+        isExpanded: Bool = false,
+        onToggleExpansion: @escaping () -> Void = {}
+    ) {
+        self.account = account
+        self.isExpanded = isExpanded
+        self.onToggleExpansion = onToggleExpansion
+    }
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -17,7 +30,7 @@ struct AccountRow: View {
                 .fill(stripeColor)
                 .frame(width: 3)
                 .frame(maxHeight: .infinity)
-                .accessibilityLabel(stripeAccessibilityLabel)
+                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 5) {
                 // Header: avatar + name + handle on the left, status
@@ -41,38 +54,111 @@ struct AccountRow: View {
                     Spacer(minLength: 4)
 
                     StatusPills(account: account)
+
+                    Button(action: onToggleExpansion) {
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.tertiary)
+                            .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                            .frame(width: 32, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(
+                        isExpanded
+                            ? "Collapse details for @\(account.handle)"
+                            : "Expand details for @\(account.handle)"
+                    )
                 }
 
-                if let bio = account.profile.description, !bio.isEmpty {
-                    Text(bio)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                }
+                AutomationScoreBar(score: account.botScore)
 
-                // Metric row: numbers only, all on one line. Single
-                // overflow rule (truncate at the right). Influence
-                // tier sits at the trailing edge in muted text.
-                HStack(spacing: 14) {
-                    metric("\(short(account.profile.followersCount))", "person.fill")
-                    metric("\(short(account.profile.followsCount))", "person.crop.circle.badge.plus")
-                    metric(ratioLabel, "arrow.left.arrow.right")
-                    Spacer(minLength: 4)
-                    Text(account.influenceTier.label.lowercased())
-                        .font(Theme.Mono.caption(11))
-                        .foregroundStyle(.tertiary)
+                if isExpanded {
+                    VStack(alignment: .leading, spacing: 10) {
+                        if let bio = account.profile.description, !bio.isEmpty {
+                            Text(bio)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+
+                        HStack(spacing: 18) {
+                            expandedMetric(
+                                account.profile.followersCount.formatted(),
+                                label: "followers"
+                            )
+                            expandedMetric(
+                                account.profile.followsCount.formatted(),
+                                label: "following"
+                            )
+                            expandedMetric(
+                                account.profile.postsCount.formatted(),
+                                label: "posts"
+                            )
+                        }
+
+                        if !account.botFlags.isEmpty && !account.userWhitelisted {
+                            LazyVGrid(
+                                columns: [GridItem(.adaptive(minimum: 92), spacing: 5)],
+                                alignment: .leading,
+                                spacing: 5
+                            ) {
+                                ForEach(account.botFlags, id: \.self) { flag in
+                                    Text(flag)
+                                        .font(Theme.Mono.caption(10))
+                                        .foregroundStyle(Theme.danger)
+                                        .padding(.horizontal, 7)
+                                        .padding(.vertical, 3)
+                                        .background {
+                                            RoundedRectangle(
+                                                cornerRadius: Theme.Radius.sm,
+                                                style: .continuous
+                                            )
+                                            .fill(Theme.chipTint(Theme.danger))
+                                            .overlay {
+                                                RoundedRectangle(
+                                                    cornerRadius: Theme.Radius.sm,
+                                                    style: .continuous
+                                                )
+                                                .strokeBorder(
+                                                    Theme.danger.opacity(0.35),
+                                                    lineWidth: 1
+                                                )
+                                            }
+                                        }
+                                }
+                            }
+                            .accessibilityElement(children: .combine)
+                            .accessibilityLabel(
+                                "Patterns noticed: \(account.botFlags.joined(separator: ", "))"
+                            )
+                        }
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                } else {
+                    // Compact metric row remains visible when collapsed.
+                    HStack(spacing: 14) {
+                        metric("\(short(account.profile.followersCount))", "person.fill")
+                        metric("\(short(account.profile.followsCount))", "person.crop.circle.badge.plus")
+                        metric(ratioLabel, "arrow.left.arrow.right")
+                        Spacer(minLength: 4)
+                        Text(account.influenceTier.label.lowercased())
+                            .font(Theme.Mono.caption(11))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .font(Theme.Mono.tabular(11))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
                 }
-                .font(Theme.Mono.tabular(11))
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
             }
         }
         .padding(.vertical, 6)
         .frame(minHeight: 56)
+        .accessibilityValue(stripeAccessibilityLabel)
     }
 
     private var stripeColor: Color {
-        if account.isDeleted { return Theme.danger }
+        if account.isDeleted && !account.profile.hasUnverifiedHandle { return Theme.danger }
         // Whitelist override: a user-confirmed real human shouldn't
         // wear a danger/caution stripe just because of low post volume.
         if !account.userWhitelisted {
@@ -88,7 +174,7 @@ struct AccountRow: View {
     /// 3pt visual cue is redundant; this label is the non-visual
     /// equivalent that Switch Control / VoiceOver users hear.
     private var stripeAccessibilityLabel: String {
-        if account.isDeleted { return "Deleted account" }
+        if account.isDeleted && !account.profile.hasUnverifiedHandle { return "Deleted account" }
         if !account.userWhitelisted {
             if account.botScore >= 0.6 { return "High automation signals" }
             if account.botScore >= 0.3 { return "Moderate automation signals" }
@@ -124,6 +210,17 @@ struct AccountRow: View {
             .labelStyle(.titleAndIcon)
             .symbolRenderingMode(.hierarchical)
     }
+
+    private func expandedMetric(_ value: String, label: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(value)
+                .font(Theme.Mono.tabular(14))
+                .fontWeight(.bold)
+            Text(label.uppercased())
+                .font(Theme.Mono.kicker(9))
+                .foregroundStyle(.tertiary)
+        }
+    }
 }
 
 /// Header status pills: mutual icon + bot/inactive/deleted badges.
@@ -141,7 +238,11 @@ private struct StatusPills: View {
                     .foregroundStyle(.tint)
                     .accessibilityLabel("Mutual")
             }
-            if account.isDeleted {
+            if account.profile.hasUnverifiedHandle {
+                Pill(systemImage: "questionmark.circle", text: "unverified", color: .secondary)
+                    .accessibilityLabel("Unverified handle")
+            }
+            if account.isDeleted && !account.profile.hasUnverifiedHandle {
                 Pill(systemImage: "xmark.octagon.fill", text: "del", color: Theme.danger)
                     .accessibilityLabel("Deleted account")
             } else if account.isInactive {
@@ -188,7 +289,7 @@ private struct StatusPills: View {
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(
-                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous)
                     .fill(Theme.chipTint(color))
             )
         }
@@ -216,6 +317,43 @@ struct BotScoreBadge: View {
     }
 }
 
+/// Inline score track used by Patterns rows and Scope detail cards.
+@available(iOS 17, *)
+struct AutomationScoreBar: View {
+    let score: Double
+
+    private var clampedScore: Double { min(max(score, 0), 1) }
+
+    private var color: Color {
+        if score >= 0.6 { return Theme.danger }
+        if score >= 0.3 { return Theme.caution }
+        return Theme.success
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            GeometryReader { proxy in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Theme.elev3)
+                    Capsule()
+                        .fill(color)
+                        .frame(width: proxy.size.width * clampedScore)
+                }
+            }
+            .frame(height: 4)
+            .accessibilityHidden(true)
+
+            Text("\(Int(clampedScore * 100))%")
+                .font(Theme.Mono.tabular(10))
+                .foregroundStyle(color)
+                .frame(width: 32, alignment: .trailing)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Automation signals \(Int(clampedScore * 100)) percent")
+    }
+}
+
 @available(iOS 17, *)
 private struct AccountAvatar: View {
     let url: String?
@@ -236,6 +374,7 @@ private struct AccountAvatar: View {
         }
         .clipShape(Circle())
         .overlay(Circle().strokeBorder(.tertiary, lineWidth: 0.5))
+        .accessibilityHidden(true)
     }
 
     private var placeholder: some View {

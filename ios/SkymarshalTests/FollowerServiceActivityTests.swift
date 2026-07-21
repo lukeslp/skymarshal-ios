@@ -123,6 +123,31 @@ final class FollowerServiceActivityTests: XCTestCase {
         XCTAssertFalse(result[0].isInactive)
     }
 
+    func test_scan_prefersDetailedHandle_overStaleBasicHandle() async throws {
+        let client = makeClient()
+        await client.setSession(makeSession())
+        TestURLProtocol.handler = { request in
+            let url = request.url?.absoluteString ?? ""
+            if url.contains("getFollows") {
+                return (200, Data("""
+                {"follows":[{"did":"did:plc:resolved","handle":"handle.invalid"}]}
+                """.utf8))
+            }
+            if url.contains("getProfiles") {
+                return (200, Data("""
+                {"profiles":[{"did":"did:plc:resolved","handle":"resolved.bsky.social","displayName":"Resolved","description":"bio","avatar":"https://x/y","postsCount":87,"followersCount":234,"followsCount":183,"createdAt":"2020-01-01T00:00:00Z"}]}
+                """.utf8))
+            }
+            return (200, Data("{}".utf8))
+        }
+
+        let service = FollowerService(client: client)
+        let result = try await service.scan(checkLastPost: false)
+
+        XCTAssertEqual(result.first?.handle, "resolved.bsky.social")
+        XCTAssertFalse(result.first?.profile.hasUnverifiedHandle ?? true)
+    }
+
     // MARK: - Helpers
 
     private func makeClient() -> ATProtoClient {

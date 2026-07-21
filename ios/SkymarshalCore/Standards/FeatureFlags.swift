@@ -14,7 +14,7 @@ import Foundation
 /// | `sm.feature.profileExplorer` | on | Account sheet explorer |
 /// | `sm.feature.unfollowDryRun` | on | Dry-run unfollow preview |
 /// | `sm.feature.advancedSearchGrammar` | **off** | Advanced builder + grammar |
-/// | `sm.feature.visualizationHub` | **off** | Scope tab in root `TabView` |
+/// | `sm.feature.visualizationHub` | **on** | Scope tab in root `TabView` (Make-parity default) |
 /// | `sm.feature.wordPatterns` | **off** | Lexicon stats in Insights |
 /// | `sm.feature.backupRestore` | **off** | About → backup import |
 /// | `sm.ui.contentPowerToolsExpanded` | **off** | Content tab: full stats strip + empty-state filter chips |

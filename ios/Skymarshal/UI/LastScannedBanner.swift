@@ -31,8 +31,7 @@ struct LastScannedBanner: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 6)
-        .background(.thinMaterial)
-        .overlay(alignment: .bottom) { Divider().opacity(0.5) }
+        .cinematicChromeStrip()
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Showing cached data, last scanned \(lastScannedAt, style: .relative) ago")
         .accessibilityAddTraits(.isButton)

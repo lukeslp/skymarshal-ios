@@ -71,7 +71,7 @@ struct ScanSummaryStrip: View {
         // (mirrors Apple Mail's partial-pill clipping affordance) rather
         // than being cut at an arbitrary mid-character boundary.
         .contentMargins(.trailing, 24, for: .scrollContent)
-        .background(.thinMaterial)
+        .cinematicChromeStrip()
     }
 }
 
@@ -134,8 +134,14 @@ private struct Pill: View {
         }
         .padding(.horizontal, 8).padding(.vertical, 4)
         .background(
-            RoundedRectangle(cornerRadius: 3, style: .continuous)
+            RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous)
                 .fill(isActive ? AnyShapeStyle(color) : AnyShapeStyle(Theme.chipTint(color)))
         )
+        .overlay {
+            if !isActive {
+                RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous)
+                    .strokeBorder(Theme.hairline, lineWidth: 1)
+            }
+        }
     }
 }

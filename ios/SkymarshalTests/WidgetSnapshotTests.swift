@@ -112,9 +112,27 @@ final class WidgetSnapshotTests: XCTestCase {
         let snapshot = WidgetSnapshotBuilder.build(
             accounts: accounts, summary: summary, items: [], followerCount: 200
         )
-        // Mutual is excluded; highest engagement first.
-        XCTAssertEqual(snapshot.peopleToEngage.map(\.handle), ["high.bsky.social", "low.bsky.social"])
-        XCTAssertEqual(snapshot.peopleToEngage.first?.theyEngagedYou, 9)
+        // Mutuals are useful affinity signals too; highest engagement wins.
+        XCTAssertEqual(snapshot.peopleToEngage.map(\.handle), ["mutual.bsky.social", "high.bsky.social", "low.bsky.social"])
+        XCTAssertEqual(snapshot.peopleToEngage.first?.theyEngagedYou, 20)
+    }
+
+    func testRecommendationBalancesAffinityMomentumAndAge() {
+        let now = Date()
+        let trustedRising = WidgetSnapshot.RecommendedPost(
+            uri: "at://trusted", handle: "trusted.test", displayName: nil,
+            text: "rising", likeCount: 60, repostCount: 8, replyCount: 9,
+            indexedAt: now.addingTimeInterval(-2 * 3600), authorEngagement: 12
+        )
+        let oldPopular = WidgetSnapshot.RecommendedPost(
+            uri: "at://old", handle: "old.test", displayName: nil,
+            text: "old", likeCount: 100, repostCount: 8, replyCount: 9,
+            indexedAt: now.addingTimeInterval(-48 * 3600), authorEngagement: 2
+        )
+        XCTAssertGreaterThan(
+            EngagementRecommendationService.recommendationScore(trustedRising, now: now),
+            EngagementRecommendationService.recommendationScore(oldPopular, now: now)
+        )
     }
 
     func testBuilderPicksTopPost() {

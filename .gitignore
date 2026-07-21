@@ -59,6 +59,23 @@ htmlcov/
 node_modules/
 skymarshal-web/
 
+# Nested sibling-repo clones (live checkouts belong in ~/workspace/, not here).
+# Root-anchored: a bare `skymarshal/` would also swallow ios/Skymarshal/ under
+# macOS core.ignorecase.
+/blueeyes/
+/blueflyer/
+/bluescreen/
+/bluesky-chat/
+/bluesky-tools/
+/bluesky-web-apps/
+/firehose/
+/repostdar/
+/skread/
+/skymarshal/
+/skymarshal-js/
+/skymarshal-legacy/
+/skyview/
+
 # Backup files
 *.bak
 *.backup

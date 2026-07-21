@@ -1,9 +1,19 @@
+require "shellwords"
+
 default_platform(:ios)
 
-# Auth: deliver picks up the App Store Connect API key automatically from
-#   APP_STORE_CONNECT_API_KEY_KEY_ID / _ISSUER_ID / _KEY
-# (export them first — e.g. `source ~/.appstoreconnect/env.sh`). No 2FA,
-# no session expiry. Falls back to interactive Apple ID if none are set.
+API_KEY_JSON = File.expand_path("~/.appstoreconnect/api_key.json")
+
+def asc_key
+  require "json"
+  cfg = JSON.parse(File.read(API_KEY_JSON))
+  app_store_connect_api_key(
+    key_id: cfg["key_id"],
+    issuer_id: cfg["issuer_id"],
+    key_filepath: File.expand_path(cfg["key_filepath"]),
+    in_house: false
+  )
+end
 
 platform :ios do
   desc "Archive a signed Release build and upload it to TestFlight"
@@ -45,7 +55,7 @@ platform :ios do
     sh "cd .. && ./scripts/capture_screenshots.sh 'iPad Pro 13-inch (M5)' ipad-13"
   end
 
-  desc "Upload screenshots from ../screenshots-appstore/ to App Store Connect"
+  desc "Upload finished marketing screenshots from ../screenshots-marketing/ to App Store Connect"
   lane :upload_screenshots do
     # Stage capture-script output into deliver's per-locale layout. Device
     # class is inferred from pixel dimensions; the filename prefix only
@@ -60,8 +70,20 @@ platform :ios do
     }.each do |src, prefix|
       # [0-9][0-9]- matches 10- and above; the old 0[1-9]- glob silently
       # dropped any tenth screenshot from the upload.
-      files = Dir[File.expand_path("../screenshots-appstore/#{src}/[0-9][0-9]-*.png", __dir__)]
-      files.each { |f| FileUtils.cp(f, File.join(staging, "#{prefix}-#{File.basename(f)}")) }
+      files = Dir[File.expand_path("../screenshots-marketing/#{src}/[0-9][0-9]-*.png", __dir__)].sort
+      files.each do |f|
+        destination = File.join(staging, "#{prefix}-#{File.basename(f)}")
+        # XCTAttachment output is usually opaque, but iPad captures can
+        # occasionally retain an alpha channel. App Store Connect requires
+        # flat screenshots, so composite those onto white while staging.
+        has_alpha = `sips -g hasAlpha #{Shellwords.escape(f)} 2>/dev/null`.include?("hasAlpha: yes")
+        if has_alpha
+          UI.user_error!("ImageMagick is required to flatten #{File.basename(f)}. Install it with `brew install imagemagick`.") unless system("command -v magick >/dev/null 2>&1")
+          sh "magick #{Shellwords.escape(f)} -background white -alpha remove -alpha off #{Shellwords.escape(destination)}"
+        else
+          FileUtils.cp(f, destination)
+        end
+      end
       staged[prefix] = files
     end
     # overwrite_screenshots wipes EVERY device class in the locale, not just
@@ -88,6 +110,7 @@ platform :ios do
       end
     end
     deliver(
+      api_key: asc_key,
       submit_for_review: false,
       automatic_release: false,
       force: true,
@@ -104,6 +127,7 @@ platform :ios do
   desc "Copy source of truth: app-store/PUBLIC_RELEASE_COPY.md"
   lane :upload_listing do
     deliver(
+      api_key: asc_key,
       metadata_path: "./fastlane/metadata",
       skip_binary_upload: true,
       skip_screenshots: true,

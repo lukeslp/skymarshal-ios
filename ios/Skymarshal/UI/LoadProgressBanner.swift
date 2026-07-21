@@ -70,10 +70,7 @@ struct LoadProgressBanner: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 9)
-        .background(.thinMaterial)
-        .overlay(alignment: .bottom) {
-            Divider().opacity(0.5)
-        }
+        .cinematicChromeStrip()
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Loading content. \(progress.itemsLoaded.formatted()) items loaded so far.")
         .onAppear {
@@ -132,10 +129,7 @@ struct DeleteProgressBanner: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 9)
-        .background(.thinMaterial)
-        .overlay(alignment: .bottom) {
-            Divider().opacity(0.5)
-        }
+        .cinematicChromeStrip()
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Deleting. \(deleted.formatted()) of \(total.formatted()) records deleted so far.")
     }

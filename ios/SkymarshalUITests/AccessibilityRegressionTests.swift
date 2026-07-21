@@ -70,6 +70,26 @@ final class AccessibilityRegressionTests: XCTestCase {
         XCTAssert(app.buttons["Sign in"].exists)
     }
 
+    func test_firstRunOnboarding_reachesSignInWithoutGestureOnlyControls() throws {
+        let app = XCUIApplication()
+        app.launchEnvironment["UITEST_FORCE_ONBOARDING"] = "1"
+        app.launch()
+
+        XCTAssert(app.staticTexts["Skymarshal"].waitForExistence(timeout: 5))
+        let next = app.buttons["Next"]
+        for _ in 0..<3 {
+            XCTAssert(next.waitForExistence(timeout: 2))
+            next.tap()
+        }
+
+        let signInHandoff = app.buttons["Sign in"]
+        XCTAssert(signInHandoff.waitForExistence(timeout: 2))
+        signInHandoff.tap()
+
+        XCTAssert(app.textFields["Bluesky handle"].waitForExistence(timeout: 3))
+        XCTAssert(app.secureTextFields["App password"].exists)
+    }
+
     func test_launchAtAX5_featureDiscovery_about_featureLabHeader() throws {
         let app = XCUIApplication()
         app.launchArguments = [
@@ -144,7 +164,7 @@ final class AccessibilityRegressionTests: XCTestCase {
         // The Content navigation bar arrives once the stubbed content
         // mounts; gate on it before probing inside the list.
         XCTAssert(
-            app.navigationBars["My Content"].waitForExistence(timeout: 15),
+            app.navigationBars["Content"].waitForExistence(timeout: 15),
             "Content tab nav bar missing after stub seed at AX5"
         )
 
@@ -175,7 +195,7 @@ final class AccessibilityRegressionTests: XCTestCase {
         app.launch()
 
         // Navigate to the Scope tab. The tab is the third item once the
-        // visualization hub flag is on (Content, Followers, Scope).
+        // visualization hub flag is on (Content, Patterns, Scope).
         let scopeTab = app.tabBars.buttons["Scope"]
         if scopeTab.waitForExistence(timeout: 10) {
             scopeTab.tap()

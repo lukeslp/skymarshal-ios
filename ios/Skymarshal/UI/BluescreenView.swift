@@ -16,6 +16,7 @@ struct BluescreenView: View {
     @State private var selection: Set<String> = []
     @State private var editMode: EditMode = .inactive
     @State private var detailAccount: AnalyzedAccount? = nil
+    @State private var expandedAccountIDs: Set<String> = []
 
     /// Opt-in capped ghost-verify batch state. `ghostVerifyTask` lets
     /// the banner cancel; `ghostVerifyProgress` drives the progress line.
@@ -103,14 +104,6 @@ struct BluescreenView: View {
         }
     }
 
-    private var sensitivityLabel: String {
-        switch botSensitivityRaw {
-        case ..<0.5:  return "Loose"
-        case 0.5..<0.7: return "Balanced"
-        default:      return "Strict"
-        }
-    }
-
     /// FollowerService clears its in-memory list for the **fetching**
     /// phase before the first hydrated profile batch — `accounts` is
     /// briefly empty while `isScanning` is still true. If we hide the
@@ -127,7 +120,49 @@ struct BluescreenView: View {
         @Bindable var model = model
         NavigationStack {
             VStack(spacing: 0) {
+                CinematicScreenHeader(
+                    title: "Patterns",
+                    subtitle: "\(model.accounts.count.formatted()) FOLLOWING"
+                ) {
+                    Label(
+                        "\(model.scanSummary.bots) flagged",
+                        systemImage: "shield.lefthalf.filled"
+                    )
+                    .font(Theme.Mono.kicker(10))
+                    .foregroundStyle(Theme.danger)
+                    .symbolRenderingMode(.monochrome)
+                    .padding(.horizontal, 9)
+                    .frame(minHeight: 32)
+                    .background {
+                        RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous)
+                            .fill(Theme.chipTint(Theme.danger))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous)
+                                    .strokeBorder(Theme.danger.opacity(0.4), lineWidth: 1)
+                            }
+                    }
+                    .accessibilityLabel(
+                        "\(model.scanSummary.bots) accounts with high automation signals"
+                    )
+                }
+
+                CinematicSearchField(
+                    text: $keyword,
+                    prompt: "Search handle or name",
+                    onAdvanced: {
+                        draftFilters = filters
+                        showFilterSheet = true
+                    }
+                )
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .padding(.bottom, 6)
+
                 if showFollowersSummaryAndControls {
+                    SensitivitySegmentedControl(threshold: $botSensitivityRaw)
+                        .padding(.horizontal)
+                        .padding(.bottom, 8)
+
                     ScanSummaryStrip(summary: model.scanSummary, filters: $filters)
                 }
 
@@ -169,10 +204,8 @@ struct BluescreenView: View {
                     )
                 }
 
-                // Inline Sort + Select row — sits below the summary
-                // strip and is always visible regardless of search-bar
-                // focus state (the toolbar is dead during .searchable
-                // activation; same trap as ContentListView).
+                // Inline Sort + Select — searchable was replaced with
+                // CinematicSearchField so this row never collapses.
                 if showFollowersSummaryAndControls {
                     HStack(spacing: 12) {
                         Menu {
@@ -197,60 +230,27 @@ struct BluescreenView: View {
                             }
                             .lineLimit(1)
                             .fixedSize(horizontal: true, vertical: false)
-                            .foregroundStyle(.tint)
+                            .foregroundStyle(Theme.cinematicAccentA)
                         }
                         .accessibilityLabel("Sort: \(filters.sortField.label), \(filters.sortDirection == .desc ? "descending" : "ascending")")
                         .accessibilityHint("Tap to change sort field or direction")
 
-                        Button {
-                            draftFilters = filters
-                            showFilterSheet = true
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: filters.hasActiveFilters
-                                      ? "line.3.horizontal.decrease.circle.fill"
-                                      : "line.3.horizontal.decrease.circle")
-                                    .font(.footnote)
-                                Text("Filter")
-                                    .font(.footnote.weight(.medium))
+                        if filters.hasActiveFilters {
+                            Button {
+                                draftFilters = filters
+                                showFilterSheet = true
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                                        .font(.footnote)
+                                    Text("Filter")
+                                        .font(.footnote.weight(.medium))
+                                }
+                                .foregroundStyle(Theme.cinematicAccentA)
                             }
-                            .foregroundStyle(.tint)
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Filters, active")
                         }
-                        .buttonStyle(.plain)
-
-                        // Bot-detection sensitivity preset. 3 discrete
-                        // values; never a free slider (safety verdict).
-                        // Trigger is icon + short word only — verbose
-                        // labels in Menu triggers wrap inside iOS 26
-                        // Menu shapes (real-device bug seen at v1.0.1).
-                        Menu {
-                            Picker("Bot sensitivity", selection: $botSensitivityRaw) {
-                                Label("Strict (≥80%)", systemImage: "shield.fill")
-                                    .tag(0.8)
-                                Label("Balanced (≥60%)", systemImage: "scale.3d")
-                                    .tag(0.6)
-                                Label("Loose (≥40%)", systemImage: "exclamationmark.shield")
-                                    .tag(0.4)
-                            }
-                            Text("Loose flags more real humans by mistake. Bulk actions require an extra confirmation.")
-                                .font(Theme.Display.metricRegular(.caption2))
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: botSensitivityRaw < 0.5
-                                      ? "exclamationmark.shield"
-                                      : botSensitivityRaw < 0.7
-                                        ? "scale.3d"
-                                        : "shield.fill")
-                                    .font(.footnote)
-                                Text(sensitivityLabel)
-                                    .font(.footnote.weight(.medium))
-                            }
-                            .lineLimit(1)
-                            .fixedSize(horizontal: true, vertical: false)
-                            .foregroundStyle(botSensitivityRaw < 0.5 ? Theme.caution : Color.accentColor)
-                        }
-                        .accessibilityLabel("Bot sensitivity, \(sensitivityLabel)")
-                        .accessibilityHint("Tap to change between Strict, Balanced, and Loose")
 
                         Spacer(minLength: 8)
 
@@ -270,12 +270,13 @@ struct BluescreenView: View {
                                 Text(editMode.isEditing ? "Done" : "Select")
                                     .font(.footnote.weight(.medium))
                             }
-                            .foregroundStyle(.tint)
+                            .foregroundStyle(Theme.cinematicAccentA)
                         }
                         .buttonStyle(.plain)
                     }
                     .padding(.horizontal)
                     .padding(.vertical, 6)
+                    .cinematicChromeStrip()
                 }
 
                 if editMode.isEditing {
@@ -300,7 +301,7 @@ struct BluescreenView: View {
                         Text("Pull up everyone you follow and score each one for bot patterns, inactivity, and mutuality.")
                     } actions: {
                         Button("Begin scan") { model.startScan() }
-                            .buttonStyle(SaturnButton(emphasis: .primary))
+                            .buttonStyle(SaturnButton(emphasis: .primaryCinematic))
                     }
                 } else if model.accounts.isEmpty && model.isScanning {
                     ScanInFlightView(
@@ -310,12 +311,25 @@ struct BluescreenView: View {
                 } else {
                     List(selection: $selection) {
                         ForEach(filtered) { account in
-                            AccountRow(account: account)
+                            AccountRow(
+                                account: account,
+                                isExpanded: expandedAccountIDs.contains(account.did),
+                                onToggleExpansion: {
+                                    let update = {
+                                        if expandedAccountIDs.contains(account.did) {
+                                            expandedAccountIDs.remove(account.did)
+                                        } else {
+                                            expandedAccountIDs.insert(account.did)
+                                        }
+                                    }
+                                    if reduceMotion { update() }
+                                    else { withAnimation(.snappy) { update() } }
+                                }
+                            )
                                 .listRowBackground(
-                                    selection.contains(account.did)
-                                    ? Color.accentColor.opacity(0.08)
-                                    : Color(.systemBackground)
+                                    Theme.cinematicRowFill(selected: selection.contains(account.did))
                                 )
+                                .cinematicListRows()
                                 .contentShape(Rectangle())
                                 .onTapGesture {
                                     if !editMode.isEditing {
@@ -335,15 +349,24 @@ struct BluescreenView: View {
                                 .accessibilityAction(named: Text("Unfollow")) {
                                     pendingUnfollow = [account.did]
                                 }
+                                .accessibilityAction(named: Text("Open account details")) {
+                                    detailAccount = account
+                                }
                                 .tag(account.did)
                         }
                     }
                     .listStyle(.plain)
                 }
             }
-            .navigationTitle("Followers")
+            .navigationTitle("Patterns")
             .navigationBarTitleDisplayMode(.inline)
+            .cinematicListChrome()
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Color.clear
+                        .frame(width: 1, height: 1)
+                        .accessibilityHidden(true)
+                }
                 ToolbarItem(placement: .topBarLeading) {
                     Menu {
                         Button("Scan now") { model.startScan() }
@@ -398,7 +421,6 @@ struct BluescreenView: View {
                 // would block the search-then-select flow entirely.
             }
             .environment(\.editMode, $editMode)
-            .searchable(text: $keyword, prompt: "Search handle or name")
             .sheet(item: $detailAccount) { acc in
                 AccountDetailView(account: acc, dryRunUnfollow: unfollowDryRun) {
                     Task {

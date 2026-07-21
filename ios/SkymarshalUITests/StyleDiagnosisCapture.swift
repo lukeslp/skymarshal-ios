@@ -52,10 +52,10 @@ final class StyleDiagnosisCapture: XCTestCase {
             "-sm.feature.savedSearchPresets", "YES",
         ]
         app.launch()
-        let contentNav = app.navigationBars["My Content"]
+        let contentNav = app.navigationBars["Content"]
         XCTAssert(
             contentNav.waitForExistence(timeout: 15),
-            "My Content navigation bar didn't appear after stub-content launch"
+            "Content navigation bar didn't appear after stub-content launch"
         )
         sleep(1)
         attachScreenshot(named: "02-ContentTab", from: app)
@@ -73,23 +73,23 @@ final class StyleDiagnosisCapture: XCTestCase {
         ]
         app.launch()
         XCTAssert(
-            app.navigationBars["My Content"].waitForExistence(timeout: 15),
-            "My Content nav bar required before tab navigation"
+            app.navigationBars["Content"].waitForExistence(timeout: 15),
+            "Content nav bar required before tab navigation"
         )
         let followersTab = firstHittable(
             in: app,
-            labels: ["Followers"],
+            labels: ["Patterns"],
             preferTabBar: true
         )
-        XCTAssertNotNil(followersTab, "Followers tab button not reachable")
+        XCTAssertNotNil(followersTab, "Patterns tab button not reachable")
         followersTab?.tap()
-        let bluescreenNav = app.navigationBars["Followers"]
+        let bluescreenNav = app.navigationBars["Patterns"]
         XCTAssert(
             bluescreenNav.waitForExistence(timeout: 8),
-            "Followers nav bar didn't appear after tab tap"
+            "Patterns nav bar didn't appear after tab tap"
         )
         sleep(1)
-        attachScreenshot(named: "03-FollowersTab", from: app)
+        attachScreenshot(named: "03-PatternsTab", from: app)
     }
 
     // MARK: - 04: Scope tab (VisualizationHubView)
@@ -104,8 +104,8 @@ final class StyleDiagnosisCapture: XCTestCase {
         ]
         app.launch()
         XCTAssert(
-            app.navigationBars["My Content"].waitForExistence(timeout: 15),
-            "My Content nav bar required before tab navigation"
+            app.navigationBars["Content"].waitForExistence(timeout: 15),
+            "Content nav bar required before tab navigation"
         )
         let scopeTab = firstHittable(in: app, labels: ["Scope"], preferTabBar: true)
         XCTAssertNotNil(

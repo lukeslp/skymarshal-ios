@@ -57,7 +57,14 @@ public enum CacheHydration {
             predicate: #Predicate<AnalyzedAccountRecord> { $0.ownerHandle == owner },
             sortBy: [SortDescriptor(\.scannedAt, order: .reverse)]
         )
-        return (try? context.fetch(descriptor)) ?? []
+        let records = (try? context.fetch(descriptor)) ?? []
+        let repairedContaminatedRows = records.reduce(into: false) { repaired, record in
+            repaired = record.repairUnverifiedHandleClassificationIfNeeded() || repaired
+        }
+        if repairedContaminatedRows {
+            try? context.save()
+        }
+        return records
     }
 
     /// Legacy hydration path: unbounded fetch + filter. Used only in tests

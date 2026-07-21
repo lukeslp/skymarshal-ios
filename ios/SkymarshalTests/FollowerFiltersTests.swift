@@ -142,24 +142,45 @@ final class FollowerFiltersTests: XCTestCase {
         XCTAssertEqual(f.apply(to: [inactive]).map(\.handle), ["stale.bsky.social"])
     }
 
-    /// `postsCount == 0` and deleted accounts are reliable signals that
-    /// never depend on an AppView read, so they surface even when the
-    /// read-state is `.unknown`.
-    func test_showInactive_includesZeroPostsAndDeleted_evenWhenReadStateUnknown() {
+    /// `postsCount == 0` never depends on an AppView read. A separately
+    /// established inactive/deleted classification remains included
+    /// when its activity state is known.
+    func test_showInactive_includesZeroPostsAndKnownDeleted() {
         let zeroPosts = account(
             did: "z", handle: "zero.bsky.social",
             posts: 0, isInactive: true, activityReadState: .unknown
         )
         let deleted = account(
-            did: "d", handle: "handle.invalid",
-            isInactive: true, isDeleted: true, activityReadState: .unknown
+            did: "d", handle: "deleted.example",
+            isInactive: true, isDeleted: true, activityReadState: .read
         )
         var f = FollowerFilters()
         f.showInactive = true
         XCTAssertEqual(
             Set(f.apply(to: [zeroPosts, deleted]).map(\.handle)),
-            ["zero.bsky.social", "handle.invalid"]
+            ["zero.bsky.social", "deleted.example"]
         )
+    }
+
+    func test_handleInvalid_alone_isExcludedFromStatusBasedBulkFilters() {
+        let unverified = account(
+            did: "u", handle: "handle.invalid",
+            followers: 234, following: 183, posts: 87,
+            botScore: 0, isInactive: false, isDeleted: false,
+            activityReadState: .unknown
+        )
+
+        var bots = FollowerFilters()
+        bots.showBots = true
+        XCTAssertTrue(bots.apply(to: [unverified]).isEmpty)
+
+        var deleted = FollowerFilters()
+        deleted.showDeleted = true
+        XCTAssertTrue(deleted.apply(to: [unverified]).isEmpty)
+
+        var inactive = FollowerFilters()
+        inactive.showInactive = true
+        XCTAssertTrue(inactive.apply(to: [unverified]).isEmpty)
     }
 
     /// Regression lock on the disengaged preset: `nil` (engagement

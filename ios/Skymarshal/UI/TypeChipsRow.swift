@@ -1,22 +1,15 @@
 import SwiftUI
 import SkymarshalCore
 
-/// Horizontal pill-chip row for content-type selection. Replaces the
-/// 5-segment .pickerStyle(.segmented) which couldn't share a row with
-/// other controls and didn't have space for category counts.
+/// Horizontal type-chip row for content-type selection. Figma Make chip
+/// language: radius-sm, hairline border, accent wash when active — not
+/// Capsule / tertiarySystemFill.
 ///
 /// Multi-select: each of the four concrete types (Posts, Replies, Reposts,
 /// Likes) is an independent toggle, and a leading "All" chip selects every
 /// type at once. The default selection (Posts + Replies) lives in the
 /// owning view — most archives are mostly likes, and likes are the thing
 /// people least want to wade through on landing.
-///
-/// Lifted from skymarshal-web's ContentManagement.tsx pattern:
-/// `border-primary bg-primary/10 text-primary` on the active chip,
-/// `(N)` count badge after the label. Each chip uses its content
-/// type's stripeColor (Posts=blue, Replies=cyan, Reposts=green,
-/// Likes=pink) so the active state nods at the row stripes below —
-/// quiet through-line, not a coordinated theme park.
 @available(iOS 17, *)
 struct TypeChipsRow: View {
     @Binding var selected: Set<ContentType>
@@ -49,9 +42,9 @@ struct TypeChipsRow: View {
                 }
             }
             .padding(.horizontal)
-            .padding(.vertical, 4)
+            .padding(.vertical, 6)
         }
-        .scrollClipDisabled()
+        .contentMargins(.trailing, 24, for: .scrollContent)
     }
 
     /// Toggle one type, keeping at least one selected — an empty set would
@@ -88,30 +81,31 @@ private struct TypeChip: View {
             HStack(spacing: 6) {
                 Image(systemName: type.sfSymbol)
                     .font(.caption2.weight(.semibold))
+                    .symbolRenderingMode(.monochrome)
                     .foregroundStyle(isActive ? type.stripeColor : .secondary)
                 Text(type.label)
-                    .font(.subheadline.weight(.medium))
+                    .font(Theme.Mono.body(12))
+                    .fontWeight(.semibold)
                 if count > 0 {
                     Text(count.formatted())
-                        .font(.caption.monospacedDigit())
+                        .font(Theme.Mono.tabular(11))
                         .foregroundStyle(isActive ? AnyShapeStyle(type.stripeColor) : AnyShapeStyle(.tertiary))
                 }
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 7)
             .background {
-                Capsule().fill(
-                    isActive ? AnyShapeStyle(type.stripeColor.opacity(0.12))
-                             : AnyShapeStyle(Color(.tertiarySystemFill))
-                )
+                RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous)
+                    .fill(isActive ? type.stripeColor.opacity(0.14) : Theme.elev2)
             }
             .overlay {
-                Capsule().strokeBorder(
-                    isActive ? type.stripeColor.opacity(0.55) : .clear,
-                    lineWidth: 1
-                )
+                RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous)
+                    .strokeBorder(
+                        isActive ? type.stripeColor.opacity(0.55) : Theme.hairline,
+                        lineWidth: 1
+                    )
             }
-            .foregroundStyle(isActive ? type.stripeColor : .primary)
+            .foregroundStyle(isActive ? type.stripeColor : .secondary)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(type.label), \(count.formatted()) item\(count == 1 ? "" : "s")")
@@ -130,6 +124,7 @@ private struct TypeChip: View {
         }
         Spacer()
     }
+    .background(Theme.void)
 }
 
 @available(iOS 17, *)

@@ -19,23 +19,26 @@ struct ActiveFilterChips: View {
                     ForEach(chips, id: \.id) { chip in
                         Button {
                             chip.clear(&filters)
-                        } label: {
+                        }                         label: {
                             HStack(spacing: 4) {
                                 Text(chip.label)
-                                    .font(.caption)
+                                    .font(Theme.Mono.caption(11))
+                                    .fontWeight(.semibold)
                                 Image(systemName: "xmark.circle.fill")
                                     .font(.caption2)
+                                    .symbolRenderingMode(.monochrome)
                             }
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
-                            // .primary foreground + a slightly heavier
-                            // tint background — adapts cleanly across
-                            // light/dark modes regardless of accent
-                            // saturation. Per technical-committee tester
-                            // verdict: the previous `.tint`-on-`.tint`
-                            // chip was illegible in light mode.
-                            .background(.tint.opacity(0.25), in: .capsule)
-                            .foregroundStyle(.primary)
+                            .background {
+                                RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous)
+                                    .fill(Theme.cinematicAccentA.opacity(0.14))
+                            }
+                            .overlay {
+                                RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous)
+                                    .strokeBorder(Theme.cinematicAccentA.opacity(0.45), lineWidth: 1)
+                            }
+                            .foregroundStyle(Theme.cinematicAccentA)
                         }
                         .buttonStyle(.plain)
                     }
