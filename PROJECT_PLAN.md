@@ -39,7 +39,7 @@ Living snapshot of objectives and boundaries. Product copy and build commands st
 
 ## Current milestone
 
-- **Source release:** Native v1.0.2 / build 27. App Store Connect and TestFlight state require external verification; submission remains gated by [`docs/SUBMISSION_DECISION.md`](docs/SUBMISSION_DECISION.md).
+- **Source release:** Native v1.0.2 / build 40 — **live in the App Store as of 2026-07-20**, login verified in production. The submission gate in [`docs/SUBMISSION_DECISION.md`](docs/SUBMISSION_DECISION.md) is closed.
 - **Launch pricing (decided 2026-06-10):** Free, no IAP at launch. Supersedes the 2026-05-14 tiering ($2.99/mo / $19.99/yr / $49.99 lifetime). A paywall is a v1.1 decision; early adopters get grandfathered if one ships.
 - **Quality bar:** Full `xcodebuild test` green before release-worthy changes; preserve 429 backoff and deletion URI semantics ([`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)).
 - **Invalid-handle safety:** `handle.invalid` is an unverified-handle sentinel only. Native scans prefer the detailed profile handle, status-based bulk filters do not infer bot/deleted/inactive state from the sentinel, and cold-start hydration recomputes only affected cached scan rows.

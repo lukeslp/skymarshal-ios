@@ -1,5 +1,7 @@
 # Submission decision checklist (Day 16+)
 
+> **RESOLVED 2026-07-20:** Skymarshal 1.0.2 (build 40) was submitted, approved, and is **live in the App Store**. Login verified in production. This gate is closed; the checklist below is retained as the historical record.
+
 Use after Week 1–3 engineering + soak work. **Do not edit the council plan file** — this is the operational gate.
 
 ## Ship-blockers (all must be YES to submit to App Store)
@@ -31,8 +33,8 @@ Use after Week 1–3 engineering + soak work. **Do not edit the council plan fil
 
 ## Decision
 
-- [ ] **Submit to App Store** — all ship-blockers YES, paste session executed.
+- [x] **Submit to App Store** — submitted and approved; live as of 2026-07-20 (1.0.2, build 40).
 - [ ] **Open-link public TestFlight only** — soak or runbooks incomplete; re-evaluate in 30 days (cynic dissent path).
 - [ ] **Fix-and-resoak** — failure in observation note.
 
-**Signed / date:** _______________
+**Signed / date:** Luke Steuber / 2026-07-20

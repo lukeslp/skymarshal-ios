@@ -1,6 +1,8 @@
 # Next App Store version — 1.1
 
-## Where things stand (2026-06-22)
+> **Update 2026-07-20:** the **native SwiftUI** app shipped — **1.0.2 (build 40) is live in the App Store**, login verified in production. The June snapshot below (1.0.1 in review; 1.1 as the Capacitor rebuild) is historical: 1.1 planning starts from the shipped native app, and the Capacitor path is a proposed alternative only (see `CLAUDE.md`).
+
+## Where things stand (2026-06-22, historical)
 
 - **v1.0.1 (build 27, native SwiftUI) is `WAITING_FOR_REVIEW`** in ASC (app id
   `6768003674`). It is fully submitted — copy + 11 screenshots are in ASC and

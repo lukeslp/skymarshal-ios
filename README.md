@@ -8,9 +8,9 @@ This is the iOS app. Native SwiftUI, iOS 17+. No third-party dependencies. App p
 
 ## Status
 
-The native source is **v1.0.2, build 27** and carries the Figma Make parity surface: cinematic OLED chrome, first-run onboarding, structured Advanced Search, expandable Patterns rows, and local-cache Scope graphs. On 2026-07-18, **275 unit tests and 12 non-credential UI tests passed**; the credentialed screenshot test remains a separate release operation. Verify App Store Connect before stating which build is currently on TestFlight.
+**Skymarshal is live in the App Store** — v1.0.2, build 40, shipped 2026-07-20. The source carries the Figma Make parity surface: cinematic OLED chrome, first-run onboarding, structured Advanced Search, expandable Patterns rows, and local-cache Scope graphs. On 2026-07-18, **275 unit tests and 12 non-credential UI tests passed**; the credentialed screenshot test remains a separate release operation.
 
-TestFlight Public Link in [`docs/TESTFLIGHT_PUBLIC_LINK.md`](docs/TESTFLIGHT_PUBLIC_LINK.md). App Store submission is gated by the operational checklist in [`docs/SUBMISSION_DECISION.md`](docs/SUBMISSION_DECISION.md): create the reviewer account, record the USPTO name check, complete the ≥10k-content soak artifact, verify screenshot sets, and capture TestFlight health evidence.
+TestFlight Public Link in [`docs/TESTFLIGHT_PUBLIC_LINK.md`](docs/TESTFLIGHT_PUBLIC_LINK.md). The pre-submission gate in [`docs/SUBMISSION_DECISION.md`](docs/SUBMISSION_DECISION.md) closed at launch; ongoing work targets v1.1.
 
 ## What it does
 

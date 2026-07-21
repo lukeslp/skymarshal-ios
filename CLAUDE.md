@@ -12,10 +12,9 @@ Capacitor 8.4.1 (SPM), and runs natively on iOS under bundle id
 `blue.skymarshal.ios`. Full plan + status: `~/workspace/skymarshal-web/CAPACITOR_WRAPPER.md`.
 
 Native development resumed in July for Figma Make parity and release hardening.
-This repo is the active native source at **1.0.2 / build 27**; the Capacitor path
-remains a proposed v1.1/alternative until an explicit shipping decision is made.
-App Store Connect and TestFlight state are external and must be checked before
-claiming which build is currently distributed. This repo also remains the source for:
+**The native app is live in the App Store as of 2026-07-20** — source at
+**1.0.2 / build 40**, login verified in production. The Capacitor path remains a
+proposed alternative only. This repo also remains the source for:
 - the **safety-critical deletion engine** in `SkymarshalCore` (the sacred 429
   ladder, resumable breadcrumb, preflight, typed-confirm) — prototyped for the
   Capacitor app as a native plugin (`SkymarshalDeletePlugin.swift`); keep it as the
@@ -32,7 +31,7 @@ Note: `CLAUDE.md` is checked in — keep it concise and current. If you want a p
 ## What lives here today
 
 ```
-ios/                          # Active native SwiftUI source — version 1.0.2, build 27.
+ios/                          # Active native SwiftUI source — version 1.0.2, build 40 (live in the App Store).
   project.yml                 # xcodegen canonical source — never edit .xcodeproj directly
   Skymarshal/                 # App target: SwiftUI views, AppModel, App entry
   SkymarshalCore/             # Framework: Models, Services, Standards, Network, Storage
@@ -106,9 +105,9 @@ cd ios && fastlane upload_listing      # metadata only, from ios/fastlane/metada
 - **UTF-8 byte-offset facet parsing trap.** AT Proto facet `byteStart` / `byteEnd` are UTF-8 byte indices. When post bodies eventually render tappable mentions/links, `NSRange` / `String.Index` math will silently corrupt offsets on any emoji or non-ASCII character. Use `text.utf8.distance(...)` with `samePosition(in: text.utf8)`.
 - **No-SPM-deps stance is sustainable for ~8 endpoints**, not forever. Trigger to adopt ATProtoKit (or similar): (a) rich-text facet emission for posting, or (b) lexicon drift outpacing hand-rolled `ATProtoTypes.swift`. Neither is in the v1.x brief.
 
-## Native iOS source — App-Store-bound
+## Native iOS source — live in the App Store
 
-The source at `ios/` is version 1.0.2 / build 27. The last known App Store Connect/TestFlight state must be verified externally before release claims are updated. Architecture:
+The source at `ios/` is version 1.0.2 / build 40, shipped to the App Store 2026-07-20. Architecture:
 
 - **xcodegen-driven** — `ios/project.yml` is canonical; `Skymarshal.xcodeproj` regenerates from it. Never edit the xcodeproj directly.
 - **Two-target framework split** — `SkymarshalCore` (framework, all models / services / standards / network / storage, no SwiftUI), `Skymarshal` (app, SwiftUI views + AppModel observer).
@@ -144,9 +143,9 @@ These are load-bearing across every SwiftUI view and easy to break by accident. 
 - **Bluesky 2026 roadmap signals**: no native bulk-delete in the Jan 2026 "What's Next" post. "Deeper third-party app support" is mildly positive signal. Treat as a *signal* not a moat — the lane is open partly because Apple review risk is real and Bluesky may eventually ship this themselves.
 - **Swift AT Protocol SDKs exist** ([ATProtoKit](https://github.com/MasterJ93/ATProtoKit), [swift-atproto](https://swiftpackageindex.com/andooown/swift-atproto)). Skymarshal intentionally avoids them — see "no-SPM-deps" gotcha for the adoption trigger.
 
-## Council pre-ship checklist (v1.0.x → App Store)
+## Council checklist (v1.0.x — shipped 2026-07-20)
 
-May 2026 `/team:team` verdict, updated by the 2026-06-10 adversarial review (cynic + breaker + executive; full log in `PROJECT_PLAN.md`).
+May 2026 `/team:team` verdict, updated by the 2026-06-10 adversarial review (cynic + breaker + executive; full log in `PROJECT_PLAN.md`). **The app shipped and is live; the pre-submission gate is closed.** Focus is now v1.1+ work.
 
 **Done (verified 2026-06-10):**
 - ✅ Breadcrumb per-success state — chunked `DeleteBatchRecovery.markCompleted` inside the delete loop + recovery tests.
@@ -157,12 +156,8 @@ May 2026 `/team:team` verdict, updated by the 2026-06-10 adversarial review (cyn
 - ✅ Alt-text search — covered by `includeAltTextInKeyword`; the dedicated `altTextContains` field was dropped as redundant.
 - ✅ Date-parse safety, refresh triage, Retry-After parsing, delete pacing/cancel/circuit-breaker, 20k truncation banner, SwiftData duplicate-key guard (breaker findings — see Gotchas).
 
-**Still open before submission (manual, Luke):**
-- Create + populate the demo account (`app-store/DEMO_ACCOUNT.md`) and paste credentials into ASC App Review sign-in fields.
-- 15-min [USPTO TESS](https://tmsearch.uspto.gov) check on "Skymarshal" in the software-utility class.
-- Soak run per `docs/SOAK_PROTOCOL.md` (≥10k-post account, artifact under `docs/soak/`) — required by `docs/SUBMISSION_DECISION.md`.
-- Full screenshot sets for both device classes; pull TestFlight install/session/crash numbers before submitting.
-- Timeframe quick-filter chips (7d/30d/90d/1y) — last open parity item; may slip to v1.1.
+**Pre-submission gate — closed by launch (2026-07-20).** Remaining item carried forward:
+- Timeframe quick-filter chips (7d/30d/90d/1y) — last open parity item, now a v1.1 candidate.
 
 **v1.1 candidates (after launch):**
 - Ghost likes via `com.atproto.repo.listRecords` — likes of deleted/suspended authors are invisible to `getActorLikes` and currently undeletable.
@@ -171,7 +166,7 @@ May 2026 `/team:team` verdict, updated by the 2026-06-10 adversarial review (cyn
 - Paywall decision (launch is free, no IAP — decided 2026-06-10; grandfather early adopters if one ships).
 
 **Kill criteria (restated measurably 2026-06-10; canonical copy in `PROJECT_PLAN.md`):**
-- **Ship-blocker.** First 2 App Store submissions / threshold: rejection citing 5.0 or 4.3 on content-deletion grounds / action: do not appeal a third time — pivot to PWA at skymarshal.blue, keep iOS as a read-only audit companion.
+- **Ship-blocker.** ~~Rejection citing 5.0 or 4.3 on content-deletion grounds~~ — **moot: approved and live 2026-07-20.**
 - **Pivot-trigger.** Bluesky ships/announces native bulk-delete-by-filter (checked monthly, next 2026-07-10) / action: drop deletion as headline within 30 days; reposition around Patterns + alt-text audit.
 - **Sunset-trigger.** By 2026-12-10: <300 App Analytics opt-in downloads AND <25 ratings AND (if IAP shipped) <30 unlocks / action: archive iOS target, maintain Python CLI only.
 
