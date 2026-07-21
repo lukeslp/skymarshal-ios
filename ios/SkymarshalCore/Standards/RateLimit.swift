@@ -63,7 +63,13 @@ public enum RateLimit {
     ///
     /// Wrap each individual write call (e.g. one `deleteRecord`), not an
     /// outer batch loop — each URI gets its own retry budget.
+    ///
+    /// `onWait` is a pure observation hook: it fires once per sleep with
+    /// the whole seconds about to be waited so UI can say "pausing ~30s"
+    /// instead of appearing frozen. It never alters the timing — the
+    /// ladder and server-wait clamping are exactly as before.
     public static func withBackoff<T: Sendable>(
+        onWait: (@Sendable (Int) -> Void)? = nil,
         _ work: @Sendable () async throws -> T
     ) async throws -> T {
         var lastError: Error?
@@ -72,8 +78,10 @@ public enum RateLimit {
             let serverWait = (lastError as? ATProtoError)?.retryAfterSeconds
                 .map { min(max($0, 1), maxServerWaitSeconds) }
             if let serverWait {
+                onWait?(Int(serverWait.rounded(.up)))
                 try await Task.sleep(nanoseconds: UInt64(serverWait * 1_000_000_000))
             } else if delay > 0 {
+                onWait?(Int(delay))
                 try await Task.sleep(nanoseconds: delay * 1_000_000_000)
             }
             do {

@@ -447,10 +447,28 @@ final class AppModel {
     private(set) var isDeleting: Bool = false
     /// (confirmed deletions so far, batch size) for the progress banner.
     private(set) var deleteProgress: (deleted: Int, total: Int)?
+    /// Seconds of the current 429 backoff sleep, when the delete loop is
+    /// paused waiting out a rate limit. Nil while deleting normally.
+    /// Drives the "Pausing about Ns" line in DeleteProgressBanner.
+    private(set) var deleteRateLimitWaitSeconds: Int?
     private var deleteTask: Task<(deleted: Int, errors: [String]), Never>?
 
     private func noteDeleteProgress(deleted: Int, total: Int) {
         deleteProgress = (deleted, total)
+        // A confirmed deletion means the rate-limit pause is over.
+        deleteRateLimitWaitSeconds = nil
+    }
+
+    private func noteDeleteRateLimitWait(seconds: Int) {
+        // Announce only on the transition into a paused state so VoiceOver
+        // hears one pause notice, not one per retry step.
+        if deleteRateLimitWaitSeconds == nil {
+            UIAccessibility.post(
+                notification: .announcement,
+                argument: "Deleting paused for about \(seconds) seconds. Bluesky asked us to slow down."
+            )
+        }
+        deleteRateLimitWaitSeconds = seconds
     }
 
     func delete(itemIDs: [String]) async -> (deleted: Int, errors: [String]) {
@@ -473,9 +491,11 @@ final class AppModel {
         }
         isDeleting = true
         deleteProgress = (0, itemIDs.count)
+        deleteRateLimitWaitSeconds = nil
         defer {
             isDeleting = false
             deleteProgress = nil
+            deleteRateLimitWaitSeconds = nil
             deleteTask = nil
             UIApplication.shared.isIdleTimerDisabled = false
             if bgTask != .invalid {
@@ -485,9 +505,17 @@ final class AppModel {
 
         let total = itemIDs.count
         let task = Task { [self, content] in
-            await content.delete(itemIDs: itemIDs) { deleted in
-                await self.noteDeleteProgress(deleted: deleted, total: total)
-            }
+            await content.delete(
+                itemIDs: itemIDs,
+                progress: { deleted in
+                    await self.noteDeleteProgress(deleted: deleted, total: total)
+                },
+                onRateLimitWait: { seconds in
+                    Task { @MainActor in
+                        self.noteDeleteRateLimitWait(seconds: seconds)
+                    }
+                }
+            )
         }
         deleteTask = task
         let result = await task.value

@@ -274,7 +274,8 @@ struct ContentListView: View {
                 if model.isDeleting, let deleteProgress = model.deleteProgress {
                     DeleteProgressBanner(
                         deleted: deleteProgress.deleted,
-                        total: deleteProgress.total
+                        total: deleteProgress.total,
+                        rateLimitWaitSeconds: model.deleteRateLimitWaitSeconds
                     ) {
                         model.cancelDelete()
                     }

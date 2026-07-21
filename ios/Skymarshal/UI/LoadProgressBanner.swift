@@ -90,13 +90,21 @@ struct DeleteProgressBanner: View {
 
     let deleted: Int
     let total: Int
+    /// Seconds of the current 429 backoff pause, when Bluesky has asked
+    /// the app to slow down. Nil while deleting normally.
+    var rateLimitWaitSeconds: Int? = nil
     let onCancel: () -> Void
+
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    private var reduceMotion: Bool { ReduceMotion.shouldReduce(systemReduceMotion: systemReduceMotion) }
+    @State private var pulse: Bool = false
 
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            Image(systemName: "trash")
+            Image(systemName: rateLimitWaitSeconds == nil ? "trash" : "hourglass")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Theme.danger)
+                .foregroundStyle(rateLimitWaitSeconds == nil ? Theme.danger : Theme.caution)
+                .symbolEffect(.pulse, options: reduceMotion ? .nonRepeating : .repeating, value: pulse)
                 .frame(width: 28, height: 28)
 
             VStack(alignment: .leading, spacing: 1) {
@@ -108,9 +116,15 @@ struct DeleteProgressBanner: View {
                         .font(Theme.Mono.body(13))
                         .foregroundStyle(.secondary)
                 }
-                Text("Keep Skymarshal open. Stop keeps what's already deleted.")
-                    .font(Theme.Mono.caption(11))
-                    .foregroundStyle(.tertiary)
+                if let waitSeconds = rateLimitWaitSeconds {
+                    Text("Pausing about \(waitSeconds)s — Bluesky asked us to slow down.")
+                        .font(Theme.Mono.caption(11))
+                        .foregroundStyle(Theme.caution)
+                } else {
+                    Text("Keep Skymarshal open. Stop keeps what's already deleted.")
+                        .font(Theme.Mono.caption(11))
+                        .foregroundStyle(.tertiary)
+                }
             }
 
             Spacer(minLength: 4)
@@ -131,7 +145,19 @@ struct DeleteProgressBanner: View {
         .padding(.vertical, 9)
         .cinematicChromeStrip()
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Deleting. \(deleted.formatted()) of \(total.formatted()) records deleted so far.")
+        .accessibilityLabel(bannerAccessibilityLabel)
+        .onAppear { if !reduceMotion { pulse.toggle() } }
+        .onChange(of: rateLimitWaitSeconds) { _, newValue in
+            if newValue != nil && !reduceMotion { pulse.toggle() }
+        }
+    }
+
+    private var bannerAccessibilityLabel: String {
+        var label = "Deleting. \(deleted.formatted()) of \(total.formatted()) records deleted so far."
+        if let waitSeconds = rateLimitWaitSeconds {
+            label += " Paused for about \(waitSeconds) seconds — Bluesky asked us to slow down."
+        }
+        return label
     }
 }
 

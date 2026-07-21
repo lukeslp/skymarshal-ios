@@ -352,7 +352,8 @@ public actor ATProtoClient {
     /// one final request.
     public func deleteRecord(
         uri: String,
-        expectedCollection: ATProtoRecordCollection
+        expectedCollection: ATProtoRecordCollection,
+        onRateLimitWait: (@Sendable (Int) -> Void)? = nil
     ) async throws {
         guard let session = currentSession else {
             throw ATProtoError(status: 401, message: "Not authenticated")
@@ -389,7 +390,7 @@ public actor ATProtoClient {
         ]
 
         try await withTimeout(seconds: 300) {
-            try await RateLimit.withBackoff {
+            try await RateLimit.withBackoff(onWait: onRateLimitWait) {
                 let _: EmptyResponse = try await self.post(
                     lexicon: "com.atproto.repo.deleteRecord",
                     body: body,

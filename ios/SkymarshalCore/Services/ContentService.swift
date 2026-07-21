@@ -437,7 +437,8 @@ public actor ContentService {
     /// fails the batch honestly instead of grinding through every item.
     public func delete(
         itemIDs: [String],
-        progress: (@Sendable (Int) async -> Void)? = nil
+        progress: (@Sendable (Int) async -> Void)? = nil,
+        onRateLimitWait: (@Sendable (Int) -> Void)? = nil
     ) async -> (deleted: Int, errors: [String]) {
         // Owner is captured BEFORE any network call: if the session dies
         // mid-batch, a nil owner would send deletePersistedContent down its
@@ -497,7 +498,8 @@ public actor ContentService {
                 }
                 try await client.deleteRecord(
                     uri: deletionURI,
-                    expectedCollection: expectedCollection
+                    expectedCollection: expectedCollection,
+                    onRateLimitWait: onRateLimitWait
                 )
                 deleted += 1
                 consecutiveFailures = 0
