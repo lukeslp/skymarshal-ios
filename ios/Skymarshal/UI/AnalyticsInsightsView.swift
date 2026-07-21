@@ -43,10 +43,15 @@ struct AnalyticsInsightsView: View {
                                 let lo = idx * snapshot.engagementBucketWidth
                                 let hi = lo + snapshot.engagementBucketWidth - 1
                                 HStack {
+                                    // minWidth (not a fixed width) plus a
+                                    // scale floor so accessibility type
+                                    // sizes grow the label instead of
+                                    // clipping it mid-number.
                                     Text("\(lo)–\(hi)")
                                         .font(.caption.monospacedDigit())
                                         .foregroundStyle(.secondary)
-                                        .frame(width: 72, alignment: .leading)
+                                        .minimumScaleFactor(0.7)
+                                        .frame(minWidth: 72, alignment: .leading)
                                     GeometryReader { geo in
                                         let maxC = max(snapshot.engagementHistogram.max() ?? 1, 1)
                                         ZStack(alignment: .leading) {
@@ -60,8 +65,11 @@ struct AnalyticsInsightsView: View {
                                     .frame(height: 10)
                                     Text("\(count)")
                                         .font(.caption.monospacedDigit())
-                                        .frame(width: 36, alignment: .trailing)
+                                        .minimumScaleFactor(0.7)
+                                        .frame(minWidth: 36, alignment: .trailing)
                                 }
+                                .accessibilityElement(children: .combine)
+                                .accessibilityLabel("\(lo) to \(hi) engagement, \(count) post\(count == 1 ? "" : "s")")
                             }
                         }
                         .padding(.vertical, 4)
