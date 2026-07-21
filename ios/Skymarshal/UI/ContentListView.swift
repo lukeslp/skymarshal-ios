@@ -491,6 +491,7 @@ struct ContentListView: View {
                     keyword: $keyword,
                     selectedTypes: $selectedTypes,
                     items: model.items,
+                    isArchiveLoading: model.loadProgress.map { !$0.isComplete } ?? false,
                     onApply: { filters = draftFilters }
                 )
             }

@@ -12,6 +12,9 @@ struct FilterSheet: View {
     @Binding var keyword: String
     @Binding var selectedTypes: Set<ContentType>
     let items: [ContentItem]
+    /// True while the archive scan is still paginating — the estimate
+    /// only covers what's loaded so far, and the card says so.
+    var isArchiveLoading: Bool = false
     let onApply: () -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -289,7 +292,9 @@ struct FilterSheet: View {
                 Text(estimatedMatches.formatted())
                     .font(Theme.Mono.tabular(20))
                     .fontWeight(.bold)
-                Text("ESTIMATED MATCHES")
+                Text(isArchiveLoading
+                     ? "ESTIMATED MATCHES (archive still loading)"
+                     : "ESTIMATED MATCHES")
                     .font(Theme.Mono.kicker(10))
                     .foregroundStyle(.secondary)
             }
@@ -310,7 +315,11 @@ struct FilterSheet: View {
                 }
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(estimatedMatches) estimated matches in the loaded archive")
+        .accessibilityLabel(
+            isArchiveLoading
+                ? "\(estimatedMatches) estimated matches in the loaded archive. The archive is still loading, so this count is incomplete."
+                : "\(estimatedMatches) estimated matches in the loaded archive"
+        )
         .accessibilityAddTraits(.updatesFrequently)
     }
 
