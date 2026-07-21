@@ -380,8 +380,15 @@ struct BluescreenView: View {
                                     Button {
                                         filters = preset.filters(botThreshold: botSensitivityRaw)
                                     } label: {
-                                        Label(preset.title, systemImage: "sparkles")
+                                        // Text + Text + Image renders as
+                                        // title / subtitle / icon inside a
+                                        // Menu — the visible home for the
+                                        // preset's one-line explanation.
+                                        Text(preset.title)
+                                        Text(preset.detail)
+                                        Image(systemName: "sparkles")
                                     }
+                                    .accessibilityHint(preset.detail)
                                 }
                             }
                         }
