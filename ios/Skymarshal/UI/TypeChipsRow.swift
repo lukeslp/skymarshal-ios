@@ -106,6 +106,10 @@ private struct TypeChip: View {
                     )
             }
             .foregroundStyle(isActive ? type.stripeColor : .secondary)
+            // Visual chip stays compact; the frame + contentShape extend
+            // the hit area to the 44pt HIG floor (pattern: AccountRow).
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(type.label), \(count.formatted()) item\(count == 1 ? "" : "s")")

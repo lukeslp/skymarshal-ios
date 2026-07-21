@@ -95,7 +95,12 @@ private struct Pill: View {
                     if reduceMotion { onTap() }
                     else { withAnimation(.snappy) { onTap() } }
                 }) {
+                    // Visual pill stays compact; the frame + contentShape
+                    // extend the hit area to the 44pt HIG floor
+                    // (pattern: AccountRow's chevron button).
                     content
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(softLabel(for: label, value: value))
