@@ -350,6 +350,15 @@ struct ContentListView: View {
                                 .accessibilityAction(named: Text("Delete")) {
                                     pendingDeletion = [item.id]
                                 }
+                                // The combined row element flattens the
+                                // tap target — re-expose open-details so
+                                // AT users keep the same path sighted
+                                // users get from a plain tap.
+                                .accessibilityAction(named: Text("Open post details")) {
+                                    if !editMode.isEditing {
+                                        detailItem = item
+                                    }
+                                }
                                 .tag(item.id)
                         }
                     }
@@ -759,6 +768,35 @@ struct ContentRow: View {
         }
         .padding(.vertical, 6)
         .frame(minHeight: 56)
+        // One swipe stop per row for VoiceOver / Switch Control instead
+        // of six. The composed label carries type, date, body, and
+        // engagement in reading order; interactive paths (open, delete,
+        // select) are re-exposed by the parent list as accessibility
+        // actions since combining flattens nested elements.
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(rowAccessibilityLabel)
+    }
+
+    /// Plain-language summary of the whole row. Numbers become words
+    /// ("12 likes"), long post bodies truncate at ~120 characters.
+    private var rowAccessibilityLabel: String {
+        var parts: [String] = [item.contentType.label]
+        if let date = item.createdAt {
+            parts.append(date.formatted(date: .abbreviated, time: .omitted))
+        }
+        if let text = item.text, !text.isEmpty {
+            parts.append(text.count > 120 ? "\(text.prefix(120))…" : text)
+        }
+        if !item.media.isEmpty {
+            parts.append("\(item.media.count) media attachment\(item.media.count == 1 ? "" : "s")")
+        }
+        parts.append("\(item.likeCount) like\(item.likeCount == 1 ? "" : "s")")
+        parts.append("\(item.repostCount) repost\(item.repostCount == 1 ? "" : "s")")
+        parts.append("\(item.replyCount) repl\(item.replyCount == 1 ? "y" : "ies")")
+        if item.engagementScore > 0 {
+            parts.append("engagement score \(Int(item.engagementScore))")
+        }
+        return parts.joined(separator: ", ")
     }
 
     @ViewBuilder

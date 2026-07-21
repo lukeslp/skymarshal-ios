@@ -154,7 +154,39 @@ struct AccountRow: View {
         }
         .padding(.vertical, 6)
         .frame(minHeight: 56)
+        // One swipe stop per row. Combining swallows the nested chevron
+        // Button, so expansion is re-exposed as a named accessibility
+        // action below; the parent list re-exposes unfollow/open-details
+        // the same way (BluescreenView).
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(rowAccessibilityLabel)
         .accessibilityValue(stripeAccessibilityLabel)
+        .accessibilityAction(
+            named: Text(isExpanded ? "Collapse details" : "Expand details")
+        ) {
+            onToggleExpansion()
+        }
+    }
+
+    /// Plain-language summary of the whole row: name, handle, status
+    /// pills, and the automation-signal score the bar shows visually.
+    private var rowAccessibilityLabel: String {
+        var parts: [String] = []
+        if let name = account.profile.displayName, !name.isEmpty {
+            parts.append(name)
+        }
+        parts.append("@\(account.handle)")
+        if account.isMutual { parts.append("mutual follow") }
+        if account.profile.hasUnverifiedHandle { parts.append("unverified handle") }
+        if account.isDeleted && !account.profile.hasUnverifiedHandle {
+            parts.append("deleted account")
+        } else if account.isInactive {
+            parts.append("inactive")
+        }
+        if account.ghostVerdict == .ghost { parts.append("ghost, never engages you") }
+        let score = Int(min(max(account.botScore, 0), 1) * 100)
+        parts.append("automation signals \(score) percent")
+        return parts.joined(separator: ", ")
     }
 
     private var stripeColor: Color {
