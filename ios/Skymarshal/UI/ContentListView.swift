@@ -271,6 +271,15 @@ struct ContentListView: View {
                     }
                 }
 
+                // Interrupted-delete recovery — persistent banner instead
+                // of a modal alert. Dismissing clears the breadcrumb, same
+                // as the old alert's OK.
+                if let interruptionNotice = model.deleteInterruptionNotice {
+                    DeleteInterruptionBanner(message: interruptionNotice) {
+                        model.dismissDeleteInterruptionRecovery()
+                    }
+                }
+
                 if model.isDeleting, let deleteProgress = model.deleteProgress {
                     DeleteProgressBanner(
                         deleted: deleteProgress.deleted,
@@ -529,21 +538,6 @@ struct ContentListView: View {
                 Button("Cancel", role: .cancel) {}
             } message: {
                 Text("Stores keyword, type tab, filters, and sort for this handle.")
-            }
-            .alert(
-                "Interrupted delete",
-                isPresented: Binding(
-                    get: { model.deleteInterruptionNotice != nil },
-                    set: { newValue in
-                        if !newValue { model.dismissDeleteInterruptionRecovery() }
-                    }
-                )
-            ) {
-                Button("OK", role: .cancel) {
-                    model.dismissDeleteInterruptionRecovery()
-                }
-            } message: {
-                Text(model.deleteInterruptionNotice ?? "")
             }
             .onAppear {
                 ColdLaunchSignposts.event("tab_content_appear")
