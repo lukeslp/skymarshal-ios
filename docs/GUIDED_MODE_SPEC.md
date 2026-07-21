@@ -74,10 +74,10 @@ Standing intent, recorded so the architecture leaves room: revive the earlier ac
 
 ## 7. Sequencing
 
-1. **Now:** P0 branch lands (both repos) — row combining, dialog semantics, non-typing confirm paths, Danger Zone engine fix.
-2. **Next:** Tier 1 settings layer, both platforms (small, independently shippable).
-3. **Then:** Flow A on iOS as the proof (delete parade doubles as a planned v1.1 feature; Switch Control users concentrate on iOS; SwiftUI grid shell is cheap). Verification per the devkit matrix: Switch Control + VoiceOver device passes on the full flow, and user testing with switch users — this flow has exactly the complexity/consequence profile that demands it.
-4. **Then:** port shell + Flow A to web (`GuidedLayout`), add dwell engine; Flows B–C on both.
+1. ~~**Now:** P0 branch lands (both repos)~~ — **done 2026-07-21**: row combining, dialog semantics, non-typing confirm paths, Danger Zone engine fix.
+2. ~~**Next:** Tier 1 settings layer, both platforms~~ — **done 2026-07-21**. iOS: `GuidedModeSettings` + `GuidedModeSettingsView` (About → Accessibility → Guided Mode), target-size floor threaded via environment into chip hit targets, confirmation-style + extended-timeout overrides in `TypedConfirmSheet`. Web: `GuidedModeContext` + Settings section, `--target-min-size` token driving the touch-target floor, `useDwellActivation` pointer-dwell hook (web builds dwell first, per §3), `DestructiveConfirm` honoring style + ×3 window. Dwell threshold stored on both; iOS defers live dwell to system Dwell Control. Verified: iOS 306 unit tests green; web 186 tests + 0 lint errors + build green. **Still owed: runtime AT passes (Switch Control, VoiceOver, keyboard) — none run yet.**
+3. **Then (next):** Flow A on iOS as the proof (delete parade doubles as a planned v1.1 feature; Switch Control users concentrate on iOS; SwiftUI grid shell is cheap). Verification per the devkit matrix: Switch Control + VoiceOver device passes on the full flow, and user testing with switch users — this flow has exactly the complexity/consequence profile that demands it.
+4. **Then:** port shell + Flow A to web (`GuidedLayout`), consume `useDwellActivation` + `maxChoicesPerScreen` in the grid; Flows B–C on both.
 5. **Later:** accessible chat (§6); margin-zone interactives as they prove out; timing-selector conversation when Luke wants it.
 
 ## 8. Open questions for Luke
