@@ -20,6 +20,15 @@ platform :ios do
   desc "Bump CFBundleVersion in project.yml first — ASC rejects a reused build number."
   desc "Needs APP_STORE_CONNECT_API_KEY_* in the env (source ~/.appstoreconnect/env.sh) — pilot auto-detects them."
   lane :release_testflight do
+    # Xcode's system rsync launches a second rsync process while packaging.
+    # Keep Apple's binary ahead of Homebrew's incompatible receiver while
+    # retaining the rest of PATH for xcodegen, xcbeautify, and fastlane.
+    system_paths = %w[/usr/bin /bin /usr/sbin /sbin]
+    ENV["PATH"] = (system_paths + ENV.fetch("PATH", "").split(":"))
+      .reject(&:empty?)
+      .uniq
+      .join(":")
+
     # The binary upload runs through altool/Transporter, which — unlike the
     # Spaceship-based deliver lanes — does NOT read APP_STORE_CONNECT_API_KEY_*
     # from the env on its own. Build an explicit key from the .p8 and hand it
@@ -37,7 +46,7 @@ platform :ios do
       output_directory: "build/ipa",
       output_name: "Skymarshal.ipa",
       clean: true,
-      export_method: "app-store"
+      export_method: "app-store-connect"
     )
     upload_to_testflight(
       api_key: api_key,
