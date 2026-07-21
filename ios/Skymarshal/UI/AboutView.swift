@@ -161,6 +161,20 @@ struct AboutView: View {
             }
             .listRowBackground(Theme.elev1)
             .accessibilityHint("When on, suppresses animations even when the system Reduce Motion is off")
+
+            NavigationLink {
+                GuidedModeSettingsView()
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Guided Mode")
+                        .font(.callout)
+                    Text("Larger targets, simpler screens, and confirmation styles that suit switch, dwell, and voice access.")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .listRowBackground(Theme.elev1)
+            .accessibilityHint("Opens Guided Mode access settings")
         } header: {
             Text("Accessibility")
                 .font(Theme.Mono.kicker())

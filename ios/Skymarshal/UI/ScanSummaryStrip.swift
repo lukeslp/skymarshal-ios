@@ -86,6 +86,7 @@ private struct Pill: View {
     let onTap: (() -> Void)?
 
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.targetSizeFloor) private var targetSizeFloor
     private var reduceMotion: Bool { ReduceMotion.shouldReduce(systemReduceMotion: systemReduceMotion) }
 
     var body: some View {
@@ -96,10 +97,12 @@ private struct Pill: View {
                     else { withAnimation(.snappy) { onTap() } }
                 }) {
                     // Visual pill stays compact; the frame + contentShape
-                    // extend the hit area to the 44pt HIG floor
-                    // (pattern: AccountRow's chevron button).
+                    // extend the hit area to the HIG floor (pattern:
+                    // AccountRow's chevron button), driven by the user's
+                    // Guided Mode target-size-floor preference instead
+                    // of a hardcoded 44pt.
                     content
-                        .frame(minHeight: 44)
+                        .frame(minHeight: targetSizeFloor.points)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)

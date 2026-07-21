@@ -30,11 +30,25 @@ struct TypedConfirmSheet: View {
     @Environment(AppModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
 
+    /// Guided Mode Tier 1 overrides (`GuidedModeSettings`, spec §4).
+    /// `.automatic` preserves the pre-existing AT-detection behavior
+    /// below unchanged; any other value pins the sheet to that single
+    /// confirmation mechanism regardless of assistive-tech status.
+    @AppStorage(GuidedModeSettings.confirmationStyleKey) private var confirmationStyleRaw: String =
+        GuidedModeSettings.confirmationStyleDefault.rawValue
+    /// When on, the hold duration and two-step arm window run at 3x
+    /// their base length (spec §4: "arming windows ×3, no short-lived
+    /// UI").
+    @AppStorage(GuidedModeSettings.extendedTimeoutsKey) private var extendedTimeoutsEnabled: Bool =
+        GuidedModeSettings.extendedTimeoutsDefault
+
     /// Assistive-tech presence — seeded at init, kept fresh via the
     /// UIAccessibility status-change notifications below.
     @State private var assistiveTechActive: Bool = TypedConfirmSheet.assistiveTechRunning
 
     /// Two-step arm/confirm machine for the accessibility-action path.
+    /// Re-created in `.onAppear` once `armWindowSeconds` (which depends
+    /// on the extended-timeouts preference) is available.
     @State private var arming = TwoStepConfirmArming()
     @State private var armed = false
     @State private var disarmTask: Task<Void, Never>?
@@ -46,8 +60,8 @@ struct TypedConfirmSheet: View {
     @State private var holdTask: Task<Void, Never>?
 
     private static let requiredWord = "DELETE"
-    private static let holdSeconds: Double = 3
-    private static let armWindowSeconds: Double = 10
+    private static let baseHoldSeconds: Double = 3
+    private static let baseArmWindowSeconds: Double = 10
 
     private static var assistiveTechRunning: Bool {
         UIAccessibility.isVoiceOverRunning
@@ -57,6 +71,31 @@ struct TypedConfirmSheet: View {
 
     private var reduceMotion: Bool {
         ReduceMotion.shouldReduce(systemReduceMotion: systemReduceMotion)
+    }
+
+    private var confirmationStyle: GuidedModeSettings.ConfirmationStyle {
+        GuidedModeSettings.ConfirmationStyle(rawValue: confirmationStyleRaw) ?? .automatic
+    }
+
+    /// Extended-timeouts-adjusted durations. Plain `Double`s (not
+    /// `static let`s) because they depend on the `@AppStorage` value.
+    private var holdSeconds: Double {
+        GuidedModeSettings.applyExtendedTimeouts(extendedTimeoutsEnabled, to: Self.baseHoldSeconds)
+    }
+    private var armWindowSeconds: Double {
+        GuidedModeSettings.applyExtendedTimeouts(extendedTimeoutsEnabled, to: Self.baseArmWindowSeconds)
+    }
+
+    /// Whether the non-typing alternative (hold / two-step) section is
+    /// offered. `.automatic` preserves the original AT-detection gate;
+    /// an explicit `.typed` override hides it even under active AT;
+    /// an explicit `.twoStep`/`.hold` override shows it even without AT.
+    private var showAlternateConfirmSection: Bool {
+        switch confirmationStyle {
+        case .automatic: return assistiveTechActive
+        case .typed: return false
+        case .twoStep, .hold: return true
+        }
     }
 
     private var effectiveCount: Int {
@@ -79,7 +118,7 @@ struct TypedConfirmSheet: View {
                     estimateCard
                     riskFlags
                     confirmField
-                    if assistiveTechActive {
+                    if showAlternateConfirmSection {
                         holdToConfirmSection
                     }
                 }
@@ -95,7 +134,13 @@ struct TypedConfirmSheet: View {
                         .accessibilityHint("Cancels this deletion and dismisses the sheet")
                 }
             }
-            .onAppear { fieldFocused = true }
+            .onAppear {
+                fieldFocused = true
+                // Build the two-step machine with the extended-timeouts-
+                // adjusted window so the machine's own `isArmed` window
+                // and the visual disarm task agree (spec §4 ×3).
+                arming = TwoStepConfirmArming(windowSeconds: armWindowSeconds)
+            }
         }
         .interactiveDismissDisabled()
         .cinematicSheetChrome()
@@ -268,8 +313,8 @@ struct TypedConfirmSheet: View {
             holdButton
             Text(
                 armed
-                    ? "Armed. Activate again within \(Int(Self.armWindowSeconds)) seconds to delete."
-                    : "Press and hold for \(Int(Self.holdSeconds)) seconds. With Switch Control, activate once to arm, then activate again within \(Int(Self.armWindowSeconds)) seconds."
+                    ? "Armed. Activate again within \(Int(armWindowSeconds)) seconds to delete."
+                    : "Press and hold for \(Int(holdSeconds)) seconds. With Switch Control, activate once to arm, then activate again within \(Int(armWindowSeconds)) seconds."
             )
             .font(.caption)
             .foregroundStyle(armed ? Theme.danger : .secondary)
@@ -303,7 +348,7 @@ struct TypedConfirmSheet: View {
         }
         .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous))
         .onLongPressGesture(
-            minimumDuration: Self.holdSeconds,
+            minimumDuration: holdSeconds,
             maximumDistance: 60
         ) {
             completeHold()
@@ -317,7 +362,7 @@ struct TypedConfirmSheet: View {
                 ? "Armed. Activate again to delete \(effectiveCount) records."
                 : "Confirm delete without typing"
         )
-        .accessibilityHint("Two steps: first activation arms, second activation within \(Int(Self.armWindowSeconds)) seconds deletes. This cannot be undone.")
+        .accessibilityHint("Two steps: first activation arms, second activation within \(Int(armWindowSeconds)) seconds deletes. This cannot be undone.")
         .accessibilityAction { twoStepActivate() }
         .accessibilityAction(named: Text(armed ? "Confirm deletion" : "Arm deletion")) {
             twoStepActivate()
@@ -344,14 +389,14 @@ struct TypedConfirmSheet: View {
             holdProgress = 0
             holdTask = Task { @MainActor in
                 for step in 1...6 {
-                    try? await Task.sleep(nanoseconds: UInt64(Self.holdSeconds / 6 * 1_000_000_000))
+                    try? await Task.sleep(nanoseconds: UInt64(holdSeconds / 6 * 1_000_000_000))
                     guard !Task.isCancelled else { return }
                     holdProgress = Double(step) / 6
                 }
             }
         } else {
             holdProgress = 0
-            withAnimation(.linear(duration: Self.holdSeconds)) {
+            withAnimation(.linear(duration: holdSeconds)) {
                 holdProgress = 1
             }
         }
@@ -386,11 +431,11 @@ struct TypedConfirmSheet: View {
             armed = true
             UIAccessibility.post(
                 notification: .announcement,
-                argument: "Armed. Activate again within \(Int(Self.armWindowSeconds)) seconds to confirm deleting \(effectiveCount) records."
+                argument: "Armed. Activate again within \(Int(armWindowSeconds)) seconds to confirm deleting \(effectiveCount) records."
             )
             disarmTask?.cancel()
             disarmTask = Task { @MainActor in
-                try? await Task.sleep(nanoseconds: UInt64(Self.armWindowSeconds * 1_000_000_000))
+                try? await Task.sleep(nanoseconds: UInt64(armWindowSeconds * 1_000_000_000))
                 guard !Task.isCancelled else { return }
                 arming.reset()
                 armed = false

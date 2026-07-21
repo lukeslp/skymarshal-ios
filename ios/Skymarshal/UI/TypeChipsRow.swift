@@ -76,6 +76,8 @@ private struct TypeChip: View {
     let isActive: Bool
     let action: () -> Void
 
+    @Environment(\.targetSizeFloor) private var targetSizeFloor
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
@@ -107,8 +109,12 @@ private struct TypeChip: View {
             }
             .foregroundStyle(isActive ? type.stripeColor : .secondary)
             // Visual chip stays compact; the frame + contentShape extend
-            // the hit area to the 44pt HIG floor (pattern: AccountRow).
-            .frame(minHeight: 44)
+            // the hit area to the HIG floor (pattern: AccountRow), now
+            // driven by the user's Guided Mode target-size-floor
+            // preference (Standard 44 / Large 60 / Max 88 — see
+            // GuidedModeSettings.TargetSizeFloor) instead of a hardcoded
+            // 44pt.
+            .frame(minHeight: targetSizeFloor.points)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

@@ -54,6 +54,7 @@ struct RootView: View {
             }
         }
         .environment(model)
+        .guidedModeEnvironment()
         .sheet(isPresented: $showPostUpdateFeatureDiscovery) {
             AboutView(presentation: .sheet)
                 .onDisappear {
