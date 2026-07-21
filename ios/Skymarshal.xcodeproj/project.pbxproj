@@ -45,6 +45,7 @@
 		37C674ACA8066D00C2303B61 /* MenuPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75888D176A92A45E2FD78975 /* MenuPresentation.swift */; };
 		38F8AAEE9C83AF2876B0E3E8 /* SkymarshalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3349AFD3577BD6BAAA9C6C /* SkymarshalApp.swift */; };
 		3B2B051276F10B0F8994B2AC /* DeletePreflight.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A188BF054FDE138866AFD32 /* DeletePreflight.swift */; };
+		3D1334A10AC9D91E9195E91D /* TwoStepConfirmArming.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB86FB4FCD1014B450F14E68 /* TwoStepConfirmArming.swift */; };
 		3F63D2BC26A3BE8E6EDFBD09 /* EngagementEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADD3842789994F3B45D8D00C /* EngagementEngineTests.swift */; };
 		3FEAC6025218D495E63963C8 /* SkymarshalCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 822EC83D35348BBCCDA83D23 /* SkymarshalCore.framework */; };
 		40EED1DFF0A6E269C680E2FD /* ScopePill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB868E35AB8F5EE25EB0B80 /* ScopePill.swift */; };
@@ -111,6 +112,7 @@
 		9FAB9CA28A83BD93C7F82E7A /* ContentListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BADD57E99019D70492F0107E /* ContentListView.swift */; };
 		A4E563924B2789477D4C9401 /* WidgetSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25CB995E61D9CA919FCE989B /* WidgetSupport.swift */; };
 		A84DF6EF9AF006C93F41BC76 /* Interaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB0DE21307679CE27F51FFDD /* Interaction.swift */; };
+		A96AB68DE808A82275E25CD6 /* TwoStepConfirmArmingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 193A1338EE2EC55A8B25F53A /* TwoStepConfirmArmingTests.swift */; };
 		ACB11207FACC3E45356713F7 /* StatusLine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3716E5A6EB8262D11F7967C8 /* StatusLine.swift */; };
 		ACB555D481671D0C0E15BC35 /* SearchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DD6042E5FF9F3EC2084666 /* SearchRequest.swift */; };
 		ADCA9CC796BC67C18828E53B /* ATProtoTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4244BF8F79091B71A048DF70 /* ATProtoTypes.swift */; };
@@ -246,6 +248,7 @@
 		14B50B641FB406502CA6835B /* Skymarshal.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Skymarshal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		153E9906E871AFE48CB85D74 /* CinematicScreenHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CinematicScreenHeader.swift; sourceTree = "<group>"; };
 		157ED09AC4B4B3D43CCCC512 /* InteractionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionService.swift; sourceTree = "<group>"; };
+		193A1338EE2EC55A8B25F53A /* TwoStepConfirmArmingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwoStepConfirmArmingTests.swift; sourceTree = "<group>"; };
 		1A188BF054FDE138866AFD32 /* DeletePreflight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeletePreflight.swift; sourceTree = "<group>"; };
 		1B855C2D8AA1EF9714127DC7 /* VisualizationHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualizationHubView.swift; sourceTree = "<group>"; };
 		1BDFE71499511839E0BFE29C /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
@@ -382,6 +385,7 @@
 		E8A7E95FBF0C93D5A80D6EB1 /* DeletePacing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeletePacing.swift; sourceTree = "<group>"; };
 		E8D9EC50546232514095F18E /* ContentItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentItem.swift; sourceTree = "<group>"; };
 		EB0DE21307679CE27F51FFDD /* Interaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Interaction.swift; sourceTree = "<group>"; };
+		EB86FB4FCD1014B450F14E68 /* TwoStepConfirmArming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwoStepConfirmArming.swift; sourceTree = "<group>"; };
 		EF98F227B9CFB208A593B891 /* AttributedPostText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttributedPostText.swift; sourceTree = "<group>"; };
 		F0251CDB9470178D22697417 /* DeleteSafetyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteSafetyTests.swift; sourceTree = "<group>"; };
 		F0F3607A281A22A96499B601 /* AnalyticsInsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsInsightsView.swift; sourceTree = "<group>"; };
@@ -674,6 +678,7 @@
 				4C43CECAE8105DE9B520DC0B /* Theme+Cinematic.swift */,
 				CE6FEF289F401090DD0C852C /* Theme+Fonts.swift */,
 				E617CED88B3942F17AB3AC3D /* Timeout.swift */,
+				EB86FB4FCD1014B450F14E68 /* TwoStepConfirmArming.swift */,
 			);
 			path = Standards;
 			sourceTree = "<group>";
@@ -723,6 +728,7 @@
 				0FEAFFB7DCD5B92072BFB691 /* StorageRoundTripTests.swift */,
 				4D0AE03980941621244D8E81 /* ThemeFontRegistrationTests.swift */,
 				6CCAE84030525BCAADF9DCEC /* TokenCoverageTests.swift */,
+				193A1338EE2EC55A8B25F53A /* TwoStepConfirmArmingTests.swift */,
 				B738FF447E12F1081D3CC906 /* WidgetSnapshotTests.swift */,
 				767DA2535F626B04AD215C22 /* WordPatternsServiceTests.swift */,
 			);
@@ -960,6 +966,7 @@
 				6129BC884E436355F5F5F381 /* Theme+Fonts.swift in Sources */,
 				B6FB371111B20491DDAFD234 /* Theme.swift in Sources */,
 				5B66047E3E1901033B6BFCAF /* Timeout.swift in Sources */,
+				3D1334A10AC9D91E9195E91D /* TwoStepConfirmArming.swift in Sources */,
 				68AD6AF63B698C3C35C415FB /* WidgetSnapshot.swift in Sources */,
 				AF17F548F6F3B8A49DBF94F3 /* WidgetSnapshotBuilder.swift in Sources */,
 				963CC16347653C5361ECE5C8 /* WidgetSnapshotStore.swift in Sources */,
@@ -1005,6 +1012,7 @@
 				97F1D3F12033D1EE9F93530B /* StorageRoundTripTests.swift in Sources */,
 				87E791F5938F7800F3C5F5D4 /* ThemeFontRegistrationTests.swift in Sources */,
 				3650D0656ADC47AE98137B7D /* TokenCoverageTests.swift in Sources */,
+				A96AB68DE808A82275E25CD6 /* TwoStepConfirmArmingTests.swift in Sources */,
 				B17C529A63876D48034BDCE3 /* WidgetSnapshotTests.swift in Sources */,
 				24DDBD565DDA40DA1A180F45 /* WordPatternsServiceTests.swift in Sources */,
 			);
