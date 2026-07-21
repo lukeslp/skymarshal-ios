@@ -138,6 +138,7 @@
 		C7C0BF6AFF715DB2189F5EEC /* FollowerFiltersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3786F0727744BDFB53F1DD6C /* FollowerFiltersTests.swift */; };
 		CA1948B8790D31FC6B8CA17F /* ContentTypeStyling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BADB0EE3694F892FAFE6D5C /* ContentTypeStyling.swift */; };
 		CBBEF1B5596F78C2A7CD2FF5 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D3FBECFCC0C54AC18EFD4B94 /* PrivacyInfo.xcprivacy */; };
+		CFF3B699FA74B7C66B5647B9 /* AppPasswordFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD62063F62921E7BF2A23F1 /* AppPasswordFormatTests.swift */; };
 		D142F84C73F6AE9AE1346249 /* ATProtoClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F256F22E3C66AFA83B34CC3 /* ATProtoClient.swift */; };
 		D14D6DA2B8C31DCCFA245EE9 /* ScanInFlightView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E2A563F59D0EAACF6B93C1D /* ScanInFlightView.swift */; };
 		D342FD00DA0941C8320845D4 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BDFE71499511839E0BFE29C /* AppModel.swift */; };
@@ -154,6 +155,7 @@
 		F2489F5E05A1AD96DAFAFB31 /* AccountDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B74AACF37FEDE7F8B59D9D64 /* AccountDetailView.swift */; };
 		F27CE9228345BE86F36E04A7 /* StorageModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABB23B2F9DD406B2A2A17ED /* StorageModels.swift */; };
 		F4DF3B33546DDBBE157F599F /* ScanSummaryStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E30699ACD9FBA95746DC78E /* ScanSummaryStrip.swift */; };
+		F768706A67F4D631570E33FD /* AppPasswordFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9287C20E223BC25282245E35 /* AppPasswordFormat.swift */; };
 		F8A5329CFFA45BB0CAFBD2A7 /* DeletePacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8A7E95FBF0C93D5A80D6EB1 /* DeletePacing.swift */; };
 		F9681EFDBACDA437AAECE865 /* ReduceMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F9F29B67CBCC9B0D7EF82B3 /* ReduceMotion.swift */; };
 		FA8A1BFD0BE39D08AE23468C /* WebShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9F1FE406732CF1A69044DA9 /* WebShellView.swift */; };
@@ -325,6 +327,7 @@
 		8DC054C5281ED1C71D89290D /* ContentBackupImportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentBackupImportTests.swift; sourceTree = "<group>"; };
 		916FD0F19FC4F52773CE1628 /* StatusBanners.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBanners.swift; sourceTree = "<group>"; };
 		91960FEC0D1FFA7B37DF7DCB /* StyleDiagnosisCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StyleDiagnosisCapture.swift; sourceTree = "<group>"; };
+		9287C20E223BC25282245E35 /* AppPasswordFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPasswordFormat.swift; sourceTree = "<group>"; };
 		92EE1827BCD7CF75E33B5123 /* GraphSnapshotWriterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphSnapshotWriterTests.swift; sourceTree = "<group>"; };
 		92FA2AC547B7E77C479C0A69 /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
 		953E8CE8C7FE7BAFA50E9D9C /* ActionRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionRow.swift; sourceTree = "<group>"; };
@@ -392,6 +395,7 @@
 		F13FF534F6122C655A075286 /* AccountRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountRow.swift; sourceTree = "<group>"; };
 		F62385E352BFF3314B1AEBB3 /* EditActionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditActionBar.swift; sourceTree = "<group>"; };
 		F682D2F0D7162D18B5F4E8E2 /* DeleteBatchRecovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteBatchRecovery.swift; sourceTree = "<group>"; };
+		FAD62063F62921E7BF2A23F1 /* AppPasswordFormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPasswordFormatTests.swift; sourceTree = "<group>"; };
 		FD0D25E8C1A6147A77937830 /* RefreshTransactionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RefreshTransactionTests.swift; sourceTree = "<group>"; };
 		FD14FDBAE5516851968240DC /* DeleteURIMappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteURIMappingTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -662,6 +666,7 @@
 		F8D8F2A80FD6ECB628761990 /* Standards */ = {
 			isa = PBXGroup;
 			children = (
+				9287C20E223BC25282245E35 /* AppPasswordFormat.swift */,
 				3F6217EEAAB150885CEC6C21 /* ATProtoDate.swift */,
 				8A1175A507B9D549FD38610F /* BackgroundGraphRefreshNotice.swift */,
 				CC5F0231741B1BC2B90885C8 /* BluescreenAnalyzer.swift */,
@@ -695,6 +700,7 @@
 			isa = PBXGroup;
 			children = (
 				5D69506A66905671965DC4E5 /* AnalyticsServiceTests.swift */,
+				FAD62063F62921E7BF2A23F1 /* AppPasswordFormatTests.swift */,
 				D7BBA7DC1E1BE3D785518107 /* ArchiveLoadCheckpointTests.swift */,
 				DC6837FCA0BC0FC0D4049616 /* ATProtoDateTests.swift */,
 				4BF539C3277DF76ABBD4E811 /* BackgroundTaskCompletionTests.swift */,
@@ -928,6 +934,7 @@
 				131E5B9BA93B854161C5BC28 /* AnalyticsService.swift in Sources */,
 				859438B8902D3719250772C2 /* AnalyticsSnapshot.swift in Sources */,
 				61FD72860953A89D7C881813 /* AnalyzedAccount.swift in Sources */,
+				F768706A67F4D631570E33FD /* AppPasswordFormat.swift in Sources */,
 				2B56E52CF059E024CB2F2A2F /* BackgroundGraphRefreshNotice.swift in Sources */,
 				9F03A05E1357A45BF2CE5418 /* BluescreenAnalyzer.swift in Sources */,
 				509594E1EB937F8CA7F775DC /* BskyProfile.swift in Sources */,
@@ -980,6 +987,7 @@
 			files = (
 				64DA96AC430021F3527614F5 /* ATProtoDateTests.swift in Sources */,
 				5A9A7FC55C7EA88F84AD4DB0 /* AnalyticsServiceTests.swift in Sources */,
+				CFF3B699FA74B7C66B5647B9 /* AppPasswordFormatTests.swift in Sources */,
 				247628CCD88EC6E6885E968E /* ArchiveLoadCheckpointTests.swift in Sources */,
 				505D3B4C6117F7371847A04D /* BackgroundTaskCompletionTests.swift in Sources */,
 				48037B237AE29F0675B1547A /* BluescreenAnalyzerTests.swift in Sources */,

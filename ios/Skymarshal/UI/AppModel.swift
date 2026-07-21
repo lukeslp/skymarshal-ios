@@ -224,7 +224,16 @@ final class AppModel {
             }
             evaluateDeleteInterruptionRecovery()
         } catch {
-            errorMessage = error.localizedDescription
+            // Wrong-password-kind hint: a login failure with something
+            // that isn't shaped like an app password (xxxx-xxxx-xxxx-xxxx)
+            // is almost always the main account password. Say so before
+            // the opaque server error.
+            if AppPasswordFormat.looksLikeAppPassword(password) {
+                errorMessage = error.localizedDescription
+            } else {
+                errorMessage = "That doesn't look like an app password — check Settings → App Passwords at bsky.app. "
+                    + error.localizedDescription
+            }
         }
     }
 
