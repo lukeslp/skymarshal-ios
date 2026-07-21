@@ -704,20 +704,30 @@ public enum BotFlagSeverity: Sendable, Equatable {
 
     public static func classify(_ flag: String) -> BotFlagSeverity {
         let f = flag.lowercased()
-        // High — confident bot signals
-        if f.contains("mass following")
+        // High — confident bot signals (mass-follow spam pattern,
+        // never-posted follower farms). The trailing keywords per bucket
+        // ("mass following", "high following", …) are the pre-rename
+        // flag strings still present in cached SwiftData rows — keep
+        // them until every cache has been rescanned.
+        if f.contains("far more accounts than follow")
+            || f.contains("never posted")
+            || f.contains("mass following")
             || f.contains("no posts despite") {
             return .high
         }
         // Medium — strong but not conclusive
-        if f.contains("high following")
+        if f.contains("few following back")
+            || f.contains("hardly ever posts")
+            || f.contains("brand-new")
+            || f.contains("weeks old")
+            || f.contains("missing")
             || f.contains("very few posts")
             || f.contains("new account")
-            || f.contains("missing") {
+            || f.contains("high following") {
             return .medium
         }
-        // Low — informational signals (round numbers, suspiciously high
-        // ratio, young account but sub-flooding, etc.)
+        // Low — informational signals (round following counts, very high
+        // follower ratio, mildly follows-heavy ratio).
         return .low
     }
 }

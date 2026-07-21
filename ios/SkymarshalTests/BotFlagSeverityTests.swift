@@ -14,14 +14,14 @@ final class BotFlagSeverityTests: XCTestCase {
 
     func test_massFollowing_isHigh() {
         XCTAssertEqual(
-            BotFlagSeverity.classify("Mass following, very low ratio"),
+            BotFlagSeverity.classify("Follows far more accounts than follow it back"),
             .high
         )
     }
 
     func test_noPostsDespiteFollowing_isHigh() {
         XCTAssertEqual(
-            BotFlagSeverity.classify("No posts despite following many"),
+            BotFlagSeverity.classify("Has never posted but follows many accounts"),
             .high
         )
     }
@@ -30,28 +30,28 @@ final class BotFlagSeverityTests: XCTestCase {
 
     func test_highFollowingLowRatio_isMedium() {
         XCTAssertEqual(
-            BotFlagSeverity.classify("High following, low ratio"),
+            BotFlagSeverity.classify("Follows many accounts with few following back"),
             .medium
         )
     }
 
     func test_veryFewPosts_isMedium() {
         XCTAssertEqual(
-            BotFlagSeverity.classify("Very few posts, high following"),
+            BotFlagSeverity.classify("Hardly ever posts but follows many accounts"),
             .medium
         )
     }
 
     func test_newAccount_isMedium() {
         XCTAssertEqual(
-            BotFlagSeverity.classify("New account, aggressive following"),
+            BotFlagSeverity.classify("Brand-new account already following many accounts"),
             .medium
         )
     }
 
     func test_missingProfileBits_isMedium() {
         XCTAssertEqual(
-            BotFlagSeverity.classify("Missing: display name, bio, avatar"),
+            BotFlagSeverity.classify("Profile is missing its display name, bio, avatar"),
             .medium
         )
     }
@@ -60,24 +60,35 @@ final class BotFlagSeverityTests: XCTestCase {
 
     func test_roundNumberFollowing_isLow() {
         XCTAssertEqual(
-            BotFlagSeverity.classify("Round number following count"),
+            BotFlagSeverity.classify("Follows an exactly round number of accounts, common for automation"),
+            .low
+        )
+        XCTAssertEqual(
+            BotFlagSeverity.classify("Following count lands on a round number, which automation sometimes produces"),
             .low
         )
     }
 
-    func test_suspiciouslyHighRatio_isLow() {
+    func test_veryHighFollowerRatio_isLow() {
+        // "Has far more followers than accounts it follows" must NOT trip
+        // the High bucket's "far more accounts than follow" keyword —
+        // direction matters (followers-heavy is informational, not spam).
         XCTAssertEqual(
-            BotFlagSeverity.classify("Suspiciously high follower ratio"),
+            BotFlagSeverity.classify("Has far more followers than accounts it follows"),
             .low
         )
     }
 
-    func test_youngAccount_isMedium_viaHighFollowingMatch() {
-        // "Young account, high following" hits the Medium bucket via the
-        // "high following" substring — appropriate severity for a 1.5-weight
-        // analyzer factor. The match is incidental but correct.
+    func test_mildFollowsHeavyRatio_isLow() {
         XCTAssertEqual(
-            BotFlagSeverity.classify("Young account, high following"),
+            BotFlagSeverity.classify("Follows somewhat more accounts than follow back"),
+            .low
+        )
+    }
+
+    func test_youngAccount_isMedium() {
+        XCTAssertEqual(
+            BotFlagSeverity.classify("Account only weeks old and follows hundreds of accounts"),
             .medium
         )
     }

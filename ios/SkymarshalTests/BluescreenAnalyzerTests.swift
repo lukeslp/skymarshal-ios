@@ -63,21 +63,21 @@ final class BluescreenAnalyzerTests: XCTestCase {
         let p = profile(followers: 30, following: 1000)
         let result = BluescreenAnalyzer.botScore(for: p)
         XCTAssertGreaterThanOrEqual(result.score, 0.6)
-        XCTAssertTrue(result.flags.contains { $0.contains("Mass following") })
+        XCTAssertTrue(result.flags.contains { $0.contains("far more accounts") })
     }
 
     func test_botScore_zeroPosts_highFollowing_flagsAndScores() {
         let p = profile(followers: 100, following: 200, posts: 0)
         let result = BluescreenAnalyzer.botScore(for: p)
         XCTAssertGreaterThanOrEqual(result.score, 0.6)
-        XCTAssertTrue(result.flags.contains { $0.contains("No posts") })
+        XCTAssertTrue(result.flags.contains { $0.contains("never posted") })
     }
 
     func test_botScore_missingThreeProfileFields_addsFactor() {
         let p = profile(displayName: nil, description: nil, avatar: nil)
         let result = BluescreenAnalyzer.botScore(for: p)
         XCTAssertGreaterThan(result.score, 0)
-        XCTAssertTrue(result.flags.contains { $0.contains("Missing") })
+        XCTAssertTrue(result.flags.contains { $0.contains("missing its") })
     }
 
     func test_botScore_roundNumberFollowing_addsLowWeightFactor() {
@@ -86,14 +86,14 @@ final class BluescreenAnalyzerTests: XCTestCase {
         let p = profile(followers: 200, following: 200)
         let result = BluescreenAnalyzer.botScore(for: p)
         XCTAssertGreaterThan(result.score, 0)
-        XCTAssertTrue(result.flags.contains { $0.contains("Round number") })
+        XCTAssertTrue(result.flags.contains { $0.contains("round number") })
     }
 
     func test_botScore_newAccountAggressiveFollowing_flags() {
         let p = profile(following: 200, ageDays: 5)
         let result = BluescreenAnalyzer.botScore(for: p)
         XCTAssertGreaterThan(result.score, 0)
-        XCTAssertTrue(result.flags.contains { $0.contains("New account") })
+        XCTAssertTrue(result.flags.contains { $0.contains("Brand-new") })
     }
 
     func test_botScore_normalUser_isZero() {
@@ -126,8 +126,8 @@ final class BluescreenAnalyzerTests: XCTestCase {
         let result = BluescreenAnalyzer.botScore(for: p)
         XCTAssertEqual(result.score, 0,
                        "Real-shaped accounts with unknown age must not score as bots")
-        XCTAssertFalse(result.flags.contains { $0.contains("New account") })
-        XCTAssertFalse(result.flags.contains { $0.contains("Young account") })
+        XCTAssertFalse(result.flags.contains { $0.contains("Brand-new") })
+        XCTAssertFalse(result.flags.contains { $0.contains("weeks old") })
     }
 
     // MARK: - influence

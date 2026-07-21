@@ -26,25 +26,27 @@ public enum BluescreenAnalyzer {
 
         let r = ratio(followers: profile.followersCount, following: profile.followsCount)
 
-        // 1. Mass following with very low ratio (spam pattern) — high weight
+        // 1. Mass following with very low ratio (spam pattern) — high weight.
+        // Flag strings are user-facing: one plain sentence each, no jargon.
+        // BotFlagSeverity.classify keys off these strings — change both together.
         if profile.followsCount > 500 && r < 0.1 {
             factors.append((3, 0.95))
-            flags.append("Mass following, very low ratio")
+            flags.append("Follows far more accounts than follow it back")
         } else if profile.followsCount > 200 && r < 0.2 {
             factors.append((2, 0.7))
-            flags.append("High following, low ratio")
+            flags.append("Follows many accounts with few following back")
         } else if profile.followsCount > 100 && r < 0.3 {
             factors.append((1, 0.4))
-            flags.append("Moderate following, below-average ratio")
+            flags.append("Follows somewhat more accounts than follow back")
         }
 
         // 2. Zero posts with high following — high weight
         if profile.postsCount == 0 && profile.followsCount > 50 {
             factors.append((3, 0.9))
-            flags.append("No posts despite following many")
+            flags.append("Has never posted but follows many accounts")
         } else if profile.postsCount < 5 && profile.followsCount > 100 {
             factors.append((2, 0.6))
-            flags.append("Very few posts, high following")
+            flags.append("Hardly ever posts but follows many accounts")
         }
 
         // 3. Missing profile info — medium weight
@@ -55,25 +57,25 @@ public enum BluescreenAnalyzer {
 
         if missing.count >= 3 {
             factors.append((2, 0.6))
-            flags.append("Missing: \(missing.joined(separator: ", "))")
+            flags.append("Profile is missing its \(missing.joined(separator: ", "))")
         } else if missing.count == 2 {
             factors.append((1, 0.35))
-            flags.append("Missing: \(missing.joined(separator: ", "))")
+            flags.append("Profile is missing its \(missing.joined(separator: ", "))")
         }
 
         // 4. Round-number following (bot farms often follow in round numbers) — low weight
         if profile.followsCount > 100 && profile.followsCount % 100 == 0 {
             factors.append((0.5, 0.3))
-            flags.append("Round number following count")
+            flags.append("Follows an exactly round number of accounts, common for automation")
         } else if profile.followsCount > 50 && profile.followsCount % 50 == 0 {
             factors.append((0.3, 0.15))
-            flags.append("Suspiciously round following count")
+            flags.append("Following count lands on a round number, which automation sometimes produces")
         }
 
         // 5. Extremely high ratio (suspicious amplification) — low weight
         if r > 100 && profile.followersCount > 1000 {
             factors.append((0.5, 0.2))
-            flags.append("Suspiciously high follower ratio")
+            flags.append("Has far more followers than accounts it follows")
         }
 
         // 6. Very new account with high activity — medium weight.
@@ -87,10 +89,10 @@ public enum BluescreenAnalyzer {
             let ageDays = Date().timeIntervalSince(date) / 86_400
             if ageDays < 7 && profile.followsCount > 100 {
                 factors.append((2, 0.7))
-                flags.append("New account, aggressive following")
+                flags.append("Brand-new account already following many accounts")
             } else if ageDays < 30 && profile.followsCount > 500 {
                 factors.append((1.5, 0.5))
-                flags.append("Young account, high following")
+                flags.append("Account only weeks old and follows hundreds of accounts")
             }
         }
 
