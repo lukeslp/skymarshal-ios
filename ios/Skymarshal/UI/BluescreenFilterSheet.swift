@@ -22,17 +22,15 @@ struct BluescreenFilterSheet: View {
     @State private var minPostsPerDay: String = ""
     @State private var maxPostsPerDay: String = ""
     @State private var minCompletenessPct: String = ""
+    @State private var showMoreFilters = false
 
     var body: some View {
         NavigationStack {
             Form {
                 statusSection
                 botScoreSection
-                influenceSection
-                accountAgeSection
-                activitySection
-                profileBitsSection
                 sortSection
+                moreFiltersSection
             }
             .navigationTitle("Filters")
             .navigationBarTitleDisplayMode(.inline)
@@ -95,54 +93,56 @@ struct BluescreenFilterSheet: View {
         }
     }
 
+    /// The long tail of numeric/tristate axes, collapsed behind one
+    /// DisclosureGroup so the sheet opens on the three sections people
+    /// actually reach for (Status, Bot score, Sort) — mirrors the
+    /// Content tab FilterSheet's "More filters" pattern.
     @ViewBuilder
-    private var influenceSection: some View {
-        Section("Followers / Following / Influence") {
-            rangeRow("Followers", min: $minFollowers, max: $maxFollowers)
-            rangeRow("Following", min: $minFollowing, max: $maxFollowing)
-            Picker("Influence tier", selection: $draft.influenceTier) {
-                Text("Any").tag(InfluenceTier?.none)
-                ForEach(InfluenceTier.allCases, id: \.self) { tier in
-                    Text(tier.label).tag(InfluenceTier?.some(tier))
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var accountAgeSection: some View {
+    private var moreFiltersSection: some View {
         Section {
-            rangeRow("Age (days)", min: $minAgeDays, max: $maxAgeDays)
-            rangeRow("Posts / day", min: $minPostsPerDay, max: $maxPostsPerDay, decimal: true)
-        } header: {
-            Text("Account age & activity")
-        } footer: {
-            Text("Posts/day above 50 is unusual for a real user.")
-        }
-    }
+            DisclosureGroup("More filters", isExpanded: $showMoreFilters) {
+                subheader("Followers / Following / Influence")
+                rangeRow("Followers", min: $minFollowers, max: $maxFollowers)
+                rangeRow("Following", min: $minFollowing, max: $maxFollowing)
+                Picker("Influence tier", selection: $draft.influenceTier) {
+                    Text("Any").tag(InfluenceTier?.none)
+                    ForEach(InfluenceTier.allCases, id: \.self) { tier in
+                        Text(tier.label).tag(InfluenceTier?.some(tier))
+                    }
+                }
 
-    @ViewBuilder
-    private var activitySection: some View {
-        Section("Profile completeness") {
-            HStack {
-                Text("Min %").foregroundStyle(.secondary)
-                Spacer()
-                TextField("0", text: $minCompletenessPct)
-                    .keyboardType(.numberPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(maxWidth: 80)
+                subheader("Account age & activity")
+                rangeRow("Age (days)", min: $minAgeDays, max: $maxAgeDays)
+                rangeRow("Posts / day", min: $minPostsPerDay, max: $maxPostsPerDay, decimal: true)
+                Text("Posts/day above 50 is unusual for a real user.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                subheader("Profile completeness")
+                HStack {
+                    Text("Min %").foregroundStyle(.secondary)
+                    Spacer()
+                    TextField("0", text: $minCompletenessPct)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(maxWidth: 80)
+                }
+
+                subheader("Profile bits")
+                tristate("Has avatar", value: $draft.hasAvatar)
+                tristate("Has description", value: $draft.hasDescription)
+                tristate("Has banner", value: $draft.hasBanner)
+                tristate("Has labels", value: $draft.hasLabels)
             }
         }
     }
 
     @ViewBuilder
-    private var profileBitsSection: some View {
-        Section("Profile bits") {
-            tristate("Has avatar", value: $draft.hasAvatar)
-            tristate("Has description", value: $draft.hasDescription)
-            tristate("Has banner", value: $draft.hasBanner)
-            tristate("Has labels", value: $draft.hasLabels)
-        }
+    private func subheader(_ title: String) -> some View {
+        Text(title.uppercased())
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .accessibilityAddTraits(.isHeader)
     }
 
     @ViewBuilder
