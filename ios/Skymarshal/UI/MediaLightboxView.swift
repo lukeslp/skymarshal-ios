@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import SkymarshalCore
 
 /// Gates the play-badge overlay on video media. The badge is purely
@@ -74,6 +75,31 @@ private struct MediaPage: View {
     @State private var scale: CGFloat = 1.0
     @State private var lastScale: CGFloat = 1.0
 
+    /// Pinch/double-tap zoom bounds, shared by the accessibility actions.
+    private static let minZoom: CGFloat = 1.0
+    private static let maxZoom: CGFloat = 4.0
+    /// Step per "Zoom in"/"Zoom out" accessibility action.
+    private static let zoomStep: CGFloat = 0.5
+
+    /// Stepped zoom for VoiceOver users, clamped to the same bounds the
+    /// pinch gesture uses. Announces the resulting level.
+    private func stepZoom(by delta: CGFloat) {
+        let target = min(Self.maxZoom, max(Self.minZoom, scale + delta))
+        if reduceMotion {
+            scale = target
+            lastScale = target
+        } else {
+            withAnimation(.spring) {
+                scale = target
+                lastScale = target
+            }
+        }
+        UIAccessibility.post(
+            notification: .announcement,
+            argument: "Zoom \(Int((target * 100).rounded())) percent"
+        )
+    }
+
     var body: some View {
         GeometryReader { geo in
             ZStack {
@@ -109,6 +135,18 @@ private struct MediaPage: View {
                                             lastScale = target
                                         }
                                     }
+                                }
+                                // Non-gesture zoom path — pinch and
+                                // double-tap are unreachable under
+                                // VoiceOver without passthrough.
+                                .accessibilityLabel(
+                                    (item.alt?.isEmpty == false) ? item.alt! : "Image"
+                                )
+                                .accessibilityAction(named: "Zoom in") {
+                                    stepZoom(by: Self.zoomStep)
+                                }
+                                .accessibilityAction(named: "Zoom out") {
+                                    stepZoom(by: -Self.zoomStep)
                                 }
                         case .failure:
                             failedState
@@ -151,6 +189,9 @@ private struct AltTextCaption: View {
     let text: String
     @State private var expanded: Bool = false
 
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    private var reduceMotion: Bool { ReduceMotion.shouldReduce(systemReduceMotion: systemReduceMotion) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
@@ -160,7 +201,8 @@ private struct AltTextCaption: View {
                     .font(.caption.weight(.semibold))
                 Spacer()
                 Button(expanded ? "Less" : "More") {
-                    withAnimation { expanded.toggle() }
+                    if reduceMotion { expanded.toggle() }
+                    else { withAnimation { expanded.toggle() } }
                 }
                 .font(.caption.weight(.medium))
                 .foregroundStyle(.white)
