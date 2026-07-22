@@ -254,7 +254,7 @@
 		0FEAFFB7DCD5B92072BFB691 /* StorageRoundTripTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageRoundTripTests.swift; sourceTree = "<group>"; };
 		1350FD107E0B743F0F8F9542 /* SearchKeywordGrammarTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchKeywordGrammarTests.swift; sourceTree = "<group>"; };
 		13B0D6C119BE8A093D13F0FF /* ReviewPromptPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptPolicyTests.swift; sourceTree = "<group>"; };
-		14B50B641FB406502CA6835B /* Skymarshal.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Skymarshal.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		14B50B641FB406502CA6835B /* Skymarshal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Skymarshal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		153E9906E871AFE48CB85D74 /* CinematicScreenHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CinematicScreenHeader.swift; sourceTree = "<group>"; };
 		157ED09AC4B4B3D43CCCC512 /* InteractionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionService.swift; sourceTree = "<group>"; };
 		193A1338EE2EC55A8B25F53A /* TwoStepConfirmArmingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwoStepConfirmArmingTests.swift; sourceTree = "<group>"; };
@@ -271,7 +271,7 @@
 		25DA787910D6EE124F5371B1 /* UITestBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITestBootstrap.swift; sourceTree = "<group>"; };
 		2640395C3927D53D3C9B375A /* LastScannedBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastScannedBanner.swift; sourceTree = "<group>"; };
 		264E9E8A3AE112EBD1C682CE /* GuidedModeSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedModeSettingsView.swift; sourceTree = "<group>"; };
-		2A68109DA988C288562EC79A /* SkymarshalTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SkymarshalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2A68109DA988C288562EC79A /* SkymarshalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SkymarshalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C3E4886FD4D0ECCE7F2E97B /* WIDGETS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = WIDGETS.md; sourceTree = "<group>"; };
 		2C63DDD72BCB5341FA0A17C6 /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
 		2F256F22E3C66AFA83B34CC3 /* ATProtoClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ATProtoClient.swift; sourceTree = "<group>"; };
@@ -343,7 +343,7 @@
 		953E8CE8C7FE7BAFA50E9D9C /* ActionRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionRow.swift; sourceTree = "<group>"; };
 		957F0B3FA214607A9F4D4013 /* MutualFollowsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MutualFollowsTests.swift; sourceTree = "<group>"; };
 		95B7701520804115EB93F81E /* BotFlagSeverityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BotFlagSeverityTests.swift; sourceTree = "<group>"; };
-		964936861603A389930428DC /* SkymarshalUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SkymarshalUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		964936861603A389930428DC /* SkymarshalUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SkymarshalUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9793630CD39119B8A0A7A3AA /* HydrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HydrationTests.swift; sourceTree = "<group>"; };
 		9A14AC39E3A3B453CDBD2C88 /* ScreenshotTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotTest.swift; sourceTree = "<group>"; };
 		9B8E00C55929255BB0E05348 /* BackupRestoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupRestoreView.swift; sourceTree = "<group>"; };
@@ -380,9 +380,9 @@
 		CCEF4AB6F390008D3FB71D87 /* LinkCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkCardView.swift; sourceTree = "<group>"; };
 		CE6FEF289F401090DD0C852C /* Theme+Fonts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Theme+Fonts.swift"; sourceTree = "<group>"; };
 		D24A27C7FA698A7BA34C14ED /* GraphSchemaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphSchemaTests.swift; sourceTree = "<group>"; };
-		D3FBECFCC0C54AC18EFD4B94 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		D3FBECFCC0C54AC18EFD4B94 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		D58E0144DAC95C06C00E8639 /* SkymarshalWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SkymarshalWidgets.entitlements; sourceTree = "<group>"; };
-		D5995C4A3B621A18CB378722 /* SkymarshalWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = SkymarshalWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		D5995C4A3B621A18CB378722 /* SkymarshalWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SkymarshalWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D7BBA7DC1E1BE3D785518107 /* ArchiveLoadCheckpointTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveLoadCheckpointTests.swift; sourceTree = "<group>"; };
 		D8A27D872B1C9A8E2FA1A409 /* BskyProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BskyProfile.swift; sourceTree = "<group>"; };
 		DC6837FCA0BC0FC0D4049616 /* ATProtoDateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ATProtoDateTests.swift; sourceTree = "<group>"; };
@@ -868,7 +868,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 2660;
 				TargetAttributes = {
 					15018C1AD97B2DEB58283AF3 = {
 						DevelopmentTeam = 596T7J7FB6;
@@ -1208,6 +1208,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = blue.skymarshal.ios.core;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1345,6 +1346,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = blue.skymarshal.ios.core;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1357,6 +1359,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -1388,7 +1391,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 41;
+				CURRENT_PROJECT_VERSION = 44;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 596T7J7FB6;
 				ENABLE_BITCODE = NO;
@@ -1409,6 +1412,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -1423,6 +1427,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -1454,7 +1459,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 41;
+				CURRENT_PROJECT_VERSION = 44;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 596T7J7FB6;
 				ENABLE_BITCODE = NO;
@@ -1482,6 +1487,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
