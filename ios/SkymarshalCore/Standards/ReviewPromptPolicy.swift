@@ -51,7 +51,8 @@ public struct ReviewPromptPolicy {
 
     /// Records one completed, user-meaningful operation. Destructive actions
     /// accrue credit but pass `allowsPrompt: false`, keeping the rating sheet
-    /// away from a potentially stressful moment.
+    /// away from a potentially stressful moment. Eligibility remains pending
+    /// until the UI records an actual StoreKit request attempt.
     @discardableResult
     public func registerSuccessfulAction(
         appVersion: String,
@@ -63,18 +64,24 @@ public struct ReviewPromptPolicy {
         let successes = defaults.integer(forKey: Key.successfulActions) + 1
         defaults.set(successes, forKey: Key.successfulActions)
 
-        guard allowsPrompt,
-              successes >= configuration.minimumSuccessfulActions,
-              hasReachedMinimumUsageAge(at: date),
-              defaults.string(forKey: Key.lastRequestedVersion) != appVersion,
-              hasClearedCooldown(at: date) else {
-            return false
-        }
+        return allowsPrompt && isEligible(appVersion: appVersion, at: date)
+    }
 
+    /// Checks persisted eligibility without consuming it. This lets the app
+    /// retry after a covered, inactive, or interrupted presentation attempt.
+    public func isEligible(appVersion: String, at date: Date = Date()) -> Bool {
+        defaults.integer(forKey: Key.successfulActions) >= configuration.minimumSuccessfulActions
+            && hasReachedMinimumUsageAge(at: date)
+            && defaults.string(forKey: Key.lastRequestedVersion) != appVersion
+            && hasClearedCooldown(at: date)
+    }
+
+    /// Records the moment the active UI hands the request to StoreKit.
+    public func recordRequestAttempt(appVersion: String, at date: Date = Date()) {
+        guard isEligible(appVersion: appVersion, at: date) else { return }
         defaults.set(date, forKey: Key.lastRequestDate)
         defaults.set(appVersion, forKey: Key.lastRequestedVersion)
         defaults.set(0, forKey: Key.successfulActions)
-        return true
     }
 
     private func hasReachedMinimumUsageAge(at date: Date) -> Bool {

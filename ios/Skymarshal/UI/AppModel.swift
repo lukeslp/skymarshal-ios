@@ -699,15 +699,28 @@ final class AppModel {
     }
 
     private func registerReviewableSuccess(allowsPrompt: Bool = true) {
-        let version = Bundle.main.object(
-            forInfoDictionaryKey: "CFBundleShortVersionString"
-        ) as? String ?? "unknown"
         if reviewPromptPolicy.registerSuccessfulAction(
-            appVersion: version,
+            appVersion: currentAppVersion,
             allowsPrompt: allowsPrompt
         ) {
             reviewRequestToken += 1
         }
+    }
+
+    /// Re-emits persisted eligibility after a relaunch or scene activation.
+    func refreshReviewRequestEligibility() {
+        if reviewPromptPolicy.isEligible(appVersion: currentAppVersion) {
+            reviewRequestToken += 1
+        }
+    }
+
+    /// Consume eligibility only when the active UI calls StoreKit.
+    func recordReviewRequestAttempt() {
+        reviewPromptPolicy.recordRequestAttempt(appVersion: currentAppVersion)
+    }
+
+    private var currentAppVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
     }
 
     private func surfaceOperationErrors(_ errors: [String]) {

@@ -29,6 +29,7 @@ final class ReviewPromptPolicyTests: XCTestCase {
         XCTAssertFalse(policy.registerSuccessfulAction(appVersion: "1.0", at: date(day: 1)))
         XCTAssertFalse(policy.registerSuccessfulAction(appVersion: "1.0", at: date(day: 2)))
         XCTAssertTrue(policy.registerSuccessfulAction(appVersion: "1.0", at: date(day: 3)))
+        XCTAssertTrue(policy.isEligible(appVersion: "1.0", at: date(day: 3)))
     }
 
     func test_successThresholdDoesNotBypassMinimumUsageAge() {
@@ -53,10 +54,22 @@ final class ReviewPromptPolicyTests: XCTestCase {
         XCTAssertTrue(policy.registerSuccessfulAction(appVersion: "1.0", at: date(day: 1)))
     }
 
+    func test_eligibilityPersistsUntilRequestAttemptIsRecorded() {
+        let policy = makePolicy(minimumUsageDays: 0, minimumSuccessfulActions: 1)
+
+        XCTAssertTrue(policy.registerSuccessfulAction(appVersion: "1.0", at: date(day: 0)))
+        XCTAssertTrue(policy.isEligible(appVersion: "1.0", at: date(day: 1)))
+
+        policy.recordRequestAttempt(appVersion: "1.0", at: date(day: 1))
+
+        XCTAssertFalse(policy.isEligible(appVersion: "1.0", at: date(day: 1)))
+    }
+
     func test_sameVersionDoesNotRequestAgain() {
         let policy = makePolicy(minimumUsageDays: 0, minimumSuccessfulActions: 1, cooldownDays: 0)
 
         XCTAssertTrue(policy.registerSuccessfulAction(appVersion: "1.0", at: date(day: 0)))
+        policy.recordRequestAttempt(appVersion: "1.0", at: date(day: 0))
         XCTAssertFalse(policy.registerSuccessfulAction(appVersion: "1.0", at: date(day: 1)))
     }
 
@@ -64,6 +77,7 @@ final class ReviewPromptPolicyTests: XCTestCase {
         let policy = makePolicy(minimumUsageDays: 0, minimumSuccessfulActions: 1, cooldownDays: 120)
 
         XCTAssertTrue(policy.registerSuccessfulAction(appVersion: "1.0", at: date(day: 0)))
+        policy.recordRequestAttempt(appVersion: "1.0", at: date(day: 0))
         XCTAssertFalse(policy.registerSuccessfulAction(appVersion: "1.1", at: date(day: 119)))
         XCTAssertTrue(policy.registerSuccessfulAction(appVersion: "1.1", at: date(day: 120)))
     }

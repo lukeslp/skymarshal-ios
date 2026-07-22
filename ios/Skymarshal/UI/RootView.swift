@@ -5,6 +5,7 @@ import StoreKit
 @available(iOS 17, *)
 struct RootView: View {
     @Environment(\.requestReview) private var requestReview
+    @Environment(\.scenePhase) private var scenePhase
     @State private var model = AppModel.liveDefault()
     /// Figma Make ships Scope as a first-class tab — default on.
     @AppStorage(FeatureFlags.visualizationHubKey) private var featureVisualizationHub: Bool = true
@@ -66,6 +67,11 @@ struct RootView: View {
         .onChange(of: showPostUpdateFeatureDiscovery) { _, isPresented in
             if !isPresented { presentReviewRequestIfReady() }
         }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active else { return }
+            model.refreshReviewRequestEligibility()
+            presentReviewRequestIfReady()
+        }
         .sheet(isPresented: $showPostUpdateFeatureDiscovery) {
             AboutView(presentation: .sheet)
                 .onDisappear {
@@ -87,6 +93,7 @@ struct RootView: View {
                 await model.seedUITestMinimalContentIfNeeded()
                 coldStartReady = true
                 presentFeatureLabDiscoveryIfNeeded()
+                model.refreshReviewRequestEligibility()
                 model.startMostRecentContentRefresh()
                 BackgroundTaskCoordinator.scheduleProcessingPass()
                 BackgroundTaskCoordinator.scheduleAppRefreshPass()
@@ -101,11 +108,13 @@ struct RootView: View {
 
     private func presentReviewRequestIfReady() {
         guard pendingReviewRequest,
+              scenePhase == .active,
               !showPostUpdateFeatureDiscovery,
               !skipOnboardingForUITests else {
             return
         }
         pendingReviewRequest = false
+        model.recordReviewRequestAttempt()
         requestReview()
     }
 
