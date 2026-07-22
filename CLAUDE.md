@@ -12,8 +12,9 @@ Capacitor 8.4.1 (SPM), and runs natively on iOS under bundle id
 `blue.skymarshal.ios`. Full plan + status: `~/workspace/skymarshal-web/CAPACITOR_WRAPPER.md`.
 
 Native development resumed in July for Figma Make parity and release hardening.
-**The native app is live in the App Store as of 2026-07-20** — source at
-**1.0.2 / build 40**, login verified in production. The Capacitor path remains a
+**The native app is live in the App Store as of 2026-07-20** at
+**1.0.2 / build 40**, with login verified in production. Current native source is
+**1.0.3 / build 41**. The Capacitor path remains a
 proposed alternative only. This repo also remains the source for:
 - the **safety-critical deletion engine** in `SkymarshalCore` (the sacred 429
   ladder, resumable breadcrumb, preflight, typed-confirm) — prototyped for the
@@ -31,7 +32,7 @@ Note: `CLAUDE.md` is checked in — keep it concise and current. If you want a p
 ## What lives here today
 
 ```
-ios/                          # Active native SwiftUI source — version 1.0.2, build 40 (live in the App Store).
+ios/                          # Active native SwiftUI source — version 1.0.3, build 41 (App Store: 1.0.2/40).
   project.yml                 # xcodegen canonical source — never edit .xcodeproj directly
   Skymarshal/                 # App target: SwiftUI views, AppModel, App entry
   SkymarshalCore/             # Framework: Models, Services, Standards, Network, Storage
@@ -107,7 +108,7 @@ cd ios && fastlane upload_listing      # metadata only, from ios/fastlane/metada
 
 ## Native iOS source — live in the App Store
 
-The source at `ios/` is version 1.0.2 / build 40, shipped to the App Store 2026-07-20. Architecture:
+The source at `ios/` is version 1.0.3 / build 41. Version 1.0.2 / build 40 shipped to the App Store 2026-07-20. Architecture:
 
 - **xcodegen-driven** — `ios/project.yml` is canonical; `Skymarshal.xcodeproj` regenerates from it. Never edit the xcodeproj directly.
 - **Two-target framework split** — `SkymarshalCore` (framework, all models / services / standards / network / storage, no SwiftUI), `Skymarshal` (app, SwiftUI views + AppModel observer).

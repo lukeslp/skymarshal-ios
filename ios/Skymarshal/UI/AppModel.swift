@@ -71,6 +71,9 @@ final class AppModel {
     private var loadTask: Task<Void, Never>?
     private var scanTask: Task<Void, Never>?
     private let container: ModelContainer?
+    private let reviewPromptPolicy: ReviewPromptPolicy
+    /// Changes when a positive completion makes an App Store review request eligible.
+    private(set) var reviewRequestToken = 0
 
     init(
         client: ATProtoClient,
@@ -78,7 +81,8 @@ final class AppModel {
         followers: FollowerService,
         interactions: InteractionService,
         profileGraph: ProfileService,
-        container: ModelContainer? = nil
+        container: ModelContainer? = nil,
+        reviewPromptPolicy: ReviewPromptPolicy = ReviewPromptPolicy()
     ) {
         self.client = client
         self.content = content
@@ -86,6 +90,8 @@ final class AppModel {
         self.interactions = interactions
         self.profileGraph = profileGraph
         self.container = container
+        self.reviewPromptPolicy = reviewPromptPolicy
+        self.reviewPromptPolicy.noteAppOpened()
         observeSessionInvalidation()
     }
 
@@ -434,6 +440,9 @@ final class AppModel {
             self.lastContentScannedAt = Date()
             self.archiveTruncated = await svc.lastLoadTruncated
             writeWidgetSnapshot()
+            if !self.items.isEmpty {
+                registerReviewableSuccess()
+            }
         } catch is CancellationError {
             self.items = await content.loadedSnapshot
             self.summary = await content.summarize()
@@ -481,6 +490,7 @@ final class AppModel {
     }
 
     func delete(itemIDs: [String]) async -> (deleted: Int, errors: [String]) {
+        errorMessage = nil
         let ownerKey = currentHandle ?? currentDid ?? ""
         if itemIDs.count >= 2, !ownerKey.isEmpty {
             DeleteBatchRecovery.store(ownerKey: ownerKey, itemIDs: itemIDs)
@@ -538,6 +548,10 @@ final class AppModel {
             self.items = await content.loadedSnapshot
             self.summary = await content.summarize()
         }
+        if result.deleted > 0 {
+            registerReviewableSuccess(allowsPrompt: false)
+        }
+        surfaceOperationErrors(result.errors)
         return result
     }
 
@@ -646,6 +660,9 @@ final class AppModel {
             self.scanSummary = await svc.summary
             self.lastFollowerScannedAt = Date()
             writeWidgetSnapshot()
+            if !self.accounts.isEmpty {
+                registerReviewableSuccess()
+            }
             // Keep the .complete progress around briefly; UI fades it.
         } catch is CancellationError {
             self.accounts = await followers.loadedSnapshot
@@ -664,6 +681,7 @@ final class AppModel {
         dryRun: Bool = false,
         requireKnownActivity: Bool = false
     ) async -> (done: Int, errors: [String]) {
+        if !dryRun { errorMessage = nil }
         let result = await followers.unfollow(
             dids: dids, dryRun: dryRun, requireKnownActivity: requireKnownActivity
         )
@@ -671,7 +689,33 @@ final class AppModel {
             self.accounts = await followers.loadedSnapshot
             self.scanSummary = await followers.summary
         }
+        if !dryRun, result.done > 0 {
+            registerReviewableSuccess(allowsPrompt: false)
+        }
+        if !dryRun {
+            surfaceOperationErrors(result.errors)
+        }
         return result
+    }
+
+    private func registerReviewableSuccess(allowsPrompt: Bool = true) {
+        let version = Bundle.main.object(
+            forInfoDictionaryKey: "CFBundleShortVersionString"
+        ) as? String ?? "unknown"
+        if reviewPromptPolicy.registerSuccessfulAction(
+            appVersion: version,
+            allowsPrompt: allowsPrompt
+        ) {
+            reviewRequestToken += 1
+        }
+    }
+
+    private func surfaceOperationErrors(_ errors: [String]) {
+        guard let first = errors.first else { return }
+        let remaining = errors.count - 1
+        errorMessage = remaining == 0
+            ? first
+            : "\(first)\n\(remaining) more issue\(remaining == 1 ? "" : "s") occurred."
     }
 
     /// Opt-in "Deep analyze": fold the engaged-audience signal into the

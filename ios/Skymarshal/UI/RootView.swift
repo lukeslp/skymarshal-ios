@@ -1,8 +1,10 @@
 import SwiftUI
 import SkymarshalCore
+import StoreKit
 
 @available(iOS 17, *)
 struct RootView: View {
+    @Environment(\.requestReview) private var requestReview
     @State private var model = AppModel.liveDefault()
     /// Figma Make ships Scope as a first-class tab — default on.
     @AppStorage(FeatureFlags.visualizationHubKey) private var featureVisualizationHub: Bool = true
@@ -11,6 +13,7 @@ struct RootView: View {
     @State private var showPostUpdateFeatureDiscovery = false
     @State private var coldStartReady = false
     @State private var forcedOnboardingDismissed = false
+    @State private var pendingReviewRequest = false
 
     var body: some View {
         Group {
@@ -55,6 +58,14 @@ struct RootView: View {
         }
         .environment(model)
         .guidedModeEnvironment()
+        .onChange(of: model.reviewRequestToken) { _, token in
+            guard token > 0 else { return }
+            pendingReviewRequest = true
+            presentReviewRequestIfReady()
+        }
+        .onChange(of: showPostUpdateFeatureDiscovery) { _, isPresented in
+            if !isPresented { presentReviewRequestIfReady() }
+        }
         .sheet(isPresented: $showPostUpdateFeatureDiscovery) {
             AboutView(presentation: .sheet)
                 .onDisappear {
@@ -86,6 +97,16 @@ struct RootView: View {
     private var skipOnboardingForUITests: Bool {
         ProcessInfo.processInfo.arguments.contains { $0.hasPrefix("-uitest") }
             || ProcessInfo.processInfo.environment["UITEST_RESET_FEATURE_DEFAULTS"] == "1"
+    }
+
+    private func presentReviewRequestIfReady() {
+        guard pendingReviewRequest,
+              !showPostUpdateFeatureDiscovery,
+              !skipOnboardingForUITests else {
+            return
+        }
+        pendingReviewRequest = false
+        requestReview()
     }
 
     private var shouldShowOnboarding: Bool {

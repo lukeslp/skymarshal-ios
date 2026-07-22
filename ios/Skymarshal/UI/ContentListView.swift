@@ -131,6 +131,12 @@ struct ContentListView: View {
                         .accessibilityIdentifier("content_bg_scope_refresh_note")
                 }
 
+                if let error = model.errorMessage {
+                    ScanErrorBanner(message: error) {
+                        model.errorMessage = nil
+                    }
+                }
+
                 CinematicScreenHeader(
                     title: "Content",
                     subtitle: model.currentHandle.map { "@\($0)" } ?? "YOUR BLUESKY ARCHIVE"
