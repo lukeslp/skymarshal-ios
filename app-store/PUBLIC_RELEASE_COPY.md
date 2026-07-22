@@ -124,7 +124,7 @@ Use the full block from `SUBMISSION_NOTES.md` under:
 
 - Marketing URL: `https://skymarshal.blue`
 - Support URL: `https://skymarshal.blue/support`
-- Privacy Policy URL: `https://skymarshal.blue/privacy`
+- Privacy Policy URL: `https://skymarshal.blue/privacy.html`
 
 ## Public Launch Copy Snippets
 

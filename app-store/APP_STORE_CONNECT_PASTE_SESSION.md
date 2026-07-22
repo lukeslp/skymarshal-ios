@@ -69,7 +69,7 @@ Paste:
 
 - Marketing URL: `https://skymarshal.blue`
 - Support URL: `https://skymarshal.blue/support`
-- Privacy Policy URL: `https://skymarshal.blue/privacy`
+- Privacy Policy URL: `https://skymarshal.blue/privacy.html`
 
 Open each URL in a browser and confirm it resolves publicly before submission.
 

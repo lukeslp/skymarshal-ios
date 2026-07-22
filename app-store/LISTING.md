@@ -223,7 +223,7 @@ repetition is reassuring, not stale.
 - **Support URL:** https://skymarshal.blue/support
   (page with FAQ + email link; required by App Review even if it's
   just a mailto)
-- **Privacy Policy URL:** https://skymarshal.blue/privacy
+- **Privacy Policy URL:** https://skymarshal.blue/privacy.html
   (required for any app that authenticates a user. Because we collect
   nothing, the policy can be one page: "Skymarshal does not collect or
   receive usage data. Session credentials stay in iOS Keychain on your

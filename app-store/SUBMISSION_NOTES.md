@@ -73,8 +73,8 @@ rejection trigger we've matched against current App Review behavior.
 - [x] PrivacyInfo.xcprivacy ships in the app target with
       NSPrivacyTracking = false and accessed-API CA92.1 (UserDefaults
       reason) declared
-- [ ] Privacy Policy URL is reachable and matches the in-app posture
-      (`https://skymarshal.blue/privacy` returned 404 on 2026-07-22)
+- [x] Privacy Policy URL is reachable and matches the in-app posture
+      (`https://skymarshal.blue/privacy.html`, verified 2026-07-22)
 - [x] Optional JSON backup import: in-app copy and gatekeeper require a
       signed-in session and **reject** handle/DID mismatches (see
       `ContentBackupImport`); aligns with 5.1.2 reviewer narrative

@@ -17,7 +17,8 @@ Manual steps — cannot be automated from this repo.
    - Bundle ID: `blue.skymarshal.ios`
    - SKU: `skymarshal-ios` (suggested)
 3. [ ] Upload first build via Xcode Organizer or `xcodebuild -exportArchive` after archive
-4. [ ] Publish and verify privacy policy URL: `https://skymarshal.blue/privacy` (currently 404)
+4. [x] Privacy policy URL: `https://skymarshal.blue/privacy.html` (verified 200;
+   maintained source: [`privacy.html`](privacy.html))
 5. [ ] Support URL: `https://skymarshal.blue/support` (verified 200)
 6. [ ] Complete [DEMO_ACCOUNT.md](DEMO_ACCOUNT.md) and paste into App Review Information
 7. [ ] Capture screenshots per [SCREENSHOTS.md](SCREENSHOTS.md)

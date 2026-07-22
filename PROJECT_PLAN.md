@@ -129,8 +129,7 @@ Remaining (status as of 2026-05-14):
 
 Already verified (2026-05-16):
 
-- `https://skymarshal.blue` and `/support` resolve HTTP 200. `/privacy`
-  currently returns 404 and must be published before the next submission.
+- `https://skymarshal.blue`, `/support`, and `/privacy.html` resolve HTTP 200.
 - Build 5 (auth-refresh + Keychain + visual restyle) tested at 185 / 185 green. `CFBundleVersion` is 5 and `MARKETING_VERSION` is back at 1.0.0 — the v1.0.1 working label was retired (commit `9ca2e84`) since nothing was ever released. Build 5 carries the cumulative work as the in-progress 1.0.0.
 - Required-Reason API audit: only `UserDefaults` is directly used by app code; declared with CA92.1 in `PrivacyInfo.xcprivacy`. No file-timestamp / boot-time / disk-space / active-keyboard usages.
 
