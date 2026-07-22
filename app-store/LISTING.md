@@ -1,6 +1,6 @@
 # Skymarshal — App Store listing
 
-Last revised 2026-07-19. Paste these into App Store Connect when submitting.
+Last revised 2026-07-22. Paste these into App Store Connect when submitting.
 
 Reconciliation note (2026-05-12): canonical execution now lives in
 `APP_STORE_CONNECT_PASTE_SESSION.md` and canonical field values live in
@@ -77,8 +77,8 @@ CONTENT MANAGEMENT
 • Rate-limit aware: bulk deletes pause and retry instead of hammering
   the network and getting throttled.
 
-FOLLOWER CLEANUP
-• Pull your full follow list and score every account against six automation
+FOLLOWING CLEANUP
+• Pull the full list of accounts you follow and check each one against six automation
   signals: mass-following, no posts, missing profile bits, suspiciously
   round numbers, very-new accounts flooding follows, and bad ratios.
 • Flag inactive accounts (no posts in N days, configurable).
@@ -107,9 +107,9 @@ FIVE PRIVATE WIDGETS
 PRIVACY
 • Sign in with an app password, not your main password. Generate a
   disposable one in your account settings and revoke it whenever you like.
-• No analytics. No tracking pixels. No third-party SDKs of any kind.
-• No account on my end, no server I host. Your archive is fetched
-  directly from the network's public endpoints. Nothing leaves your phone.
+• No usage analytics or tracking. No third-party SDKs of any kind.
+• No Skymarshal account and no server I host. The app talks directly to
+  Bluesky's endpoints. It sends no usage data to me or any service I run.
 
 ────────────
 
@@ -175,21 +175,20 @@ Words deliberately not included and why:
 
 ---
 
-## What's New (4000 char cap; v1.0.2)
+## What's New (4000 char cap; v1.0.3)
 
 ```
-Five new widgets keep useful signals close without vague scores or obligation.
+Skymarshal 1.0.3 makes bulk cleanup easier to follow and safer to finish.
 
-• Worth Joining: rising posts from people who regularly engage with you
-• Join In: one timely conversation on your Home or Lock Screen
-• Follow Snapshot: clear follower, following, and inactive-account counts
-• Your Top Post: engagement on one of your own posts
-• Follower Trend: a simple recent-count sparkline
-• Clearer account signals, including neutral handling of unverified handles
+• Guided Mode can use larger controls, fewer choices per screen, two-step
+  confirmations, and extra time.
+• VoiceOver labels are clearer across content, account rows, widgets, charts,
+  and media.
+• Rate-limit pauses and interrupted deletes now explain what happened.
+• Account signals and filter explanations use clearer language.
+• The app icon has a new, simpler design.
 
-Recommendations balance existing engagement with recent post momentum. The
-widget extension reads an on-device snapshot and makes no network requests.
-App password only. No tracking. No server.
+App password only. No off-device usage analytics or tracking. No Skymarshal server.
 ```
 
 Keep the "App password only…" line as a permanent footer in update notes —
@@ -201,11 +200,10 @@ repetition is reassuring, not stale.
 
 - **Primary category:** Social Networking
 - **Secondary category:** Utilities
-- **Age rating:** 17+ (because user-generated content from Bluesky may
-  include any rating; mark Frequent/Intense Mature/Suggestive Themes
-  honestly to avoid 1.1.6 rejection later)
-- **Content rights:** Yes — user owns and is responsible for the content
-  they manage; we don't display third-party content
+- **Age rating:** 4+ under Apple's current questionnaire. Skymarshal has no
+  social feed, posting, chat, or public amplification surface.
+- **Content rights:** Confirm in App Store Connect. The app manages the user's
+  own records and may show small read-only public-post recommendations.
 - **Privacy nutrition labels:**
   - Data Used to Track You: **None**
   - Data Linked to You: **None**
@@ -227,9 +225,9 @@ repetition is reassuring, not stale.
   just a mailto)
 - **Privacy Policy URL:** https://skymarshal.blue/privacy
   (required for any app that authenticates a user. Because we collect
-  nothing, the policy can be one page: "Skymarshal does not collect,
-  store, or transmit any of your data. App password is held in iOS
-  Keychain on your device. Bluesky communications go directly from
+  nothing, the policy can be one page: "Skymarshal does not collect or
+  receive usage data. Session credentials stay in iOS Keychain on your
+  device. Bluesky communications go directly from
   your device to bsky.social and public.api.bsky.app." Plus contact
   info.)
 

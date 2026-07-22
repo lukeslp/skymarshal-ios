@@ -1,6 +1,6 @@
 # Screenshot capture checklist
 
-**Target:** 14 PNGs — 7 frames × 6.9" + 7 frames × 6.1" per [SCREENSHOTS.md](SCREENSHOTS.md).
+**Target:** 10 PNGs: 5 frames for iPhone 6.9-inch and 5 for iPad 13-inch, per [SCREENSHOTS.md](SCREENSHOTS.md).
 
 ## Simulator setup
 
@@ -12,28 +12,26 @@ xcrun simctl boot "iPhone 17"   # 6.9" class — adjust per SCREENSHOTS.md devic
 
 Launch with UITest bootstrap or signed-in test account so lists are populated.
 
-## Frames (suggested order)
+## Frames
 
-1. Login / scope header (dot-matrix)
-2. Content list with filters visible
-3. Search / filter chips active
-4. Delete confirmation (small batch — no real deletes)
-5. Followers scan summary
-6. Insights sheet (if enabled for shots: `-sm.feature.wordPatterns YES` optional)
-7. About / trust copy (app password language)
+1. Archive search
+2. Advanced filters
+3. Media results
+4. Patterns scan summary
+5. Scope graphs and stats
 
-Repeat on second simulator size (6.1").
+Repeat on the iPad 13-inch simulator.
 
 ## Output
 
-Save under `app-store/screenshots/` (create directory; add to git if size allows, or store in asset pipeline only):
+Save raw app captures under `ios/screenshots-appstore/`:
 
 ```
-app-store/screenshots/
-  6.9/
-    01-login.png
+ios/screenshots-appstore/
+  iphone-6.9/
+    01-search.png
     ...
-  6.1/
+  ipad-13/
     01-login.png
     ...
 ```
@@ -44,7 +42,7 @@ Consider `SkymarshalUITests` snapshot lane per generators/screenshot-automation 
 
 ## Checklist
 
-- [ ] 7 × 6.9" PNGs
-- [ ] 7 × 6.1" PNGs
+- [ ] 5 × iPhone 6.9-inch PNGs
+- [ ] 5 × iPad 13-inch PNGs
 - [ ] No personal tokens visible in shots
 - [ ] Dark mode set consistently (or both if marketing wants)

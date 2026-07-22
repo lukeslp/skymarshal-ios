@@ -47,8 +47,8 @@ fastlane upload_screenshots    # no submit; needs both device classes equal, or 
 
 ## Known capture gotcha
 
-The XCUITest `screenshots` lane **fails on iPad at the Followers tab**
-("Followers tab not reachable" — iPad's tab layout differs from iPhone's, so the
+The XCUITest `screenshots` lane **fails on iPad at the Patterns tab**
+("Patterns tab not reachable" — iPad's tab layout differs from iPhone's, so the
 `app.tabBars.buttons["Followers"]` / `app.buttons["Followers"]` lookups miss).
 Fix the iPad Followers navigation in `SkymarshalUITests/ScreenshotTest.swift`
 before relying on `fastlane screenshots` for the iPad set.

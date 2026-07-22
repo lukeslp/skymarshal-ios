@@ -36,7 +36,7 @@ Paste/confirm:
 
 Confirm policy language matches:
 
-- No analytics
+- No off-device usage analytics or tracking
 - No third-party SDK tracking
 - No Skymarshal-hosted user-data backend
 
@@ -45,13 +45,13 @@ Confirm policy language matches:
 Paste these fields:
 
 - Promotional Text:
-  `Search every post, reply, repost, and like in your archive — tidy in bulk. Score your follow list for bots and inactive accounts. App password only, nothing tracked.`
+  Use `ios/fastlane/metadata/en-US/promotional_text.txt`.
 - Description:
   Use the full Description block from `PUBLIC_RELEASE_COPY.md`.
 - Keywords:
-  `posts,replies,reposts,likes,archive,manage,delete,follower,unfollow,bot,atproto,bulk,clean,filter`
+  Use `ios/fastlane/metadata/en-US/keywords.txt`.
 - What's New in This Version:
-  Use the `What's New (v1.0.0)` block from `PUBLIC_RELEASE_COPY.md`.
+  Use the `What's New (v1.0.3)` block from `PUBLIC_RELEASE_COPY.md`.
 
 ## Step 5: App Review Information
 
@@ -84,7 +84,7 @@ Open each URL in a browser and confirm it resolves publicly before submission.
 Upload/verify:
 
 - iPhone 6.9-inch screenshot set
-- iPhone 6.1-inch screenshot set
+- iPad 13-inch screenshot set
 - App icon 1024 x 1024
 
 Run final visual QA:

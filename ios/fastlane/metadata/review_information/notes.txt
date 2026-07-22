@@ -2,12 +2,12 @@ Skymarshal is a third-party Bluesky archive-management utility. It is
 not affiliated with Bluesky Social, PBC, and is not a Bluesky client;
 you cannot post or browse the timeline from Skymarshal. The app reads
 the user's own content via the public AT Protocol XRPC endpoints
-(bsky.social and public.api.bsky.app), scores it locally, and lets the
+(bsky.social and public.api.bsky.app), analyzes it locally, and lets the
 user delete their own posts/replies/reposts/likes or unfollow accounts
 they currently follow.
 
 There is no server I operate. There is no account on my end. There is
-no analytics or tracking. The user signs in with a Bluesky-issued app
+no off-device usage analytics or tracking. The user signs in with a Bluesky-issued app
 password (a separate disposable credential, generated at
 bsky.app/settings/app-passwords); their primary password never enters
 my app or my infrastructure.
@@ -27,16 +27,21 @@ To test:
   4. The Content tab paginates through the user's own posts, replies,
      reposts, and likes; filter by content type, date, engagement, or
      keyword/alt-text
-  5. The Followers tab scans the user's follow list and scores each
+  5. The Patterns tab scans the accounts the user follows and explains each
      account; sort, filter, or bulk-unfollow as desired
   6. Sign out via the account menu (top-left); session token is cleared
      from Keychain
 
 A demo account is provided in the App Review Information sign-in
 fields (handle + app password). It is populated with sample posts,
-replies, reposts, and likes so every Content and Followers flow can be
+replies, reposts, and likes so every Content and Patterns flow can be
 exercised end to end. After sign-in, open the Content tab and tap
-Refresh if the list is empty; the Followers tab populates after
+Refresh if the list is empty; the Patterns tab populates after
 tapping Scan.
+
+The app is not a social feed and has no posting, comments, chat, or public
+profile browsing. Its widgets can show a small read-only recommendation from
+public posts returned by Bluesky; the main app writes that snapshot locally,
+and the widget extension makes no network requests.
 
 Contact for App Review questions: skymarshal@lukesteuber.com

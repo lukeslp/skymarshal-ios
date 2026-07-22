@@ -1,64 +1,35 @@
-# Skymarshal iOS Public Release Asset Checklist
+# Skymarshal iOS public release assets
 
-Last updated: 2026-05-12
+## App icon
 
-This checklist covers visual assets required to ship publicly on iOS.
+- `1024 × 1024` PNG, RGB, no alpha.
+- Source: `ios/Skymarshal/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png`.
+- The current mark is a simple flat bird-and-radar design.
 
-## Required Assets (iOS)
+## Required screenshot sets
 
-### App Icon
+Skymarshal is a universal iPhone and iPad app. Use the highest-resolution set
+for each platform:
 
-- Size: 1024 x 1024 px
-- Format: PNG
-- Color space: sRGB or Display P3
-- Transparency: none
-- Location in repo:
-  - `ios/Skymarshal/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png`
+- iPhone 6.9-inch: five `1320 × 2868` PNGs.
+- iPad 13-inch: five `2064 × 2752` PNGs.
+- App Store Connect accepts one to ten screenshots per device class and scales
+  the iPhone set for smaller displays.
 
-### iPhone Screenshots
+The canonical sequence and captions live in `SCREENSHOTS.md`. Staged files live
+in `ios/fastlane/screenshots/en-US/`.
 
-For new submissions, provide both required sets:
+## Optional later assets
 
-- 6.9-inch display screenshots
-- 6.1-inch display screenshots
-- Count: up to 10 per size (7 recommended for current storyboard)
-- Format: PNG or JPEG, RGB color space
+- App Preview video, after the static listing is stable.
+- Custom Product Page variants, after baseline conversion data exists.
+- In-App Event art, when there is an actual time-bound event.
 
-Storyboard source:
+## QA gate
 
-- `SCREENSHOTS.md`
-
-## Optional Assets (Recommended Later)
-
-- iPad screenshots (only if promoting iPad use explicitly)
-- App Preview video (adds review surface area; skip for initial release)
-- In-App Event card art (after launch cadence is stable)
-- Custom Product Page screenshot variants (after baseline conversion data)
-
-## Frame-Level Narrative Sequence
-
-Use this message order in screenshot captions:
-
-1. Search everything
-2. Filter precisely
-3. Clean followers
-4. Select at scale
-5. Confirm destructive actions
-6. Inspect account signals
-7. Privacy posture
-
-## Export and Validation
-
-- Verify dimensions before upload:
-  - `sips -g pixelWidth -g pixelHeight <file>`
-- Ensure no simulator chrome overlays
-- Keep readable text away from status bar and bottom safe area
-- Confirm consistency across light/dark mode in the chosen sequence
-
-## QA Gate Before Upload
-
-- [ ] No placeholder data in screenshots
-- [ ] No typo in captions
-- [ ] No competitor names in overlays
-- [ ] "Not affiliated with Bluesky Social, PBC" appears in listing text
-- [ ] Login screenshot shows app-password language
+- [ ] Exact dimensions and opaque RGB color.
+- [ ] No placeholder, private, inflammatory, or age-inappropriate content.
+- [ ] Every caption matches what is visible.
+- [ ] No simulator chrome or clipped status bars.
+- [ ] App icon matches the binary.
+- [ ] Listing includes the non-affiliation disclosure.

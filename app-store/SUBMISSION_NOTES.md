@@ -9,18 +9,18 @@ into App Store Connect.
 
 ```
 Skymarshal is a third-party Bluesky archive-management utility. It is
-not affiliated with Bluesky Social, PBC, and is not a Bluesky client —
+not affiliated with Bluesky Social, PBC, and is not a Bluesky client;
 you cannot post or browse the timeline from Skymarshal. The app reads
 the user's own content via the public AT Protocol XRPC endpoints
-(bsky.social and public.api.bsky.app), scores it locally, and lets the
+(bsky.social and public.api.bsky.app), analyzes it locally, and lets the
 user delete their own posts/replies/reposts/likes or unfollow accounts
 they currently follow.
 
-There is no server we operate. There is no account on our end. There is
-no analytics or tracking. The user signs in with a Bluesky-issued app
+There is no server I operate. There is no account on my end. No usage
+analytics or tracking leaves the device. The user signs in with a Bluesky-issued app
 password (a separate disposable credential, generated at
 bsky.app/settings/app-passwords); their primary password never enters
-our app or our infrastructure.
+the app or any infrastructure I operate.
 
 Deletion uses com.atproto.repo.deleteRecord, a documented public
 lexicon in the AT Protocol specification:
@@ -37,17 +37,22 @@ To test:
   4. The Content tab paginates through the user's own posts, replies,
      reposts, and likes; filter by content type, date, engagement, or
      keyword/alt-text
-  5. The Followers tab scans the user's follow list and scores each
+  5. The Patterns tab scans the accounts the user follows and explains each
      account; sort, filter, or bulk-unfollow as desired
   6. Sign out via the account menu (top-left); session token is cleared
      from Keychain
 
 A demo account is provided in the App Review Information sign-in
-fields (handle + app password) — see DEMO_ACCOUNT.md for setup. It is
+fields (handle + app password); see DEMO_ACCOUNT.md for setup. It is
 populated with sample posts, replies, reposts, and likes so every
-Content and Followers flow can be exercised end to end. After sign-in,
+Content and Patterns flow can be exercised end to end. After sign-in,
 open the Content tab and tap Refresh if the list is empty; the
-Followers tab populates after tapping Scan.
+Patterns tab populates after tapping Scan.
+
+The app is not a social feed and has no posting, comments, chat, or public
+profile browsing. Its widgets can show a small read-only recommendation from
+public posts returned by Bluesky; the main app writes that snapshot locally,
+and the widget extension makes no network requests.
 
 Contact for App Review questions: skymarshal@lukesteuber.com
 ```
@@ -68,9 +73,8 @@ rejection trigger we've matched against current App Review behavior.
 - [x] PrivacyInfo.xcprivacy ships in the app target with
       NSPrivacyTracking = false and accessed-API CA92.1 (UserDefaults
       reason) declared
-- [x] Privacy Policy URL is reachable and matches the in-app posture
-      (one-page "we collect nothing" policy is fine; reviewer just
-      needs the URL to load)
+- [ ] Privacy Policy URL is reachable and matches the in-app posture
+      (`https://skymarshal.blue/privacy` returned 404 on 2026-07-22)
 - [x] Optional JSON backup import: in-app copy and gatekeeper require a
       signed-in session and **reject** handle/DID mismatches (see
       `ContentBackupImport`); aligns with 5.1.2 reviewer narrative
@@ -85,11 +89,10 @@ rejection trigger we've matched against current App Review behavior.
 - [x] Product name is "Skymarshal" — not "Bluesky" or anything that
       could be mistaken for Bluesky's own product
 - [x] No use of Bluesky's butterfly logo or icon set; the app icon is
-      original (scope-rings on Bluesky-blue gradient — descriptive
-      use of color, not logo)
+      original (a flat bird-and-radar mark, not Bluesky's butterfly)
 - [x] Description discloses "Not affiliated with Bluesky Social, PBC"
       explicitly
-- [x] "Bluesky" appears in subtitle / description as descriptive
+- [x] "Bluesky" appears in the description as a descriptive
       reference to the network the app operates on, never as
       possessive ("Bluesky's archive cleaner") or claiming
       endorsement
@@ -104,7 +107,7 @@ rejection trigger we've matched against current App Review behavior.
       visual identity (scope motif vs. butterfly)
 - [x] Description leads with what the app does that Bluesky's own
       app doesn't (bulk operations, cross-archive search,
-      bot scoring)
+      account signals)
 - [x] Established category precedent on iOS: Graysky (October 2023,
       established third-party Bluesky client), Skeets (native SwiftUI),
       and Skyscraper (January 2026 launch) have all received App Store
@@ -118,7 +121,7 @@ rejection trigger we've matched against current App Review behavior.
 
 - [x] Native SwiftUI implementation (not a WKWebView wrapper)
 - [x] Substantive features beyond a single API call: filter sheet,
-      multi-axis search, bot scoring engine, cursor pagination,
+      multi-axis search, account-signal analysis, cursor pagination,
       bulk operations with rate-limit handling
 - [x] Multiple screens with distinct functionality (Login, Content,
       Followers, FilterSheet, EditActionBar)
@@ -127,10 +130,11 @@ rejection trigger we've matched against current App Review behavior.
 
 ### 1.1.6 — User-generated content
 
-- [x] App displays only the signed-in user's OWN content (their
-      own posts, their own follow list)
-- [x] No public discovery surface, no comments section, no method
-      for users to submit content INTO the app
+- [x] Content management displays the signed-in user's own records and
+      Patterns displays accounts they follow. Widgets may show a small,
+      read-only public-post recommendation returned by Bluesky.
+- [x] No feed, comments, chat, public profile browsing, or method for users
+      to submit content into the app
 - [x] Bulk delete is irreversible by design and the user is
       explicitly warned before any destructive action
 
@@ -207,15 +211,15 @@ When you're ready to submit (separate from this code work):
       (e.g. `SKYM-1.0.0`)
 - [ ] Pricing: Free
 - [ ] Category: Social Networking primary, Utilities secondary
-- [ ] Age rating: 17+ (per the user-generated-content nature of
-      Bluesky source data)
+- [ ] Age rating: confirm the current 4+ questionnaire answers. The app has
+      no social feed, posting, chat, or public amplification surface.
 - [ ] App Privacy: Data Not Collected for every category
 - [ ] App Review Information: paste the block above
 - [ ] Marketing URL, Support URL, Privacy Policy URL: all three
       pointing under skymarshal.blue
 - [ ] App icon (1024×1024 — already in repo at
       ios/Skymarshal/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png)
-- [ ] Screenshots (6.9" mandatory, 6.1" mandatory; iPad optional)
+- [ ] Screenshots (6.9" iPhone and 13" iPad for this universal app)
       per the SCREENSHOTS.md storyboard
 - [ ] App Preview video: skip for v1 (it's optional and adds review
       surface area)

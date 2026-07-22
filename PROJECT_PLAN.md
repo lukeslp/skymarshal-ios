@@ -121,7 +121,7 @@ Completed:
 Remaining (status as of 2026-05-14):
 
 - **Bundle ID + App Store Connect record creation** at developer.apple.com / appstoreconnect.apple.com (see `app-store/SUBMISSION_NOTES.md` lines 195–216 checklist).
-- **Capture screenshots** per `app-store/SCREENSHOTS.md` (7 frames × 6.9" + 6.1"). Storyboard is detailed; no PNGs exist yet under `app-store/`. ~30 min once a populated test account is signed in.
+- **Refresh screenshots** per `app-store/SCREENSHOTS.md` when the UI changes. Five iPhone 6.9-inch and five iPad 13-inch PNGs are staged; add a widget frame after an authentic neutral demo capture.
 - **Demo account for App Review.** `app-store/SUBMISSION_NOTES.md` currently declines to provide one; recommend creating `skymarshal-review.bsky.social` + app password and pasting into the App Review Information block to avoid one rejection cycle.
 - **Soak protocol artifact** per `docs/SOAK_PROTOCOL.md` — physical device, ≥10k-post account, full screen-recorded session. Required before promoting from TestFlight to public.
 - **Paste session execution** per `app-store/APP_STORE_CONNECT_PASTE_SESSION.md`.
@@ -129,7 +129,8 @@ Remaining (status as of 2026-05-14):
 
 Already verified (2026-05-16):
 
-- `https://skymarshal.blue`, `/support`, `/privacy` all resolve HTTP 200.
+- `https://skymarshal.blue` and `/support` resolve HTTP 200. `/privacy`
+  currently returns 404 and must be published before the next submission.
 - Build 5 (auth-refresh + Keychain + visual restyle) tested at 185 / 185 green. `CFBundleVersion` is 5 and `MARKETING_VERSION` is back at 1.0.0 — the v1.0.1 working label was retired (commit `9ca2e84`) since nothing was ever released. Build 5 carries the cumulative work as the in-progress 1.0.0.
 - Required-Reason API audit: only `UserDefaults` is directly used by app code; declared with CA92.1 in `PrivacyInfo.xcprivacy`. No file-timestamp / boot-time / disk-space / active-keyboard usages.
 

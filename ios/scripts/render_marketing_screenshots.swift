@@ -16,11 +16,10 @@ struct DevicePlan {
 
 let story: [StoryFrame] = [
     .init(source: "01-search", output: "01-search", eyebrow: "BULK CONTENT SEARCH", headline: "Search and manage content in bulk"),
-    .init(source: "02-filters", output: "02-delete", eyebrow: "SAFE BULK CLEANUP", headline: "Delete by keyword, date, or engagement"),
+    .init(source: "02-filters", output: "02-delete", eyebrow: "PRECISION FILTERS", headline: "Filter by keyword, date, or engagement"),
     .init(source: "03-media-results", output: "03-results", eyebrow: "YOUR COMPLETE ARCHIVE", headline: "Review posts, replies, likes, and media"),
-    .init(source: "04-followers", output: "04-followers", eyebrow: "FOLLOW HYGIENE", headline: "Analyze followers and following"),
+    .init(source: "04-followers", output: "04-followers", eyebrow: "FOLLOW HYGIENE", headline: "Review the accounts you follow"),
     .init(source: "06-scope", output: "05-stats", eyebrow: "PRIVATE ACCOUNT STATS", headline: "Explore graphs, activity, and stats"),
-    .init(source: "__existing_widget__", output: "06-widgets", eyebrow: "PRIVATE HOME SCREEN WIDGETS", headline: "Put useful stats on your Home Screen"),
 ]
 
 let devices = [
@@ -43,9 +42,7 @@ for device in devices {
 
     for frame in story {
         let output = outputDir.appendingPathComponent(frame.output + ".png")
-        let source = frame.source == "__existing_widget__"
-            ? URL(fileURLWithPath: "/Users/luke/Library/Application Support/CleanShot/media/media_I5R7T0VaDf/CleanShot 2026-07-19 at 10.10.23@2x.png")
-            : sourceDir.appendingPathComponent(frame.source + ".png")
+        let source = sourceDir.appendingPathComponent(frame.source + ".png")
         try render(source: source, frame: frame, output: output)
         print("rendered \(device.outputFolder)/\(output.lastPathComponent)")
     }
@@ -134,9 +131,7 @@ private func render(source: URL, frame: StoryFrame, output: URL) throws {
 
     NSGraphicsContext.current?.saveGraphicsState()
     cardPath.addClip()
-    let imageRect = frame.source == "__existing_widget__"
-        ? aspectFitRect(source: CGSize(width: sourceCG.width, height: sourceCG.height), inside: cardBounds.insetBy(dx: shortSide * 0.045, dy: shortSide * 0.045))
-        : aspectFillRect(source: CGSize(width: sourceCG.width, height: sourceCG.height), inside: cardBounds)
+    let imageRect = aspectFillRect(source: CGSize(width: sourceCG.width, height: sourceCG.height), inside: cardBounds)
     cg.interpolationQuality = .high
     cg.draw(sourceCG, in: imageRect)
     NSGraphicsContext.current?.restoreGraphicsState()
@@ -174,13 +169,6 @@ private func drawGlow(in canvas: CGRect, shortSide: CGFloat) {
 
 private func aspectFillRect(source: CGSize, inside target: CGRect) -> CGRect {
     let scale = max(target.width / source.width, target.height / source.height)
-    let size = CGSize(width: source.width * scale, height: source.height * scale)
-    return CGRect(x: target.midX - size.width / 2, y: target.midY - size.height / 2,
-                  width: size.width, height: size.height)
-}
-
-private func aspectFitRect(source: CGSize, inside target: CGRect) -> CGRect {
-    let scale = min(target.width / source.width, target.height / source.height)
     let size = CGSize(width: source.width * scale, height: source.height * scale)
     return CGRect(x: target.midX - size.width / 2, y: target.midY - size.height / 2,
                   width: size.width, height: size.height)

@@ -20,7 +20,7 @@ Password: [app password from 1Password / secure note — NOT main account passwo
 
 Sign in with the app password field on the login screen (not your main Bluesky password).
 After sign-in, open the Content tab and tap Refresh to load posts if the list is empty.
-Followers tab: tap Scan to populate follower analysis (optional for review).
+Patterns tab: tap Scan to populate the following-account analysis (optional for review).
 ```
 
 ## Security

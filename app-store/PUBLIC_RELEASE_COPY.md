@@ -1,6 +1,6 @@
 # Skymarshal iOS Public Release Copy
 
-Last updated: 2026-07-19 (reconciled against native 1.0.2)
+Reconciled against native 1.0.3, build 44.
 
 Paste these values directly into App Store Connect for the public iOS release.
 
@@ -45,8 +45,8 @@ CONTENT MANAGEMENT
 - Rate-limit aware: bulk deletes pause and retry instead of hammering
   the network and getting throttled.
 
-FOLLOWER CLEANUP
-- Pull your full follow list and score every account against six automation
+FOLLOWING CLEANUP
+- Pull the full list of accounts you follow and check each one against six automation
   signals: mass-following, no posts, missing profile bits, suspiciously
   round numbers, very-new accounts flooding follows, and bad ratios.
 - Flag inactive accounts (no posts in N days, configurable).
@@ -75,9 +75,9 @@ FIVE PRIVATE WIDGETS
 PRIVACY
 - Sign in with an app password, not your main password. Generate a
   disposable one in your account settings and revoke it whenever you like.
-- No analytics. No tracking pixels. No third-party SDKs of any kind.
-- No account on my end, no server I host. Your archive is fetched
-  directly from the network's public endpoints. Nothing leaves your phone.
+- No usage analytics or tracking. No third-party SDKs of any kind.
+- No Skymarshal account and no server I host. The app talks directly to
+  Bluesky's endpoints. It sends no usage data to me or any service I run.
 
 WHO IT'S FOR
 Power users with thousands of posts. Journalists. Public-facing accounts.
@@ -91,20 +91,19 @@ tool. Just careful, bulk cleanup of the archive you already made.
 
 Made by Luke Steuber. Questions: skymarshal@lukesteuber.com
 
-### What's New (v1.0.2)
+### What's New (v1.0.3)
 
-Five new widgets keep useful signals close without vague scores or obligation.
+Skymarshal 1.0.3 makes bulk cleanup easier to follow and safer to finish.
 
-- Worth Joining: rising posts from people who regularly engage with you
-- Join In: one timely conversation on your Home or Lock Screen
-- Follow Snapshot: clear follower, following, and inactive-account counts
-- Your Top Post: engagement on one of your own posts
-- Follower Trend: a simple recent-count sparkline
-- Clearer account signals, including neutral handling of unverified handles
+- Guided Mode can use larger controls, fewer choices per screen, two-step
+  confirmations, and extra time.
+- VoiceOver labels are clearer across content, account rows, widgets, charts,
+  and media.
+- Rate-limit pauses and interrupted deletes now explain what happened.
+- Account signals and filter explanations use clearer language.
+- The app icon has a new, simpler design.
 
-Recommendations balance existing engagement with recent post momentum. The
-widget extension reads an on-device snapshot and makes no network requests.
-App password only. No tracking. No server.
+App password only. No off-device usage analytics or tracking. No Skymarshal server.
 
 ## TestFlight “What to try” (paste into build notes)
 

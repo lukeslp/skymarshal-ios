@@ -1,12 +1,9 @@
-Five new widgets keep useful signals close without vague scores or obligation.
+Skymarshal 1.0.3 makes bulk cleanup easier to follow and safer to finish.
 
-- Worth Joining: rising posts from people who regularly engage with you
-- Join In: one timely conversation on your Home or Lock Screen
-- Follow Snapshot: clear follower, following, and inactive-account counts
-- Your Top Post: engagement on one of your own posts
-- Follower Trend: a simple recent-count sparkline
-- Clearer account signals, including neutral handling of unverified handles
+- Guided Mode can use larger controls, fewer choices per screen, two-step confirmations, and extra time.
+- VoiceOver labels are clearer across content, account rows, widgets, charts, and media.
+- Rate-limit pauses and interrupted deletes now explain what happened.
+- Account signals and filter explanations use clearer language.
+- The app icon has a new, simpler design.
 
-Recommendations balance existing engagement with recent post momentum. The
-widget extension reads an on-device snapshot and makes no network requests.
-App password only. No tracking. No server.
+App password only. No off-device usage analytics or tracking. No Skymarshal server.

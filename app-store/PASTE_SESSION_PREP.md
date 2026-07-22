@@ -11,8 +11,8 @@ Canonical listing text: [PUBLIC_RELEASE_COPY.md](PUBLIC_RELEASE_COPY.md).
 
 | Item | Ready | Notes |
 |------|-------|-------|
-| Build uploaded to ASC | ☐ | Version 1.0.1 (5) or newer |
-| Screenshots 6.9" + 6.1" | ☐ | 7 frames each per SCREENSHOTS.md |
+| Build uploaded to ASC | ☐ | Version 1.0.3, build 44 |
+| Screenshots 6.9" + iPad 13" | ☐ | 5 frames each per SCREENSHOTS.md |
 | App icon 1024 RGB (no alpha) | ☐ | AppIcon-1024.png |
 | Privacy + support URLs live | ☐ | skymarshal.blue |
 | Demo account in App Review block | ☐ | DEMO_ACCOUNT.md |

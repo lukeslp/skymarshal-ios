@@ -18,7 +18,7 @@ This runbook is the operational checklist for submitting and launching the publi
 
 - [ ] Create/update app version record
 - [ ] Paste metadata fields
-- [ ] Upload screenshots (6.9-inch and 6.1-inch sets)
+- [ ] Upload screenshots (6.9-inch iPhone and 13-inch iPad sets)
 - [ ] Upload/select app icon
 - [ ] Set categories and age rating
 - [ ] Confirm App Privacy is Data Not Collected

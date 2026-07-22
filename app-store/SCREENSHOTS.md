@@ -1,62 +1,50 @@
-# Skymarshal — App Store media
+# Skymarshal App Store screenshots
 
-Current media source: [Skymarshal — App Store Media](https://www.figma.com/design/iRvznhAE3wvd9UPGcB7U0X).
-The board contains the editable, real-capture iPhone and iPad sets plus the
-complete App Store Connect copy. It is the review surface; the native app is
-the capture source.
+The checked-in release set contains five screenshots for iPhone 6.9-inch and
+iPad 13-inch. These are the same images staged under
+`ios/fastlane/screenshots/en-US/` and shown on the live listing.
 
-## Release set
+## Release sequence
 
-The current staged set is the same six-frame sequence for both device classes:
+| # | Source view | Caption |
+| --- | --- | --- |
+| 1 | Archive search | Search and manage content in bulk |
+| 2 | Advanced filters | Filter by keyword, date, or engagement |
+| 3 | Media results | Review posts, replies, likes, and media |
+| 4 | Patterns | Review the accounts you follow |
+| 5 | Scope | Explore graphs, activity, and stats |
 
-| # | iPhone 6.9" | iPad 13" | Story |
-| --- | --- | --- | --- |
-| 1 | `01-welcome` | `01-welcome` | Sign in with an app password — the main password stays yours. |
-| 2 | `01-search` | `01-search` | Search an entire archive: posts, replies, reposts, and likes. |
-| 3 | `02-filters` | `02-filters` | Filter in layers: media, alt text, date, and engagement. |
-| 4 | `03-media-results` | `03-media-results` | Surface posts worth revisiting — see the media before acting. |
-| 5 | `04-followers` | `05-content` | Read the follow list at a glance / work through the full archive on iPad. |
-| 6 | `05-account-detail` | `06-account-detail` | Inspect the signals and account context before a bulk action. |
+All frames render from authentic app captures in `ios/screenshots-appstore/`.
+The prior widget frame included unsuitable public post text and was removed.
+Add widgets back only after capturing neutral demo content from the real widget.
+Do not fabricate widget chrome or post content.
 
-The first four frames establish safe access, archive search, precision filters,
-and reviewable results. The final two make the follower-analysis and
-human-review safeguards tangible. Do not add a generic app-icon frame: every
-slot should explain a distinct capability.
-
-### Widget media gap
-
-Version 1.0.2 also includes five network-free widgets, but the checked-in media
-set does not yet show them. Before final submission, add one authentic seventh
-frame per device class using a real Home Screen composition with Worth Joining,
-Your Top Post, and Follower Trend populated from the same demo scan. Keep the app
-visible in the background or adjacent device frame so the relationship is clear;
-do not fabricate widget chrome in the renderer. The six current frames are safe
-to stage now and remain the fallback if the real widget capture is not ready.
-
-## Capture and upload
+## Render and stage
 
 ```sh
 cd ios
-bundle exec fastlane screenshots
-SKY_EXPECTED_SHOTS=6 bundle exec fastlane upload_screenshots
+swift scripts/render_marketing_screenshots.swift
+cp screenshots-marketing/iphone-6.9/*.png fastlane/screenshots/en-US/
+cp screenshots-marketing/ipad-13/*.png fastlane/screenshots/en-US/
 ```
 
-`screenshots` requires a previously signed-in simulator or the documented demo
-credentials in `app-store/DEMO_ACCOUNT.env`. Never put credentials in source.
+The Fastlane files use device prefixes (`iphone69-` and `ipad13-`), so stage
+with the existing names or the upload lane rather than the literal `cp`
+commands when preparing a submission.
 
-`upload_screenshots` stages from `ios/screenshots-appstore/`, requires matching
-iPhone and iPad counts, and rejects sets captured more than 24 hours apart. It
-also flattens an occasional transparent iPad attachment to white before
-uploading, since App Store screenshots must be opaque. If ImageMagick is not
-available, install it with `brew install imagemagick` before staging a capture
-that has transparency.
+```sh
+cd ios
+SKY_EXPECTED_SHOTS=5 bundle exec fastlane upload_screenshots
+```
+
+The upload lane checks matching counts, capture age, dimensions, and alpha.
+It uploads screenshots only; it does not upload a binary or submit a version.
 
 ## Preflight
 
-- Six opaque PNGs in each class now; seven after the authentic widget frame lands.
-- iPhone 6.9": `1320 × 2868`.
-- iPad 13": `2064 × 2752`.
-- Use the pinned 9:41 / full-battery status bar from the capture script.
-- Review the Figma board for story order and copy before uploading.
-- Upload screens and listing separately; neither lane uploads a binary or
-  submits a version for review.
+- Five opaque PNGs per device class; App Store Connect accepts up to ten.
+- iPhone 6.9-inch: `1320 × 2868`.
+- iPad 13-inch: `2064 × 2752`.
+- Captions must describe the visible screen, not a later action.
+- Use demo content suitable for a 4+ product page.
+- Check every image at thumbnail size and full size before upload.
