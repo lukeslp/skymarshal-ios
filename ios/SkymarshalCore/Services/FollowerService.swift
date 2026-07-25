@@ -98,6 +98,17 @@ public actor FollowerService {
             ))
         } while cursor != nil && page < maxFollowPages
 
+        // Collapse duplicates before hydration. getFollows pages purely
+        // by server cursor, so a follow/unfollow during the scan shifts
+        // the window and can hand back the same account on two pages.
+        // A repeated DID is not cosmetic: it traps the getProfiles
+        // dictionary build below, and it collides AnalyzedAccount.id in
+        // the SwiftUI list, which crashes diffing when the detail sheet
+        // forces reconciliation. Keep first occurrence — follow order is
+        // what the list surfaces, and reordering churns the live view.
+        var seenDids = Set<String>()
+        follows = follows.filter { seenDids.insert($0.did).inserted }
+
         // Phase 2 — hydrate counts via getProfiles AND analyze + append
         // per batch so the UI list grows in real time. Each batch of 25
         // arrives, gets scored with the *real* counts, and is appended
@@ -109,7 +120,14 @@ public actor FollowerService {
             let end = min(index + batchSize, follows.count)
             let dids = follows[index..<end].map { $0.did }
             let detail = try await client.getProfiles(actors: dids)
-            let detailMap = Dictionary(uniqueKeysWithValues: detail.profiles.map { ($0.did, $0) })
+            // uniquingKeysWith, not uniqueKeysWithValues: the latter is a
+            // hard trap, and the server — not just our pagination — can
+            // repeat a DID in one response. Deduping `follows` above
+            // makes that unlikely; this keeps it from being fatal.
+            let detailMap = Dictionary(
+                detail.profiles.map { ($0.did, $0) },
+                uniquingKeysWith: { first, _ in first }
+            )
 
             var batchAnalyzed: [AnalyzedAccount] = []
             batchAnalyzed.reserveCapacity(end - index)
