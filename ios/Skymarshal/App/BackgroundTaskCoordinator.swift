@@ -70,11 +70,13 @@ enum BackgroundTaskCoordinator {
     }
 
     private static func run(_ task: BGTask) {
+        // Resubmit *before* completing the current task so the system still
+        // grants execution budget long enough for the submit calls to land.
+        scheduleProcessingPass()
+        scheduleAppRefreshPass()
+
         let completion = BackgroundTaskCompletion { success in
             task.setTaskCompleted(success: success)
-            // Keep the pipeline warm regardless of success; iOS still decides.
-            scheduleProcessingPass()
-            scheduleAppRefreshPass()
         }
 
         // Detached + utility: never pin the main actor for multi-MB SwiftData work.
@@ -101,7 +103,7 @@ enum BackgroundTaskCoordinator {
             return false
         }
 
-        let owners = resolveOwnerHandles(container: container)
+        let owners = prioritizeOwners(resolveOwnerHandles(container: container))
         guard !owners.isEmpty else { return true }
 
         var didRefreshAny = false
@@ -138,22 +140,56 @@ enum BackgroundTaskCoordinator {
 
         let context = ModelContext(container)
 
-        // Graph snapshots are few rows (kinds × owners).
-        if let snapshots = try? context.fetch(FetchDescriptor<GraphSnapshotRecord>()) {
+        // Graph snapshots are few rows (kinds × owners). Cap the fetch anyway.
+        var snapshotDescriptor = FetchDescriptor<GraphSnapshotRecord>()
+        snapshotDescriptor.fetchLimit = 64
+        if let snapshots = try? context.fetch(snapshotDescriptor) {
             for row in snapshots where !row.ownerHandle.isEmpty {
                 handles.insert(row.ownerHandle.lowercased())
             }
         }
 
-        // Account scan rows are also far smaller than the content archive.
-        if handles.isEmpty,
-           let accounts = try? context.fetch(FetchDescriptor<AnalyzedAccountRecord>()) {
-            for row in accounts where !row.ownerHandle.isEmpty {
+        // One-row account fallback — never materialize the full follower cache
+        // (scan can hold tens of thousands of AnalyzedAccountRecord rows).
+        if handles.isEmpty {
+            var accountDescriptor = FetchDescriptor<AnalyzedAccountRecord>(
+                sortBy: [SortDescriptor(\.scannedAt, order: .reverse)]
+            )
+            accountDescriptor.fetchLimit = 1
+            if let row = try? context.fetch(accountDescriptor).first,
+               !row.ownerHandle.isEmpty {
                 handles.insert(row.ownerHandle.lowercased())
             }
         }
 
-        return Array(handles).sorted()
+        // Content-only cache (signed-out / expired session, no snapshots yet):
+        // one recent content row is enough to recover the owner handle.
+        if handles.isEmpty {
+            var contentDescriptor = FetchDescriptor<ContentItemRecord>(
+                sortBy: [SortDescriptor(\.scannedAt, order: .reverse)]
+            )
+            contentDescriptor.fetchLimit = 1
+            if let row = try? context.fetch(contentDescriptor).first,
+               !row.ownerHandle.isEmpty {
+                handles.insert(row.ownerHandle.lowercased())
+            }
+        }
+
+        return Array(handles)
+    }
+
+    /// Active session owner first so the maxOwnersPerPass cap never starves it
+    /// behind lexicographically earlier historical owners.
+    private static func prioritizeOwners(_ owners: [String]) -> [String] {
+        guard let session = SessionStore.load()?.handle.lowercased(),
+              !session.isEmpty else {
+            return owners.sorted()
+        }
+        let rest = owners.filter { $0 != session }.sorted()
+        if owners.contains(session) {
+            return [session] + rest
+        }
+        return [session] + rest
     }
 }
 

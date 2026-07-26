@@ -502,19 +502,28 @@ final class AppModel {
         // while the app is frontmost; the background task buys a grace
         // window if the user switches away anyway.
         UIApplication.shared.isIdleTimerDisabled = true
-        // Capture the task id via a box so the expiration handler never ends
-        // `.invalid` (classic beginBackgroundTask race) and so cancellation
-        // hops onto MainActor — AppModel is @MainActor-isolated.
+        // Box the task id so the expiration handler never ends `.invalid`
+        // (classic beginBackgroundTask race). Cleanup must run *synchronously*
+        // in the expiration handler — UIKit only holds the process until that
+        // handler returns (async Task { @MainActor } is too late).
         final class BGTaskBox: @unchecked Sendable {
             var id: UIBackgroundTaskIdentifier = .invalid
+            let lock = NSLock()
+            func take() -> UIBackgroundTaskIdentifier {
+                lock.lock()
+                defer { lock.unlock() }
+                let current = id
+                id = .invalid
+                return current
+            }
         }
         let bgBox = BGTaskBox()
         bgBox.id = UIApplication.shared.beginBackgroundTask(withName: "sm.bulkDelete") {
-            Task { @MainActor in
-                self.deleteTask?.cancel()
-                let id = bgBox.id
-                guard id != .invalid else { return }
-                bgBox.id = .invalid
+            // Expiration is delivered on the main thread. Cancel the in-flight
+            // delete and end the assertion before returning.
+            self.deleteTask?.cancel()
+            let id = bgBox.take()
+            if id != .invalid {
                 UIApplication.shared.endBackgroundTask(id)
             }
         }
@@ -527,9 +536,8 @@ final class AppModel {
             deleteRateLimitWaitSeconds = nil
             deleteTask = nil
             UIApplication.shared.isIdleTimerDisabled = false
-            let id = bgBox.id
+            let id = bgBox.take()
             if id != .invalid {
-                bgBox.id = .invalid
                 UIApplication.shared.endBackgroundTask(id)
             }
         }
