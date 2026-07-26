@@ -46,7 +46,7 @@ platform :ios do
       output_directory: "build/ipa",
       output_name: "Skymarshal.ipa",
       clean: true,
-      export_method: "app-store-connect"
+      export_method: "app-store"
     )
     upload_to_testflight(
       api_key: api_key,

@@ -100,15 +100,24 @@ public enum GraphSnapshotWriter: Sendable {
 
     /// Rebuild persisted graph summaries from SwiftData only (no network).
     /// Used by background tasks to refresh Scope metrics from the on-disk cache.
+    ///
+    /// - Parameter itemFetchLimit: Caps content materialisation so background
+    ///   passes cannot jetsam on large archives. Pass `nil` for unbounded
+    ///   foreground refreshes.
     public static func refreshPersistedSummariesFromCache(
         container: ModelContainer,
-        ownerHandle: String
+        ownerHandle: String,
+        itemFetchLimit: Int? = nil
     ) throws {
         let context = ModelContext(container)
         let oh = ownerHandle
-        let itemDescriptor = FetchDescriptor<ContentItemRecord>(
-            predicate: #Predicate { $0.ownerHandle == oh }
+        var itemDescriptor = FetchDescriptor<ContentItemRecord>(
+            predicate: #Predicate { $0.ownerHandle == oh },
+            sortBy: [SortDescriptor(\.scannedAt, order: .reverse)]
         )
+        if let itemFetchLimit {
+            itemDescriptor.fetchLimit = itemFetchLimit
+        }
         let acctDescriptor = FetchDescriptor<AnalyzedAccountRecord>(
             predicate: #Predicate { $0.ownerHandle == oh }
         )

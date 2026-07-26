@@ -502,11 +502,21 @@ final class AppModel {
         // while the app is frontmost; the background task buys a grace
         // window if the user switches away anyway.
         UIApplication.shared.isIdleTimerDisabled = true
-        var bgTask: UIBackgroundTaskIdentifier = .invalid
-        bgTask = UIApplication.shared.beginBackgroundTask(withName: "sm.bulkDelete") {
-            self.deleteTask?.cancel()
-            UIApplication.shared.endBackgroundTask(bgTask)
-            bgTask = .invalid
+        // Capture the task id via a box so the expiration handler never ends
+        // `.invalid` (classic beginBackgroundTask race) and so cancellation
+        // hops onto MainActor — AppModel is @MainActor-isolated.
+        final class BGTaskBox: @unchecked Sendable {
+            var id: UIBackgroundTaskIdentifier = .invalid
+        }
+        let bgBox = BGTaskBox()
+        bgBox.id = UIApplication.shared.beginBackgroundTask(withName: "sm.bulkDelete") {
+            Task { @MainActor in
+                self.deleteTask?.cancel()
+                let id = bgBox.id
+                guard id != .invalid else { return }
+                bgBox.id = .invalid
+                UIApplication.shared.endBackgroundTask(id)
+            }
         }
         isDeleting = true
         deleteProgress = (0, itemIDs.count)
@@ -517,8 +527,10 @@ final class AppModel {
             deleteRateLimitWaitSeconds = nil
             deleteTask = nil
             UIApplication.shared.isIdleTimerDisabled = false
-            if bgTask != .invalid {
-                UIApplication.shared.endBackgroundTask(bgTask)
+            let id = bgBox.id
+            if id != .invalid {
+                bgBox.id = .invalid
+                UIApplication.shared.endBackgroundTask(id)
             }
         }
 

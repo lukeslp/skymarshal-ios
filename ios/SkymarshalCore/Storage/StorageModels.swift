@@ -800,6 +800,16 @@ public enum SkymarshalSchema {
         inMemory: Bool = false
     ) throws -> ModelContainer {
         let schema = Schema(allModels)
+        // Background task launches can race the first creation of
+        // Application Support. SwiftData/Core Data then logs
+        // "Sandbox access to file-write-create denied" and can fail hard
+        // under a tight BG memory/time budget. Ensure the parent exists.
+        if !inMemory {
+            let fm = FileManager.default
+            if let support = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+                try? fm.createDirectory(at: support, withIntermediateDirectories: true)
+            }
+        }
         let config = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: inMemory
