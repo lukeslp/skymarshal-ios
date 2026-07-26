@@ -11,8 +11,10 @@ public struct ReviewPromptPolicy {
         public var minimumSuccessfulActions: Int
         public var cooldownDays: Int
 
+        /// Defaults are deliberately conservative: about a week of real use and
+        /// several completed successes before StoreKit is even consulted.
         public init(
-            minimumUsageDays: Int = 3,
+            minimumUsageDays: Int = 7,
             minimumSuccessfulActions: Int = 3,
             cooldownDays: Int = 120
         ) {

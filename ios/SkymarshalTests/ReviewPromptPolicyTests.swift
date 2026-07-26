@@ -27,9 +27,12 @@ final class ReviewPromptPolicyTests: XCTestCase {
         policy.noteAppOpened(at: date(day: 0))
 
         XCTAssertFalse(policy.registerSuccessfulAction(appVersion: "1.0", at: date(day: 1)))
-        XCTAssertFalse(policy.registerSuccessfulAction(appVersion: "1.0", at: date(day: 2)))
-        XCTAssertTrue(policy.registerSuccessfulAction(appVersion: "1.0", at: date(day: 3)))
-        XCTAssertTrue(policy.isEligible(appVersion: "1.0", at: date(day: 3)))
+        XCTAssertFalse(policy.registerSuccessfulAction(appVersion: "1.0", at: date(day: 6)))
+        // Third success still before the 7-day floor.
+        XCTAssertFalse(policy.registerSuccessfulAction(appVersion: "1.0", at: date(day: 6)))
+        // Need another success at/after day 7 to clear both counters and age.
+        XCTAssertTrue(policy.registerSuccessfulAction(appVersion: "1.0", at: date(day: 7)))
+        XCTAssertTrue(policy.isEligible(appVersion: "1.0", at: date(day: 7)))
     }
 
     func test_successThresholdDoesNotBypassMinimumUsageAge() {
@@ -90,7 +93,7 @@ final class ReviewPromptPolicyTests: XCTestCase {
     }
 
     private func makePolicy(
-        minimumUsageDays: Int = 3,
+        minimumUsageDays: Int = 7,
         minimumSuccessfulActions: Int = 3,
         cooldownDays: Int = 120
     ) -> ReviewPromptPolicy {
