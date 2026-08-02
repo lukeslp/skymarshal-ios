@@ -1,9 +1,1 @@
-Skymarshal 1.0.3 makes bulk cleanup easier to follow and safer to finish.
-
-- Guided Mode can use larger controls, fewer choices per screen, two-step confirmations, and extra time.
-- VoiceOver labels are clearer across content, account rows, widgets, charts, and media.
-- Rate-limit pauses and interrupted deletes now explain what happened.
-- Background graph refresh no longer tries to load entire large archives at once (fewer background crashes on big accounts).
-- After real use across separate sessions, the app may occasionally invite an App Store rating. Never on first open, never mid-delete.
-
-App password only. No off-device usage analytics or tracking. No Skymarshal server.
+Skymarshal 1.0.4 is a maintenance release rebuilt with the current iOS SDK for ongoing compatibility.
