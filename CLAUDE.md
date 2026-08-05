@@ -14,9 +14,9 @@ Capacitor 8.4.1 (SPM), and runs natively on iOS under bundle id
 Native development resumed in July for Figma Make parity and release hardening.
 **The native app is live in the App Store as of 2026-07-20** at
 **1.0.2 / build 40**, with login verified in production. Current native source is
-**1.0.4 / build 51** (staged, not yet submitted). 1.0.3 reached TestFlight at build 49
-but **never shipped to the App Store** — so 1.0.4's release notes must cover everything
-back to 1.0.2. The Capacitor path remains a
+**1.1.0 / build 52**. Neither 1.0.3 (TestFlight, build 49) nor 1.0.4 (build 51, staged
+only) ever shipped to the App Store — so 1.1's release notes cover everything back to
+1.0.2. The Capacitor path remains a
 proposed alternative only. This repo also remains the source for:
 - the **safety-critical deletion engine** in `SkymarshalCore` (the sacred 429
   ladder, resumable breadcrumb, preflight, typed-confirm) — prototyped for the
@@ -34,7 +34,7 @@ Note: `CLAUDE.md` is checked in — keep it concise and current. If you want a p
 ## What lives here today
 
 ```
-ios/                          # Active native SwiftUI source — version 1.0.4, build 51 (App Store: 1.0.2/40).
+ios/                          # Active native SwiftUI source — version 1.1.0, build 52 (App Store: 1.0.2/40).
   project.yml                 # xcodegen canonical source — never edit .xcodeproj directly
   Skymarshal/                 # App target: SwiftUI views, AppModel, App entry
   SkymarshalCore/             # Framework: Models, Services, Standards, Network, Storage
@@ -110,7 +110,7 @@ cd ios && fastlane upload_listing      # metadata only, from ios/fastlane/metada
 
 ## Native iOS source — live in the App Store
 
-The source at `ios/` is version 1.0.4 / build 51, staged but not submitted. Version 1.0.2 / build 40 shipped to the App Store 2026-07-20; 1.0.3 stopped at TestFlight (build 49). Architecture:
+The source at `ios/` is version 1.1.0 / build 52. Version 1.0.2 / build 40 shipped to the App Store 2026-07-20; 1.0.3 stopped at TestFlight (build 49) and 1.0.4 (build 51) was staged but never submitted. Architecture:
 
 - **xcodegen-driven** — `ios/project.yml` is canonical; `Skymarshal.xcodeproj` regenerates from it. Never edit the xcodeproj directly.
 - **Two-target framework split** — `SkymarshalCore` (framework, all models / services / standards / network / storage, no SwiftUI), `Skymarshal` (app, SwiftUI views + AppModel observer).

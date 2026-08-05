@@ -1,8 +1,9 @@
-Skymarshal 1.0.4 collects everything since 1.0.2 and rebuilds on the current iOS SDK.
+Skymarshal 1.1 finds likes you could not see before.
 
-Word patterns now show up in Insights by default. See which words appear in your higher- and lower-engagement posts, worked out on your phone.
+When someone deletes their account or takes a post down, your like on it stays in your archive. Bluesky's feed skips those, so nothing could show them to you — including Skymarshal. The app now reads your archive directly, lists those likes with everything else, and deletes them like any other record.
 
-Easier to follow, safer to finish:
+Also new since 1.0.2:
+- Word patterns in Insights: which words show up in your higher- and lower-engagement posts, worked out on your phone.
 - Guided Mode can use larger controls, fewer choices per screen, two-step confirmations, and extra time.
 - VoiceOver labels are clearer across content, account rows, widgets, charts, and media.
 - Rate-limit pauses and interrupted deletes now explain what happened.
