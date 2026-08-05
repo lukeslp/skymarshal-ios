@@ -19,6 +19,18 @@ The app only ever deletes records in the signed-in user's own
 repository, the same operation the official Bluesky app performs when
 a user deletes a post; Skymarshal adds search and batching on top.
 
+New in 1.1: the app also reads com.atproto.repo.listRecords, another
+documented public lexicon:
+https://docs.bsky.app/docs/api/com-atproto-repo-list-records
+It is used only against the signed-in user's own repository, to list
+their own like records. This is necessary because a like on a post
+whose author has since deleted their account or been suspended is
+omitted from app.bsky.feed.getActorLikes — the feed endpoint returns
+hydrated post views, and such a post cannot be hydrated. The like
+record still exists in the user's repository. Reading the repository
+directly is the only way to show the user those likes so they can
+delete them. No other user's repository is ever read this way.
+
 To test:
   1. Create or use an existing Bluesky account at bsky.app
   2. Generate an app password under Settings → App Passwords
@@ -31,6 +43,13 @@ To test:
      account; sort, filter, or bulk-unfollow as desired
   6. Sign out via the account menu (top-left); session token is cleared
      from Keychain
+
+On the Content tab, likes whose original post is no longer reachable
+appear with the text "Liked post no longer available." These are the
+records described above. They may or may not be present on the demo
+account, since they only exist if an author the account liked has since
+deleted their account or been suspended; their absence is normal and
+does not indicate a fault.
 
 A demo account is provided in the App Review Information sign-in
 fields (handle + app password). It is populated with sample posts,

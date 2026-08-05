@@ -66,8 +66,10 @@ platform :ios do
     # shell's locale, and under a non-UTF-8 LANG any curly quote or em dash in
     # the notes fails with "invalid byte sequence in US-ASCII" — after the
     # build has already been located, so it looks like an ASC problem.
+    # Lives outside metadata/ on purpose: this is TestFlight tester copy, not
+    # App Store listing metadata, and deliver scans metadata/ by filename.
     notes = ENV["SKY_WHATS_TO_TEST"] ||
-            File.read("metadata/what_to_test.txt", encoding: "UTF-8")
+            File.read("what_to_test.txt", encoding: "UTF-8")
     # `distribute_only` (not `skip_binary_upload` — that option does not exist
     # in this fastlane) attaches metadata to a build already in ASC. Version and
     # build come from project.yml so the lane targets the build just uploaded
@@ -87,6 +89,66 @@ platform :ios do
       distribute_external: false,
       notify_external_testers: false,
       changelog: notes
+    )
+  end
+
+  desc "Read-only: print the current ASC version state and recent build states"
+  lane :asc_state do
+    require "spaceship"
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: JSON.parse(File.read(API_KEY_JSON))["key_id"],
+      issuer_id: JSON.parse(File.read(API_KEY_JSON))["issuer_id"],
+      filepath: File.expand_path(JSON.parse(File.read(API_KEY_JSON))["key_filepath"])
+    )
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("blue.skymarshal.ios")
+    UI.important("App: #{app.name} (#{app.id})")
+    edit = app.get_edit_app_store_version
+    if edit
+      UI.important("EDIT version #{edit.version_string} state=#{edit.app_store_state}")
+      b = edit.build
+      UI.important("  attached build: #{b ? b.version : "(none)"}")
+    else
+      UI.important("EDIT version: none")
+    end
+    live = app.get_live_app_store_version
+    UI.important("LIVE version #{live&.version_string} state=#{live&.app_store_state}")
+    Spaceship::ConnectAPI::Build.all(app_id: app.id, limit: 5).each do |bld|
+      UI.important("BUILD #{bld.version} processing=#{bld.processing_state} expired=#{bld.expired} compliance=#{bld.uses_non_exempt_encryption.inspect}")
+    end
+  end
+
+  desc "Submit the current project.yml version to App Store review"
+  desc "Sets the ASC version string, attaches the matching build, submits. Manual release after approval."
+  desc "ASC blocks renaming a version that is already in review — check state first if this errors."
+  lane :submit_for_review do
+    require "yaml"
+    spec = YAML.load_file(File.expand_path("../project.yml", __dir__))
+    settings = spec.fetch("settings").fetch("base")
+    version = settings.fetch("MARKETING_VERSION").to_s
+    build = settings.fetch("CURRENT_PROJECT_VERSION").to_s
+    UI.important("Submitting #{version} (#{build}) for App Store review")
+    deliver(
+      api_key: asc_key,
+      app_version: version,
+      build_number: build,
+      # The ASC version record lagged the binary on 2026-08-05: a 1.0.4 version
+      # was open while the build said 1.1.0, and a build cannot attach to a
+      # version whose string differs. Leaving this false lets deliver align the
+      # version record with project.yml.
+      skip_app_version_update: false,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      metadata_path: "./fastlane/metadata",
+      submit_for_review: true,
+      automatic_release: false,
+      force: true,
+      precheck_include_in_app_purchases: false,
+      submission_information: {
+        add_id_info_uses_idfa: false,
+        export_compliance_uses_encryption: false,
+        content_rights_contains_third_party_content: false
+      }
     )
   end
 
