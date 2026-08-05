@@ -1,1 +1,19 @@
-Skymarshal 1.0.4 is a maintenance release rebuilt with the current iOS SDK for ongoing compatibility.
+Skymarshal 1.0.4 collects everything since 1.0.2 and rebuilds on the current iOS SDK.
+
+Word patterns now show up in Insights by default. See which words appear in your higher- and lower-engagement posts, worked out on your phone.
+
+Easier to follow, safer to finish:
+- Guided Mode can use larger controls, fewer choices per screen, two-step confirmations, and extra time.
+- VoiceOver labels are clearer across content, account rows, widgets, charts, and media.
+- Rate-limit pauses and interrupted deletes now explain what happened.
+- Account signals and filter explanations use clearer language.
+- The app icon has a new, simpler design.
+
+Fixes:
+- Background refresh no longer tries to load an entire large archive at once, so big accounts see fewer background crashes.
+- Duplicate follows are collapsed before a scan, so the counts line up.
+- Removed a Settings toggle that no longer controlled anything.
+
+After real use across separate sessions, the app may occasionally invite an App Store rating. Never on first open, never mid-delete.
+
+App password only. No off-device usage analytics or tracking. No Skymarshal server.

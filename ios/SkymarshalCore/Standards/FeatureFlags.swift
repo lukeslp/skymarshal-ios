@@ -13,10 +13,10 @@ import Foundation
 /// | `sm.feature.cleanupPresets` | on | Followers cleanup chips |
 /// | `sm.feature.profileExplorer` | on | Account sheet explorer |
 /// | `sm.feature.unfollowDryRun` | on | Dry-run unfollow preview |
-/// | `sm.feature.advancedSearchGrammar` | **off** | Advanced builder + grammar |
 /// | `sm.feature.visualizationHub` | **on** | Scope tab in root `TabView` (Make-parity default) |
-/// | `sm.feature.wordPatterns` | **off** | Lexicon stats in Insights |
-/// | `sm.feature.backupRestore` | **off** | About → backup import |
+/// | `sm.feature.wordPatterns` | **on** | Lexicon stats in Insights |
+/// | `sm.feature.backupRestore` | **off** | About → backup import. Stays opt-in: the import path
+///   can leave an archive partially restored, and this app's primary action is irreversible. |
 /// | `sm.ui.contentPowerToolsExpanded` | **off** | Content tab: full stats strip + empty-state filter chips |
 @available(iOS 17, *)
 public enum FeatureFlags {
@@ -25,7 +25,6 @@ public enum FeatureFlags {
     public static let cleanupPresetsKey = "sm.feature.cleanupPresets"
     public static let profileExplorerKey = "sm.feature.profileExplorer"
     public static let unfollowDryRunKey = "sm.feature.unfollowDryRun"
-    public static let advancedSearchGrammarKey = "sm.feature.advancedSearchGrammar"
     public static let visualizationHubKey = "sm.feature.visualizationHub"
     public static let wordPatternsKey = "sm.feature.wordPatterns"
     public static let backupRestoreKey = "sm.feature.backupRestore"
@@ -63,7 +62,6 @@ public enum FeatureFlags {
             cleanupPresetsKey,
             profileExplorerKey,
             unfollowDryRunKey,
-            advancedSearchGrammarKey,
             visualizationHubKey,
             wordPatternsKey,
             backupRestoreKey,

@@ -23,8 +23,7 @@ struct AboutView: View {
     @AppStorage("sm.reduceMotionOverride") private var motionOverride: Bool = false
     @AppStorage(FeatureFlags.backupRestoreKey) private var featureBackupRestore: Bool = false
     @AppStorage(FeatureFlags.visualizationHubKey) private var featureVisualizationHub: Bool = true
-    @AppStorage(FeatureFlags.advancedSearchGrammarKey) private var featureAdvancedSearchGrammar: Bool = false
-    @AppStorage(FeatureFlags.wordPatternsKey) private var featureWordPatterns: Bool = false
+    @AppStorage(FeatureFlags.wordPatternsKey) private var featureWordPatterns: Bool = true
     @AppStorage(FeatureFlags.contentPowerToolsExpandedKey) private var contentPowerToolsExpanded: Bool = false
 
     private var versionLine: String {
@@ -105,8 +104,6 @@ struct AboutView: View {
         Section {
             Toggle("Scope tab (visualization hub)", isOn: $featureVisualizationHub)
                 .listRowBackground(Theme.elev1)
-            Toggle("Advanced search grammar", isOn: $featureAdvancedSearchGrammar)
-                .listRowBackground(Theme.elev1)
             Toggle("Word patterns in Insights", isOn: $featureWordPatterns)
                 .listRowBackground(Theme.elev1)
             Toggle("Full Content tools strip", isOn: $contentPowerToolsExpanded)
@@ -118,7 +115,7 @@ struct AboutView: View {
                 .textCase(.uppercase)
                 .accessibilityIdentifier("about_feature_lab_section_header")
         } footer: {
-            Text("Scope ships on by default (Make parity). Other optional surfaces stay opt-in. Content strip shows counts and average engagement under the search bar.")
+            Text("Scope and word patterns ship on by default. Content strip shows counts and average engagement under the search bar.")
                 .font(.caption2)
         }
     }

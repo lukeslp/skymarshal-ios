@@ -7,8 +7,8 @@ struct AnalyticsInsightsView: View {
 
     let items: [ContentItem]
     @Environment(\.dismiss) private var dismiss
-    @AppStorage(FeatureFlags.wordPatternsKey) private var featureWordPatterns: Bool = false
-    @AppStorage(FeatureFlags.visualizationHubKey) private var featureVisualizationHub: Bool = false
+    @AppStorage(FeatureFlags.wordPatternsKey) private var featureWordPatterns: Bool = true
+    @AppStorage(FeatureFlags.visualizationHubKey) private var featureVisualizationHub: Bool = true
 
     private var snapshot: AnalyticsSnapshot {
         AnalyticsService.buildSnapshot(from: items)
