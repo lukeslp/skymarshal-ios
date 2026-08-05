@@ -58,6 +58,38 @@ platform :ios do
     )
   end
 
+  desc "Wait for the uploaded build to finish processing, then set its What to Test notes"
+  desc "Run after release_testflight. Binary is already up; this only attaches metadata."
+  desc "Override the text with SKY_WHATS_TO_TEST."
+  lane :testflight_notes do
+    # Read as UTF-8 explicitly. Without an encoding argument Ruby uses the
+    # shell's locale, and under a non-UTF-8 LANG any curly quote or em dash in
+    # the notes fails with "invalid byte sequence in US-ASCII" — after the
+    # build has already been located, so it looks like an ASC problem.
+    notes = ENV["SKY_WHATS_TO_TEST"] ||
+            File.read("metadata/what_to_test.txt", encoding: "UTF-8")
+    # `distribute_only` (not `skip_binary_upload` — that option does not exist
+    # in this fastlane) attaches metadata to a build already in ASC. Version and
+    # build come from project.yml so the lane targets the build just uploaded
+    # rather than whatever happens to be newest.
+    require "yaml"
+    spec = YAML.load_file(File.expand_path("../project.yml", __dir__))
+    settings = spec.fetch("settings").fetch("base")
+    upload_to_testflight(
+      api_key: asc_key,
+      distribute_only: true,
+      # Required in distribute-only mode — without it pilot prompts for the
+      # platform and dies in any non-interactive shell (CI, background run).
+      app_platform: "ios",
+      app_identifier: "blue.skymarshal.ios",
+      app_version: settings.fetch("MARKETING_VERSION").to_s,
+      build_number: settings.fetch("CURRENT_PROJECT_VERSION").to_s,
+      distribute_external: false,
+      notify_external_testers: false,
+      changelog: notes
+    )
+  end
+
   desc "Capture App Store screenshots (runs the XCUITest pipeline for both device classes)"
   desc "Needs a signed-in session or SKY_TEST_HANDLE/SKY_TEST_APP_PASSWORD — see scripts/capture_screenshots.sh"
   lane :screenshots do
