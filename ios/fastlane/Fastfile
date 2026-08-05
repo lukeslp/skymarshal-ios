@@ -33,11 +33,13 @@ platform :ios do
     # Spaceship-based deliver lanes — does NOT read APP_STORE_CONNECT_API_KEY_*
     # from the env on its own. Build an explicit key from the .p8 and hand it
     # to pilot, or it falls back to demanding an app-specific password.
-    api_key = app_store_connect_api_key(
-      key_id: ENV.fetch("APP_STORE_CONNECT_API_KEY_KEY_ID"),
-      issuer_id: ENV.fetch("APP_STORE_CONNECT_API_KEY_ISSUER_ID"),
-      key_filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_#{ENV.fetch("APP_STORE_CONNECT_API_KEY_KEY_ID")}.p8")
-    )
+    #
+    # Source the key from api_key.json via `asc_key` rather than from the
+    # environment. env.sh and api_key.json drift: on 2026-08-04 env.sh still
+    # exported a rotated-out key id whose .p8 had been deleted, so this lane
+    # died before it built anything while every other lane worked. One file
+    # is the source of truth.
+    api_key = asc_key
     sh "cd .. && xcodegen generate --spec project.yml"
     build_app(
       project: "Skymarshal.xcodeproj",
