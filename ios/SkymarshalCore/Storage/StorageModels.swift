@@ -40,6 +40,11 @@ public final class ContentItemRecord {
     /// Author handle of the liked/reposted subject at scan time. Nil for
     /// posts/replies and for rows written before this field existed.
     public var subjectAuthorHandle: String?
+    /// True for a ghost like — a like whose subject post no longer resolves.
+    /// Lightweight migration: `false` default for rows written before this
+    /// field existed, which is correct, since those rows all came from
+    /// `getActorLikes` and therefore hydrated by definition.
+    public var subjectUnresolved: Bool = false
 
     public init(
         uri: String,
@@ -55,7 +60,8 @@ public final class ContentItemRecord {
         ownerHandle: String,
         scannedAt: Date = Date(),
         parentReplyURI: String? = nil,
-        subjectAuthorHandle: String? = nil
+        subjectAuthorHandle: String? = nil,
+        subjectUnresolved: Bool = false
     ) {
         self.compositeKey = Self.makeCompositeKey(
             ownerHandle: ownerHandle,
@@ -77,6 +83,7 @@ public final class ContentItemRecord {
         self.scannedAt = scannedAt
         self.parentReplyURI = parentReplyURI
         self.subjectAuthorHandle = subjectAuthorHandle
+        self.subjectUnresolved = subjectUnresolved
     }
 
     public var contentType: ContentType {
@@ -108,7 +115,8 @@ public final class ContentItemRecord {
             replyCount: replyCount,
             media: hasMedia ? [MediaPreview(kind: .image)] : [],
             parentReplyURI: parentReplyURI,
-            subjectAuthorHandle: subjectAuthorHandle
+            subjectAuthorHandle: subjectAuthorHandle,
+            subjectUnresolved: subjectUnresolved
         )
     }
 }
@@ -667,6 +675,7 @@ public final class ContentRefreshStagingRecord {
     public var hasMedia: Bool
     public var parentReplyURI: String?
     public var subjectAuthorHandle: String?
+    public var subjectUnresolved: Bool = false
 
     public init(item: ContentItem, ownerHandle: String, generationID: String) {
         self.compositeKey = "\(ownerHandle)|\(generationID)|\(item.id)"
@@ -684,6 +693,7 @@ public final class ContentRefreshStagingRecord {
         self.hasMedia = item.hasMedia
         self.parentReplyURI = item.parentReplyURI
         self.subjectAuthorHandle = item.subjectAuthorHandle
+        self.subjectUnresolved = item.subjectUnresolved
     }
 
     public func update(from item: ContentItem) {
@@ -697,6 +707,7 @@ public final class ContentRefreshStagingRecord {
         hasMedia = item.hasMedia
         parentReplyURI = item.parentReplyURI
         subjectAuthorHandle = item.subjectAuthorHandle
+        subjectUnresolved = item.subjectUnresolved
     }
 
     public func toContentItem() -> ContentItem {
@@ -712,7 +723,8 @@ public final class ContentRefreshStagingRecord {
             replyCount: replyCount,
             media: hasMedia ? [MediaPreview(kind: .image)] : [],
             parentReplyURI: parentReplyURI,
-            subjectAuthorHandle: subjectAuthorHandle
+            subjectAuthorHandle: subjectAuthorHandle,
+            subjectUnresolved: subjectUnresolved
         )
     }
 }

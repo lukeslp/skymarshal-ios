@@ -34,6 +34,16 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
     /// at load time). Powers ``SearchRequest``'s `subjectHandleContains`
     /// filter (Python `subject_handle_contains` at `search.py:604-642`).
     public var subjectAuthorHandle: String?
+    /// True for a **ghost like** — a like record that exists in the user's repo
+    /// but whose subject the feed API refuses to hydrate, because the liked
+    /// post's author was deleted, suspended, or took the post down.
+    ///
+    /// `app.bsky.feed.getActorLikes` omits these entirely, so before they were
+    /// reconciled a user who deleted "all" their likes was told the job was
+    /// finished while these silently remained. They delete like any other
+    /// record; they were simply never visible. See
+    /// ``ContentService/reconcileGhostLikes(records:hydratedDeletionURIs:)``.
+    public var subjectUnresolved: Bool
 
     public var id: String { "\(contentType.rawValue)|\(uri)" }
 
@@ -83,7 +93,8 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
         linkCard: LinkCard? = nil,
         textLinks: [TextLink] = [],
         parentReplyURI: String? = nil,
-        subjectAuthorHandle: String? = nil
+        subjectAuthorHandle: String? = nil,
+        subjectUnresolved: Bool = false
     ) {
         self.uri = uri
         self.deletionURI = deletionURI ?? (contentType.isOwnRecord ? uri : nil)
@@ -99,6 +110,30 @@ public struct ContentItem: Identifiable, Hashable, Codable, Sendable {
         self.textLinks = textLinks
         self.parentReplyURI = parentReplyURI
         self.subjectAuthorHandle = subjectAuthorHandle
+        self.subjectUnresolved = subjectUnresolved
+    }
+
+    /// Explicit decode so JSON exported before ``subjectUnresolved`` existed
+    /// still imports. The synthesized initializer would treat the missing key
+    /// as a hard failure and break every backup file written by 1.0.4 and
+    /// earlier — see `ContentBackupImport`.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        uri = try c.decode(String.self, forKey: .uri)
+        deletionURI = try c.decodeIfPresent(String.self, forKey: .deletionURI)
+        cid = try c.decode(String.self, forKey: .cid)
+        contentType = try c.decode(ContentType.self, forKey: .contentType)
+        text = try c.decodeIfPresent(String.self, forKey: .text)
+        createdAt = try c.decodeIfPresent(Date.self, forKey: .createdAt)
+        likeCount = try c.decodeIfPresent(Int.self, forKey: .likeCount) ?? 0
+        repostCount = try c.decodeIfPresent(Int.self, forKey: .repostCount) ?? 0
+        replyCount = try c.decodeIfPresent(Int.self, forKey: .replyCount) ?? 0
+        media = try c.decodeIfPresent([MediaPreview].self, forKey: .media) ?? []
+        linkCard = try c.decodeIfPresent(LinkCard.self, forKey: .linkCard)
+        textLinks = try c.decodeIfPresent([TextLink].self, forKey: .textLinks) ?? []
+        parentReplyURI = try c.decodeIfPresent(String.self, forKey: .parentReplyURI)
+        subjectAuthorHandle = try c.decodeIfPresent(String.self, forKey: .subjectAuthorHandle)
+        subjectUnresolved = try c.decodeIfPresent(Bool.self, forKey: .subjectUnresolved) ?? false
     }
 
     /// Engagement score — the same `1L + 2R + 2.5Reply` formula as the

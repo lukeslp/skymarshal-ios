@@ -59,6 +59,12 @@ final class RefreshTransactionTests: XCTestCase {
             if request.url?.absoluteString.contains("getAuthorFeed") == true {
                 return (200, Self.feedJSON(rkey: "new"))
             }
+            // The ghost-like sweep reads the repo directly and expects a
+            // `records` array, not a feed. An empty repo means "no ghosts",
+            // which keeps this test about the refresh transaction itself.
+            if request.url?.absoluteString.contains("listRecords") == true {
+                return (200, Data("{\"records\":[]}".utf8))
+            }
             return (200, Data("{\"feed\":[]}".utf8))
         }
 
@@ -69,6 +75,34 @@ final class RefreshTransactionTests: XCTestCase {
         XCTAssertEqual(committed.map(\.uri), ["at://did:plc:me/app.bsky.feed.post/new"])
         XCTAssertTrue(try stagingItems(container: container, owner: "me.bsky.social").isEmpty)
         XCTAssertTrue(try checkpoints(container: container, owner: "me.bsky.social").isEmpty)
+    }
+
+    /// Ghost-like reconciliation is an enhancement, not a precondition. A PDS
+    /// that refuses `com.atproto.repo.listRecords` must still hand the user the
+    /// archive they asked for, rather than failing the whole load.
+    func test_contentRefresh_survivesGhostSweepFailure() async throws {
+        let container = try SkymarshalSchema.makeContainer(inMemory: true)
+        let client = makeClient()
+        await client.setSession(makeSession())
+        let service = ContentService(client: client, container: container)
+
+        TestURLProtocol.handler = { request in
+            if request.url?.absoluteString.contains("getAuthorFeed") == true {
+                return (200, Self.feedJSON(rkey: "new"))
+            }
+            if request.url?.absoluteString.contains("listRecords") == true {
+                return (403, Data("{\"error\":\"Forbidden\"}".utf8))
+            }
+            return (200, Data("{\"feed\":[]}".utf8))
+        }
+
+        let result = try await service.ensureContentLoaded(forceRefresh: true)
+
+        XCTAssertEqual(result.map(\.uri), ["at://did:plc:me/app.bsky.feed.post/new"])
+        XCTAssertFalse(
+            result.contains { $0.subjectUnresolved },
+            "a failed sweep must report no ghosts rather than inventing them"
+        )
     }
 
     func test_mostRecentRefresh_fetchesOnlyNewestPagesAndMergesWithExistingContent() async throws {

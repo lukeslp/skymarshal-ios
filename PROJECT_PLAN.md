@@ -160,7 +160,9 @@ Full findings in the session plan (cynic + breaker + executive council). Status 
 ### Kill criteria (restated measurably, 2026-06-10)
 
 - **Ship-blocker (unchanged):** two App Store rejections citing 5.0/4.3 on content-deletion grounds → do not appeal a third time; pivot to PWA at skymarshal.blue.
-- **Pivot-trigger (now owned):** Bluesky official app ships or announces native bulk-delete-by-filter → reposition around Patterns + alt-text audit within 30 days. Checked monthly against the Bluesky changelog/roadmap; next check 2026-07-10, owner Luke.
+- **Pivot-trigger (now owned):** Bluesky official app ships or announces native bulk-delete-by-filter → reposition around Patterns + alt-text audit within 30 days. Checked monthly against the Bluesky changelog/roadmap; owner Luke.
+  - **2026-08-04 — checked, not fired.** No native bulk delete announced; deletion in the official app is still one post at a time. Every competitor remains web or browser-extension only (BskyDelete, Redact, Skeet Deleter, Repo Explorer). No iOS-native competitor found. Next check **2026-09-04**.
+  - *The 2026-07-10 check was missed and ran 25 days late.* If this slips twice more, treat the check itself as the thing that failed and drop the monthly cadence for a release-time check instead.
 - **Sunset-trigger (replaces the unmeasurable MAU/conversion version):** by 2026-12-10, fewer than 300 App Analytics opt-in downloads AND fewer than 25 ratings AND (only if an IAP has shipped) fewer than 30 unlocks → archive the iOS target, maintain the Python CLI only.
 
 ### Manual items (Luke, off-repo)

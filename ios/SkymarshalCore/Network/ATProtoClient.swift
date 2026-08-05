@@ -219,6 +219,30 @@ public actor ATProtoClient {
         }
     }
 
+    /// `com.atproto.repo.listRecords` over `app.bsky.feed.like` — the user's own
+    /// like records, read straight from their repo.
+    ///
+    /// Use this **in addition to** ``getActorLikes(actor:limit:cursor:)``, never
+    /// instead of it. The feed endpoint carries engagement counts and post text
+    /// that the raw records do not; this endpoint sees like records the feed
+    /// endpoint cannot, because it never tries to hydrate the subject. Diffing
+    /// the two is what surfaces ghost likes.
+    public func listLikeRecords(
+        repo: String,
+        limit: Int = 100,
+        cursor: String? = nil
+    ) async throws -> LikeRecordsResponse {
+        var params: [URLQueryItem] = [
+            .init(name: "repo", value: repo),
+            .init(name: "collection", value: ATProtoRecordCollection.like.rawValue),
+            .init(name: "limit", value: "\(min(max(limit, 1), 100))"),
+        ]
+        if let cursor { params.append(.init(name: "cursor", value: cursor)) }
+        return try await withTimeout(seconds: 30) { [params] in
+            try await self.get(lexicon: "com.atproto.repo.listRecords", queryItems: params)
+        }
+    }
+
     // MARK: - Reads (graph)
 
     /// `app.bsky.graph.getFollows` — accounts the user follows.

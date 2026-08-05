@@ -163,7 +163,7 @@ May 2026 `/team:team` verdict, updated by the 2026-06-10 adversarial review (cyn
 - Timeframe quick-filter chips (7d/30d/90d/1y) — last open parity item, now a v1.1 candidate.
 
 **v1.1 candidates (after launch):**
-- Ghost likes via `com.atproto.repo.listRecords` — likes of deleted/suspended authors are invisible to `getActorLikes` and currently undeletable.
+- ~~Ghost likes via `com.atproto.repo.listRecords`~~ — **done.** `ContentService.reconcileGhostLikes` diffs the repo's `app.bsky.feed.like` records against what `getActorLikes` hydrated; the remainder are ghosts, flagged `ContentItem.subjectUnresolved`, deletable through the normal path. Two rules matter: reconcile **only** when the hydrated sweep ran to exhaustion (otherwise an unpaginated like is indistinguishable from a ghost), and never let a failed repo read fail the whole archive load.
 - "Danger Zone" bulk-by-category delete (all likes / all reposts / all follows) — pair with `TypedConfirmSheet` + countdown + the 429 ladder.
 - Per-item delete parade (Python's `DeleteMode.INDIVIDUAL`).
 - Paywall decision (launch is free, no IAP — decided 2026-06-10; grandfather early adopters if one ships).

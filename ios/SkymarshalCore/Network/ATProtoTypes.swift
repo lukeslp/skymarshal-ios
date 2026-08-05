@@ -160,6 +160,41 @@ public struct ReasonRepost: Decodable, Sendable {
 /// `app.bsky.feed.getActorLikes` response — same shape as feed.
 public typealias LikesResponse = AuthorFeedResponse
 
+/// `com.atproto.repo.listRecords` response for the `app.bsky.feed.like`
+/// collection — the user's raw like records, straight out of their repo.
+///
+/// Deliberately **not** a feed endpoint. `getActorLikes` returns hydrated post
+/// views, so a like whose subject author was deleted or suspended is dropped
+/// from the response entirely. The record still exists in the repo. Reading the
+/// repo directly is the only way to enumerate those.
+public struct LikeRecordsResponse: Decodable, Sendable {
+    public struct Record: Decodable, Sendable {
+        /// at:// URI of the **like record itself** — this is what you delete.
+        /// Same value `getActorLikes` reports as `post.viewer.like`, which is
+        /// what makes the two sets directly comparable.
+        public let uri: String
+        public let cid: String
+        public let value: LikeRecordValue
+    }
+    public let records: [Record]
+    public let cursor: String?
+}
+
+/// The `value` payload of an `app.bsky.feed.like` record.
+public struct LikeRecordValue: Decodable, Sendable {
+    public struct Subject: Decodable, Sendable {
+        public let uri: String
+        public let cid: String
+    }
+    /// The post that was liked. For a ghost like this URI still parses fine —
+    /// it simply cannot be resolved to a live post any more.
+    public let subject: Subject
+    /// Set by the client that wrote the like. Parse through ``ATProtoDate`` —
+    /// a bare `ISO8601DateFormatter` rejects the fractional seconds the
+    /// official client emits, and a nil date silently escapes date filters.
+    public let createdAt: String?
+}
+
 /// `app.bsky.graph.getFollows` response — list of profiles the user follows.
 public struct GetFollowsResponse: Decodable, Sendable {
     public let follows: [BskyProfile]

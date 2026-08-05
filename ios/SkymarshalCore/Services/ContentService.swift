@@ -271,7 +271,41 @@ public actor ContentService {
                 return (items, response.cursor)
             }
 
-            let truncated = !(postsExhausted && likesExhausted)
+            // Ghost likes are reconcilable ONLY when the hydrated sweep actually
+            // finished. If `getActorLikes` was cut short by the page cap, a like
+            // record missing from that set might simply live on a page we never
+            // fetched — calling it a ghost would be a lie, and this app's whole
+            // value is that it does not lie about what it can and cannot delete.
+            // Fail closed: skip reconciliation and let the truncation banner say
+            // the archive is incomplete.
+            var ghostSweepExhausted = true
+            if likesExhausted {
+                let hydratedLikeURIs = Set(
+                    loadedContent.compactMap { $0.contentType == .likes ? $0.deletionURI : nil }
+                )
+                do {
+                    let (ghosts, exhausted) = try await fetchGhostLikes(
+                        repo: did,
+                        hydratedDeletionURIs: hydratedLikeURIs
+                    )
+                    ghostSweepExhausted = exhausted
+                    var knownIDs = Set(loadedContent.map(\.id))
+                    for ghost in ghosts where knownIDs.insert(ghost.id).inserted {
+                        loadedContent.append(ghost)
+                    }
+                } catch is CancellationError {
+                    throw CancellationError()
+                } catch {
+                    // Reconciliation is an enhancement, not a precondition. A PDS
+                    // that will not serve `listRecords` must not cost the user the
+                    // archive they actually asked for — degrade to the hydrated
+                    // set and report the load as truncated so the banner tells
+                    // them it is incomplete.
+                    ghostSweepExhausted = false
+                }
+            }
+
+            let truncated = !(postsExhausted && likesExhausted && ghostSweepExhausted)
             lastLoadTruncated = truncated
             try replaceCommittedContent(
                 owner: owner,
@@ -342,6 +376,71 @@ public actor ContentService {
         } while cursor != nil && pages < Self.maxPagesPerEndpoint
 
         return cursor == nil
+    }
+
+    /// Page through the user's `app.bsky.feed.like` records and return the ones
+    /// `getActorLikes` never showed them.
+    ///
+    /// Honors the same cancellation and page cap as every other sweep. Returns
+    /// `exhausted == false` when the cap stopped it, so the caller can mark the
+    /// whole load truncated rather than implying the ghost set is complete.
+    private func fetchGhostLikes(
+        repo: String,
+        hydratedDeletionURIs: Set<String>
+    ) async throws -> (ghosts: [ContentItem], exhausted: Bool) {
+        var cursor: String?
+        var pages = 0
+        var ghosts: [ContentItem] = []
+        repeat {
+            try Task.checkCancellation()
+            let response = try await client.listLikeRecords(
+                repo: repo, limit: 100, cursor: cursor
+            )
+            ghosts.append(contentsOf: Self.reconcileGhostLikes(
+                records: response.records,
+                hydratedDeletionURIs: hydratedDeletionURIs
+            ))
+            pages += 1
+            cursor = response.cursor
+        } while cursor != nil && pages < Self.maxPagesPerEndpoint
+        return (ghosts, cursor == nil)
+    }
+
+    /// Turn raw like records into ``ContentItem``s for the ones the feed API
+    /// could not hydrate — the **ghost likes**.
+    ///
+    /// A ghost like is a like whose subject post is gone: the author was
+    /// deleted, suspended, or removed the post. `getActorLikes` drops those
+    /// silently, so a user who deleted "all" their likes was told the job was
+    /// done while these remained on their account, invisible and unreachable.
+    /// The records themselves delete normally — nothing was ever wrong with
+    /// them except that nothing could see them.
+    ///
+    /// Pure and synchronous so the diff logic is testable without a network.
+    ///
+    /// - Parameters:
+    ///   - records: like records read from the user's repo.
+    ///   - hydratedDeletionURIs: like-record URIs that `getActorLikes` returned.
+    ///     Both sides key on the like record's own at:// URI, which is why the
+    ///     comparison is a plain set difference. **Only meaningful when the
+    ///     hydrated sweep ran to exhaustion** — see the caller.
+    static func reconcileGhostLikes(
+        records: [LikeRecordsResponse.Record],
+        hydratedDeletionURIs: Set<String>
+    ) -> [ContentItem] {
+        records.compactMap { record in
+            guard !hydratedDeletionURIs.contains(record.uri) else { return nil }
+            return ContentItem(
+                uri: record.value.subject.uri,
+                cid: record.value.subject.cid,
+                deletionURI: record.uri,
+                contentType: .likes,
+                // No text, counts, or author handle: the subject is gone, and
+                // inventing placeholders would misrepresent what we know.
+                createdAt: ATProtoDate.parse(record.value.createdAt),
+                subjectUnresolved: true
+            )
+        }
     }
 
     /// Inject a content list directly. Useful for previews, tests, and
@@ -708,6 +807,7 @@ public actor ContentService {
                 existing.deletionURI = item.deletionURI
                 existing.parentReplyURI = item.parentReplyURI
                 existing.subjectAuthorHandle = item.subjectAuthorHandle
+                existing.subjectUnresolved = item.subjectUnresolved
                 existing.scannedAt = now
             } else {
                 context.insert(ContentItemRecord(
@@ -724,7 +824,8 @@ public actor ContentService {
                     ownerHandle: owner,
                     scannedAt: now,
                     parentReplyURI: item.parentReplyURI,
-                    subjectAuthorHandle: item.subjectAuthorHandle
+                    subjectAuthorHandle: item.subjectAuthorHandle,
+                    subjectUnresolved: item.subjectUnresolved
                 ))
             }
         }
@@ -854,6 +955,7 @@ public actor ContentService {
                 existing.hasMedia = item.hasMedia
                 existing.parentReplyURI = item.parentReplyURI
                 existing.subjectAuthorHandle = item.subjectAuthorHandle
+                existing.subjectUnresolved = item.subjectUnresolved
                 existing.scannedAt = now
             } else {
                 context.insert(ContentItemRecord(
@@ -870,7 +972,8 @@ public actor ContentService {
                     ownerHandle: owner,
                     scannedAt: now,
                     parentReplyURI: item.parentReplyURI,
-                    subjectAuthorHandle: item.subjectAuthorHandle
+                    subjectAuthorHandle: item.subjectAuthorHandle,
+                    subjectUnresolved: item.subjectUnresolved
                 ))
             }
         }

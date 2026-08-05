@@ -748,7 +748,16 @@ struct ContentRow: View {
                     }
                 }
 
-                if let text = item.text, !text.isEmpty {
+                if item.subjectUnresolved {
+                    // A ghost like has no post to show and no counts to report.
+                    // Say that plainly instead of rendering an empty row, and
+                    // confirm it is still deletable — the whole reason to
+                    // surface these is that the user could not act on them.
+                    Text("Liked post no longer available. This like is still on your account.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else if let text = item.text, !text.isEmpty {
                     Text(text)
                         .font(.callout)
                         .lineLimit(3)
@@ -758,14 +767,19 @@ struct ContentRow: View {
                     MediaThumbnailRow(media: item.media)
                 }
 
-                HStack(spacing: 14) {
-                    metric(count: item.likeCount, symbol: "heart")
-                    metric(count: item.repostCount, symbol: "arrow.2.squarepath")
-                    metric(count: item.replyCount, symbol: "bubble.left")
+                // Suppressed for ghost likes: the subject is unreachable, so
+                // its engagement counts are unknown, not zero. Rendering
+                // "0 · 0 · 0" would assert something we did not measure.
+                if !item.subjectUnresolved {
+                    HStack(spacing: 14) {
+                        metric(count: item.likeCount, symbol: "heart")
+                        metric(count: item.repostCount, symbol: "arrow.2.squarepath")
+                        metric(count: item.replyCount, symbol: "bubble.left")
+                    }
+                    .font(Theme.Mono.tabular(11))
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 1)
                 }
-                .font(Theme.Mono.tabular(11))
-                .foregroundStyle(.secondary)
-                .padding(.top, 1)
             }
         }
         .padding(.vertical, 6)
@@ -785,6 +799,13 @@ struct ContentRow: View {
         var parts: [String] = [item.contentType.label]
         if let date = item.createdAt {
             parts.append(date.formatted(date: .abbreviated, time: .omitted))
+        }
+        if item.subjectUnresolved {
+            // Mirror the visible row: no body, no counts, and an explicit
+            // statement of what this is. Reading "0 likes, 0 reposts" aloud
+            // here would be as wrong as showing it.
+            parts.append("liked post no longer available, this like is still on your account")
+            return parts.joined(separator: ", ")
         }
         if let text = item.text, !text.isEmpty {
             parts.append(text.count > 120 ? "\(text.prefix(120))…" : text)
