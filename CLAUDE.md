@@ -87,10 +87,26 @@ The Python and React clients here are **read-only references**. To run them, go 
 # Native iOS
 cd ios
 xcodegen generate                  # regenerate Skymarshal.xcodeproj from project.yml
-xcodebuild -scheme Skymarshal -destination 'platform=iOS Simulator,name=iPhone 17' test
+xcodebuild -scheme Skymarshal -destination 'generic/platform=iOS Simulator' build
+
+# Tests need a real simulator device, not the generic destination. This machine
+# ships iOS runtimes with NO devices created, and `name=iPhone 17` resolves
+# against OS:latest (27.0) — so it fails if your device is on an older runtime.
+# Create one, then target it by UDID:
+#   xcrun simctl create "iPhone 17" com.apple.CoreSimulator.SimDeviceType.iPhone-17 \
+#     com.apple.CoreSimulator.SimRuntime.iOS-26-5
+xcodebuild -scheme Skymarshal -destination "id=$SIM_UDID" \
+  -skip-testing:SkymarshalUITests/ScreenshotTest test
+
 xcodebuild -scheme Skymarshal -destination 'generic/platform=iOS' archive -archivePath build/Skymarshal.xcarchive
 
-# fastlane (App Store Connect; export APP_STORE_CONNECT_API_KEY_* first)
+# fastlane — run under a UTF-8 locale (LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8) or any
+# curly quote / em dash in the notes dies with "invalid byte sequence in US-ASCII".
+# Lanes read ~/.appstoreconnect/api_key.json; env.sh is stale (rotated-out key).
+cd ios && fastlane asc_state           # read-only: what is ACTUALLY live vs. in review
+cd ios && fastlane release_testflight  # xcodegen + archive + upload
+cd ios && fastlane testflight_notes    # attach what_to_test.txt, distribute to internal
+cd ios && fastlane submit_for_review   # align ASC version, attach build, submit
 cd ios && fastlane screenshots         # capture both device classes via XCUITest
 cd ios && fastlane upload_screenshots  # refuses partial/stale/unequal sets (SKY_ALLOW_PARTIAL=1 to force)
 cd ios && fastlane upload_listing      # metadata only, from ios/fastlane/metadata/

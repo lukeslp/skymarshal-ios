@@ -1,54 +1,76 @@
-# Next App Store version — 1.1
+# App Store release state — 1.1 submitted
 
-> **Update 2026-07-20:** the **native SwiftUI** app shipped — **1.0.2 (build 40) is live in the App Store**, login verified in production. The June snapshot below (1.0.1 in review; 1.1 as the Capacitor rebuild) is historical: 1.1 planning starts from the shipped native app, and the Capacitor path is a proposed alternative only (see `CLAUDE.md`).
+> **2026-08-05:** **1.1.0 / build 52 is submitted** and `WAITING_FOR_REVIEW`, build
+> attached, manual release after approval. **1.0.3 is the live version.**
+>
+> 1.1 shipped as the **native SwiftUI app**. The June plan in which "1.1 = the Option B
+> Capacitor rebuild" was **not taken**; that framing is dead, not deferred. The Capacitor
+> prototype remains a proposed alternative only — see `CLAUDE.md`.
 
-## Where things stand (2026-06-22, historical)
+## Verify state before trusting any of this
 
-- **v1.0.1 (build 27, native SwiftUI) is `WAITING_FOR_REVIEW`** in ASC (app id
-  `6768003674`). It is fully submitted — copy + 11 screenshots are in ASC and
-  **locked while in review**. Nothing more to push for 1.0.1; wait for Apple's verdict.
-- The ASC version string was `1.0`; it was aligned to **`1.0.1`** to match build
-  27's marketing version (they were mismatched). Review was not reset.
-- Committed screenshot set in the repo: `ios/screenshots-appstore/`
-  — `iphone-6.9` (6), `ipad-13` (6), `iphone-6.1` (2). These are the **native UI**.
-
-## Plan: ship 1.0.1, then 1.1
-
-- **1.0.1 APPROVED + released** → create version **1.1** in ASC. (You can't create a
-  new version while 1.0.1 is in review — Apple blocks it; spaceship `ensure_version!`
-  will *rename* the in-review version instead, which is how it briefly became 1.0.1.)
-- **1.0.1 REJECTED** → fix *this* version and resubmit; don't create 1.1 yet.
-
-## 1.1 = the Option B Capacitor rebuild
-
-1.1 is intended to be the **Capacitor web-wrapper** (the pivot) — repo
-`~/workspace/skymarshal-web`, branch `feature/ios-capacitor-wrapper`, plan in
-`CAPACITOR_WRAPPER.md`. Same bundle id `blue.skymarshal.ios` (same listing).
-
-Pre-reqs before 1.1 can ship:
-- Finish the Option B open items: native delete-plugin **registration** (use a local
-  Swift Package or set an explicit non-generic `PRODUCT_MODULE_NAME` — the storyboard
-  custom-VC route blanks the WebView), `VITE_API_URL` wiring, production signing +
-  app icon, archive the `App` scheme.
-- **Recapture screenshots of the Capacitor UI** — 1.1 ships the web look, so the
-  current committed native shots won't match (keep them as a fallback only if 1.1
-  ends up shipping native).
-
-## Upload steps (once the 1.1 version exists in ASC)
+Version claims in this repo have been wrong twice. `CLAUDE.md` and `PROJECT_PLAN.md` both
+said 1.0.2 / build 40 was live while ASC said 1.0.3. Git cannot tell you what shipped —
+only what was committed.
 
 ```bash
-cd ios && source ~/.appstoreconnect/env.sh
-# bump version/build in project.yml (native) or the Capacitor build first
-fastlane upload_listing        # metadata only, no submit
-fastlane screenshots           # capture (SKY_TEST_* from app-store/DEMO_ACCOUNT.env)
-fastlane upload_screenshots    # no submit; needs both device classes equal, or SKY_ALLOW_PARTIAL=1
-# attach the 1.1 build in ASC, add a real "What's New", then Submit manually
+cd ios && fastlane asc_state    # read-only: live version, edit version, build states
 ```
 
-## Known capture gotcha
+## What 1.1 contains
 
-The XCUITest `screenshots` lane **fails on iPad at the Patterns tab**
-("Patterns tab not reachable" — iPad's tab layout differs from iPhone's, so the
-`app.tabBars.buttons["Followers"]` / `app.buttons["Followers"]` lookups miss).
-Fix the iPad Followers navigation in `SkymarshalUITests/ScreenshotTest.swift`
-before relying on `fastlane screenshots` for the iPad set.
+Versus the live 1.0.3, the only user-visible changes are:
+
+- **Ghost likes** — likes whose subject author was deleted or suspended. Invisible to
+  `getActorLikes`, so previously undeletable. Now reconciled from
+  `com.atproto.repo.listRecords` and deletable through the normal path.
+- **Word patterns** in Insights, on by default.
+- Removal of a settings toggle that controlled nothing.
+
+The release notes also re-list Guided Mode, the VoiceOver pass, rate-limit copy, and the
+icon. Those shipped in 1.0.3 — the notes were drafted against a wrong baseline and
+over-claim. Harmless for review (Guideline 2.3.12 penalizes under-describing) but worth
+correcting in 1.2's notes.
+
+## Release lanes
+
+```bash
+cd ios
+fastlane release_testflight    # xcodegen + archive + upload to TestFlight
+fastlane testflight_notes      # wait for processing, attach what_to_test.txt, distribute
+fastlane upload_listing        # App Store metadata only, no submit
+fastlane submit_for_review     # align ASC version to project.yml, attach build, submit
+fastlane asc_state             # read-only state check
+```
+
+Bump `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` in `ios/project.yml` first — ASC
+rejects a reused build number, and a build cannot attach to a version whose string
+differs from `CFBundleShortVersionString`.
+
+## Live gotchas
+
+- **The ASC version record and the binary must agree.** On 2026-08-05 a `1.0.4` version
+  was open while the binary said `1.1.0`; the build would not attach until `deliver`
+  renamed the record. Renaming works in `PREPARE_FOR_SUBMISSION` — ASC blocks it once the
+  version is in review.
+- **`~/.appstoreconnect/env.sh` is stale** — it exports a rotated-out key id whose `.p8`
+  was deleted. The lanes read `api_key.json` instead and are unaffected, but anything
+  sourcing `env.sh` by hand will fail to authenticate.
+- **Run fastlane under a UTF-8 locale.** `LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8`. Without
+  it a single em dash in the notes fails with `invalid byte sequence in US-ASCII`, and it
+  fails *after* the build is located, so it reads like an ASC fault.
+- **The XCUITest `screenshots` lane fails on iPad at the Patterns tab**
+  ("Patterns tab not reachable" — iPad's tab layout differs from iPhone's, so the
+  `app.tabBars.buttons["Followers"]` / `app.buttons["Followers"]` lookups miss). Fix the
+  iPad Followers navigation in `SkymarshalUITests/ScreenshotTest.swift` before relying on
+  `fastlane screenshots` for the iPad set.
+- **Committed screenshots are the native UI** at `ios/screenshots-appstore/` —
+  `iphone-6.9` (6), `ipad-13` (6), `iphone-6.1` (2).
+
+## Open for 1.2
+
+- **Ghost likes has never run against real data.** It shipped on synthetic-test
+  confidence. A decode failure degrades silently to "no ghosts", which is
+  indistinguishable from an account that has none — so absence is not evidence it works.
+- Correct the release notes baseline (see above).
+- Timeframe quick-filter chips (7d/30d/90d/1y) — the last open parity item.
