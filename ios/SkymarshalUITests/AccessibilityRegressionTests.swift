@@ -217,4 +217,41 @@ final class AccessibilityRegressionTests: XCTestCase {
             "Scope tab Account graph row missing its combined completeness label at AX5"
         )
     }
+
+    func test_AX5_scopeTab_webVisualizationsLink_isReachable() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-UIPreferredContentSizeCategoryName",
+            "UICTContentSizeCategoryAccessibilityExtraExtraExtraLarge",
+            XCUIApplication.stubMinimalContentArgument,
+            "-sm.feature.visualizationHub", "YES",
+        ]
+        app.launch()
+
+        let scopeTab = app.tabBars.buttons["Scope"]
+        XCTAssert(scopeTab.waitForExistence(timeout: 10))
+        scopeTab.tap()
+        XCTAssert(app.navigationBars["Scope"].waitForExistence(timeout: 8))
+
+        let webVisualizations = app.descendants(matching: .any)["scope_web_visualizations_link"]
+        var scrolls = 0
+        while !webVisualizations.exists, scrolls < 8 {
+            app.swipeUp(velocity: .fast)
+            scrolls += 1
+        }
+        XCTAssert(
+            webVisualizations.waitForExistence(timeout: 5),
+            "Canonical web visualizations are not reachable from Scope at AX5"
+        )
+        webVisualizations.tap()
+
+        XCTAssert(
+            app.navigationBars["Interactive Visuals"].waitForExistence(timeout: 5),
+            "Scope did not open the shared interactive visualization surface"
+        )
+        XCTAssert(
+            app.buttons["Open in Safari"].waitForExistence(timeout: 5),
+            "Interactive visualizations are missing their native browser alternative"
+        )
+    }
 }

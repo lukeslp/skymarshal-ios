@@ -12,9 +12,9 @@ that rendered experience instead of maintaining a second approximation:
 
 - Post interactions, post sentiment, follower network, and community chord stay
   owned by the shared `/visualize` route.
-- A fifth **Constellation** mode embeds Jaz's live BSky Atlas at
-  `https://bsky.jazco.dev/`. Skymarshal does not copy or redistribute its graph
-  snapshot.
+- A fifth **Constellation** mode renders a Skymarshal-owned sky map from the
+  same follower-network job and community data used by the existing network
+  and chord visualizations.
 - Android exposes `/visualize` from its Capacitor navigation and packages the
   same React implementation.
 - The native iOS Scope hub opens the hosted `/visualize` route in an app-bound
@@ -27,8 +27,8 @@ that rendered experience instead of maintaining a second approximation:
 
 | Platform | Source spine | Current state | Build/validation gate | Device/accessibility gate |
 | --- | --- | --- | --- | --- |
-| iOS 17+ | Native SwiftUI plus the hosted canonical visual route | scaffolded | XcodeGen build and focused XCUITest | VoiceOver names/order, Dynamic Type, Reduce Motion, rotation |
-| Android 7+ | Capacitor-packaged React route | scaffolded | TypeScript, Vitest, Vite/Capacitor sync, Gradle test/lint | TalkBack, 44px targets, rotation/reflow, gesture alternatives |
+| iOS 17+ | Native SwiftUI plus the hosted canonical visual route | integrated | XcodeGen, 326 unit tests, and 13 UI tests passed 2026-09-04 | AX5 reachability, native labels/order, and browser alternative verified |
+| Android 7+ | Capacitor-packaged React route | integrated | TypeScript, Vitest, Vite/Capacitor sync, Gradle test/lint, and debug assemble passed 2026-09-04 | Physical-device portrait/landscape reflow, accessibility tree, 44px targets, and gesture alternatives verified |
 
 Store staging and submission are intentionally outside this integration. Track
 states advance only with the evidence named above.

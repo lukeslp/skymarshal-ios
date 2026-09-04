@@ -23,6 +23,18 @@ struct VisualizationHubView: View {
 
                     VStack(spacing: 8) {
                         NavigationLink {
+                            WebVisualizationView()
+                        } label: {
+                            hubCard(
+                                title: "Interactive Visuals",
+                                subtitle: "All graphs and Bluesky constellation",
+                                systemImage: "sparkles",
+                                completeness: "Live"
+                            )
+                        }
+                        .accessibilityIdentifier("scope_web_visualizations_link")
+
+                        NavigationLink {
                             AccountGraphVizView()
                         } label: {
                             hubCard(

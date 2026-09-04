@@ -16,6 +16,57 @@ struct WebShellView: View {
     static let liveURL = URL(string: "https://skymarshal.blue")!
     static let appBoundHost = "skymarshal.blue"
 
+    var body: some View {
+        SkymarshalHostedView(destination: .home)
+    }
+}
+
+@available(iOS 17, *)
+struct WebVisualizationView: View {
+    var body: some View {
+        SkymarshalHostedView(destination: .visualizations)
+            .navigationTitle("Interactive Visuals")
+            .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+@available(iOS 17, *)
+private enum SkymarshalWebDestination {
+    case home
+    case visualizations
+
+    var url: URL {
+        switch self {
+        case .home:
+            WebShellView.liveURL
+        case .visualizations:
+            URL(string: "https://skymarshal.blue/visualize")!
+        }
+    }
+
+    var loadingMessage: String {
+        switch self {
+        case .home:
+            "Loading skymarshal.blue…"
+        case .visualizations:
+            "Loading interactive visuals…"
+        }
+    }
+
+    var offlineDescription: String {
+        switch self {
+        case .home:
+            "Skymarshal on the web needs a connection. Your saved content is still available in the other tabs."
+        case .visualizations:
+            "Interactive visuals need a connection. Your on-device Scope visualizations are still available."
+        }
+    }
+}
+
+@available(iOS 17, *)
+private struct SkymarshalHostedView: View {
+    let destination: SkymarshalWebDestination
+
     @State private var isLoading = true
     @State private var loadFailedOffline = false
     /// Bumped to force a reload from the offline fallback's "Try again" button.
@@ -24,7 +75,7 @@ struct WebShellView: View {
     var body: some View {
         ZStack {
             WebView(
-                url: Self.liveURL,
+                url: destination.url,
                 reloadToken: reloadToken,
                 isLoading: $isLoading,
                 loadFailedOffline: $loadFailedOffline
@@ -35,6 +86,14 @@ struct WebShellView: View {
                 offlineFallback
             } else if isLoading {
                 splash
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Link(destination: destination.url) {
+                    Label("Open in Safari", systemImage: "safari")
+                }
+                .accessibilityHint("Opens the same Skymarshal page outside the app")
             }
         }
     }
@@ -48,7 +107,7 @@ struct WebShellView: View {
                 .foregroundStyle(.secondary)
                 .symbolRenderingMode(.monochrome)
             ProgressView()
-            Text("Loading skymarshal.blue…")
+            Text(destination.loadingMessage)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
@@ -62,7 +121,7 @@ struct WebShellView: View {
         ContentUnavailableView {
             Label("You're offline", systemImage: "wifi.slash")
         } description: {
-            Text("Skymarshal on the web needs a connection. Your saved content is still available in the other tabs.")
+            Text(destination.offlineDescription)
         } actions: {
             Button("Try again") {
                 loadFailedOffline = false
