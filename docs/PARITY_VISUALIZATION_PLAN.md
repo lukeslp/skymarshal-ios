@@ -4,6 +4,35 @@
 **Updated:** 2026-05-13  
 **Scope:** Bring upstream CLI/web parity into native iOS where it improves safe cleanup outcomes, plus account/post/interaction visualizations.
 
+## 2026-09-04 Mobile Visual-Parity Directive
+
+The canonical interactive visual surface is the shared web route at
+`skymarshal-web/client/src/pages/Visualize.tsx`. Mobile integration preserves
+that rendered experience instead of maintaining a second approximation:
+
+- Post interactions, post sentiment, follower network, and community chord stay
+  owned by the shared `/visualize` route.
+- A fifth **Constellation** mode embeds Jaz's live BSky Atlas at
+  `https://bsky.jazco.dev/`. Skymarshal does not copy or redistribute its graph
+  snapshot.
+- Android exposes `/visualize` from its Capacitor navigation and packages the
+  same React implementation.
+- The native iOS Scope hub opens the hosted `/visualize` route in an app-bound
+  `WKWebView`; native Scope summaries remain available as the local/offline
+  alternative.
+- No native session token is injected into web content. Authentication and
+  storage boundaries remain explicit.
+
+### Intake and delivery tracks
+
+| Platform | Source spine | Current state | Build/validation gate | Device/accessibility gate |
+| --- | --- | --- | --- | --- |
+| iOS 17+ | Native SwiftUI plus the hosted canonical visual route | scaffolded | XcodeGen build and focused XCUITest | VoiceOver names/order, Dynamic Type, Reduce Motion, rotation |
+| Android 7+ | Capacitor-packaged React route | scaffolded | TypeScript, Vitest, Vite/Capacitor sync, Gradle test/lint | TalkBack, 44px targets, rotation/reflow, gesture alternatives |
+
+Store staging and submission are intentionally outside this integration. Track
+states advance only with the evidence named above.
+
 ## Executive Direction
 
 Ship this as a safety-first expansion, not parity theater.  
