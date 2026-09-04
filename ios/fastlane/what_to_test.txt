@@ -1,12 +1,9 @@
-Build 52 — ghost likes.
-
-A ghost like is a like on a post whose author deleted their account, got suspended, or took the post down. Bluesky's feed never returns those, so until now nothing could show them to you and nothing could delete them.
+Build 53 — interactive visuals and the Bluesky constellation.
 
 What to try:
-1. Content tab, filter to Likes, and run a full archive load. Let it finish — the ghost check only runs after the normal like sweep completes.
-2. Look for like rows that read "Liked post no longer available." Those are the ghosts. They have no post text and no engagement counts, which is deliberate: those numbers are unknown, not zero.
-3. Select one and delete it. It should delete like any other record, with the same confirmation and rate-limit behavior.
+1. Open Scope and choose Interactive Visuals.
+2. Sign in to the web surface if prompted, then switch among Post Interactions, Network, Post Sentiment, Communities, and Constellation.
+3. In Constellation, enter a Bluesky handle and choose Map Sky. Select accounts in the accessible explorer beneath the star map and open a profile.
+4. Return to Scope and confirm the native Account Graph, Post Graph, Interactions, and Timeline Heatmap remain available.
 
-Worth knowing: if your account has no ghost likes, you will see none, and that is a valid result. It looks identical to the feature failing quietly, so no ghosts is not proof it works.
-
-Also new since the 1.0.2 you have in the App Store: word patterns in Insights, Guided Mode, the VoiceOver pass, clearer rate-limit and interruption messages, the new icon, and a fix for background crashes on large archives.
+The constellation is a first-party Skymarshal visualization built from the same follower-network and community data as the other network views. The native session is never injected into web content, and Open in Safari remains available as an alternative.
