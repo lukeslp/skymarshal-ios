@@ -37,6 +37,33 @@ Living snapshot of objectives and boundaries. Product copy and build commands st
 > date IA with a live on-device estimate while preserving native media,
 > engagement, subject, and DID filters under More filters.
 
+## Figma reference reconciliation — 2026-09-14
+
+The [Skymarshal design export at `b5f9769`](https://github.com/lukeslp/SkymarshalFigmaUX/blob/b5f97691618a2efb205efdc96c3d17f03e0d7803/src/app/App.tsx)
+is a reference for the July parity passes above. A source comparison against
+[native `310fb03`](https://github.com/lukeslp/skymarshal-ios/tree/310fb03b10247f401228153a8db52c65b6254d83)
+found no separate feature backlog to import.
+
+- **Already implemented in native source:** cinematic chrome, the onboarding
+  carousel, advanced search, expanded follower evidence, and the local Scope
+  drill-ins. See `OnboardingView.swift`, `ContentListView.swift`,
+  `VisualizationHubView.swift`, and `TypedConfirmSheet.swift` under
+  `ios/Skymarshal/UI/`. Source presence is not a fresh device or release check.
+- **Existing candidates, still draft:** selected-record recency/engagement warnings
+  in [UX spec §5.2](docs/UX_SPEC.md#52-delete-review-center-p0), and an operation
+  history distinguishing previews from completed writes in
+  [§5.8](docs/UX_SPEC.md#58-operation-log-p1). The current confirmation sheet
+  warns about permanent deletion and large batches; the export's static risk
+  messages and operation fixtures are not implementations of these candidates.
+- **Preserve the native behavior:** use actual archive coverage and outgoing
+  activity, not the export's invented confidence percentages or claim of all
+  interactions in both directions. Keep native deletion identity, preflight,
+  pacing, and accessible confirmation paths; a preview must never imply a write.
+- **Keep product boundaries:** the separate
+  [web client at `6cf4a90`](https://github.com/lukeslp/skymarshal-web/tree/6cf4a9063ad93ec7d34dc37af2ce19a4c3cbde73)
+  owns its broader client and hosted visualization work. This reference does not
+  expand native scope or approve a web-wrapper replacement.
+
 ## Current milestone
 
 - **Source release:** Native v1.1.0 / build 52 — submitted 2026-08-05, `WAITING_FOR_REVIEW` with build 52 attached, manual release after approval. **1.0.3 is live in the App Store** (verified against ASC, not inferred; run `fastlane asc_state`). 1.0.4 was opened as a version record, never submitted, and its record was renamed to 1.1.0. The submission gate in [`docs/SUBMISSION_DECISION.md`](docs/SUBMISSION_DECISION.md) is closed.
