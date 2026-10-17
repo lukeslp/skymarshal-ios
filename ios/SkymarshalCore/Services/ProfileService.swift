@@ -27,7 +27,7 @@ public actor ProfileService {
             pages += 1
             if cursor == nil || pages >= maxPages { break }
         } while true
-        return combined
+        return Self.uniqueByDID(combined)
     }
 
     /// Accounts `actor` follows (uses authenticated host — matches existing follow-list semantics).
@@ -42,6 +42,15 @@ public actor ProfileService {
             pages += 1
             if cursor == nil || pages >= maxPages { break }
         } while true
-        return combined
+        return Self.uniqueByDID(combined)
+    }
+
+    /// Cursor paging can hand back the same account on two pages when the
+    /// graph changes mid-read. The explorer list is keyed by DID, and a
+    /// repeated identity breaks SwiftUI list diffing (the same failure
+    /// `FollowerService.scan` guards against). Keep the first occurrence.
+    static func uniqueByDID(_ profiles: [BskyProfile]) -> [BskyProfile] {
+        var seen = Set<String>()
+        return profiles.filter { seen.insert($0.did).inserted }
     }
 }

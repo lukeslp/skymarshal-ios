@@ -27,7 +27,11 @@ public enum EngagementRecommendationService {
                     return response.feed.compactMap { item in
                         guard item.reason == nil, item.post.record?.reply == nil,
                               let stamp = item.post.indexedAt ?? item.post.record?.createdAt,
-                              let date = ISO8601DateFormatter().date(from: stamp),
+                              // ATProtoDate, not a bare ISO8601DateFormatter:
+                              // the AppView stamps indexedAt with fractional
+                              // seconds, which the bare formatter rejects, and
+                              // a nil date silently drops the post.
+                              let date = ATProtoDate.parse(stamp),
                               now.timeIntervalSince(date) <= 72 * 3600 else { return nil }
                         let likes = item.post.likeCount ?? 0
                         let reposts = item.post.repostCount ?? 0

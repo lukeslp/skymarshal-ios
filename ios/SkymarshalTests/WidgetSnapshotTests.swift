@@ -177,4 +177,54 @@ final class WidgetSnapshotTests: XCTestCase {
         XCTAssertEqual(snapshot.followerHistory.count, 2)
         XCTAssertEqual(snapshot.followerHistory.last?.count, 125)
     }
+
+    // MARK: - Recommendation fetch path
+
+    /// The AppView stamps `indexedAt` with fractional seconds. A bare
+    /// `ISO8601DateFormatter` rejects that form, so every such post was
+    /// dropped before scoring and the widget showed no recommendations.
+    /// Both stamp shapes must survive the fetch.
+    func testFetchKeepsPostsWithFractionalAndWholeSecondTimestamps() async throws {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [TestURLProtocol.self]
+        let client = ATProtoClient(
+            session: URLSession(configuration: configuration),
+            persistSessionToKeychain: false
+        )
+        await client.setSession(Session(
+            did: "did:plc:me", handle: "me.bsky.social",
+            accessJwt: "access", refreshJwt: "refresh"
+        ))
+        defer { TestURLProtocol.handler = nil }
+        TestURLProtocol.handler = { request in
+            let url = request.url?.absoluteString ?? ""
+            guard url.contains("getAuthorFeed") else { return (200, Data("{}".utf8)) }
+            return (200, Data("""
+            {"feed":[
+              {"post":{"uri":"at://did:plc:fan/app.bsky.feed.post/frac","cid":"c1",
+                "author":{"did":"did:plc:fan","handle":"fan.bsky.social"},
+                "record":{"text":"fractional","createdAt":"2026-01-02T02:00:00.000Z"},
+                "likeCount":4,"repostCount":1,"replyCount":0,
+                "indexedAt":"2026-01-02T03:04:05.123Z"}},
+              {"post":{"uri":"at://did:plc:fan/app.bsky.feed.post/whole","cid":"c2",
+                "author":{"did":"did:plc:fan","handle":"fan.bsky.social"},
+                "record":{"text":"whole","createdAt":"2026-01-02T02:00:00Z"},
+                "likeCount":2,"repostCount":0,"replyCount":1,
+                "indexedAt":"2026-01-02T03:00:00Z"}}
+            ]}
+            """.utf8))
+        }
+
+        let now = try XCTUnwrap(ATProtoDate.parse("2026-01-02T05:00:00Z"))
+        let results = await EngagementRecommendationService.fetch(
+            client: client,
+            accounts: [account(did: "did:plc:fan", handle: "fan.bsky.social", engagementScore: 5)],
+            now: now
+        )
+
+        XCTAssertEqual(
+            Set(results.map(\.uri)),
+            ["at://did:plc:fan/app.bsky.feed.post/frac", "at://did:plc:fan/app.bsky.feed.post/whole"]
+        )
+    }
 }

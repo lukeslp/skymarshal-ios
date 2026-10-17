@@ -120,6 +120,43 @@ final class FollowerScanDeduplicationTests: XCTestCase {
         XCTAssertEqual(result.map(\.profile.did), ["did:plc:a", "did:plc:b", "did:plc:c"])
     }
 
+    // MARK: - Profile explorer
+
+    /// The profile explorer pages followers and follows the same way the
+    /// scan does, and its list is keyed by DID. A repeated account across
+    /// pages must collapse to one row, first occurrence kept.
+    func test_profileExplorer_duplicateDidAcrossPages_yieldsSingleRow() async throws {
+        let client = makeClient()
+        await client.setSession(makeSession())
+
+        TestURLProtocol.handler = { request in
+            let url = request.url?.absoluteString ?? ""
+            let list: String
+            if url.contains("getFollowers") {
+                list = "followers"
+            } else if url.contains("getFollows") {
+                list = "follows"
+            } else {
+                return (200, Data("{}".utf8))
+            }
+            if url.contains("cursor=page2") {
+                return (200, Data("""
+                {"\(list)":[{"did":"did:plc:dupe","handle":"dupe.bsky.social"},{"did":"did:plc:other","handle":"other.bsky.social"}]}
+                """.utf8))
+            }
+            return (200, Data("""
+            {"\(list)":[{"did":"did:plc:dupe","handle":"dupe.bsky.social"}],"cursor":"page2"}
+            """.utf8))
+        }
+
+        let service = ProfileService(client: client)
+        let followers = try await service.loadFollowers(actor: "someone.bsky.social")
+        let follows = try await service.loadFollows(actor: "someone.bsky.social")
+
+        XCTAssertEqual(followers.map(\.did), ["did:plc:dupe", "did:plc:other"])
+        XCTAssertEqual(follows.map(\.did), ["did:plc:dupe", "did:plc:other"])
+    }
+
     // MARK: - Helpers
 
     private func makeClient() -> ATProtoClient {
