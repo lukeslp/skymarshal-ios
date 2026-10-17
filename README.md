@@ -8,15 +8,15 @@ This is the iOS app. Native SwiftUI, iOS 17+. No third-party dependencies. App p
 
 ## Status
 
-**Skymarshal is live in the App Store** — v1.0.2, build 40, shipped 2026-07-20. The source carries the Figma Make parity surface: cinematic OLED chrome, first-run onboarding, structured Advanced Search, expandable Patterns rows, and local-cache Scope graphs. On 2026-07-18, **275 unit tests and 12 non-credential UI tests passed**; the credentialed screenshot test remains a separate release operation.
+**Skymarshal 1.1.0 is live in the App Store** (App Store Connect, checked 2026-10-16). Per the 2026-09-01 App Store Connect audit, the attached binary is build 52 from the 1.0.4 build train, so the installed app reports version 1.0.4. This source is 1.1.0 / build 53; build 53 is uploaded and valid but not attached to a version. Git cannot tell you what shipped, so run `fastlane asc_state` before trusting any version claim here. The source carries the Figma Make parity surface: cinematic OLED chrome, first-run onboarding, structured Advanced Search, expandable Patterns rows, and local-cache Scope graphs. On 2026-07-18, **275 unit tests and 12 non-credential UI tests passed**; the credentialed screenshot test remains a separate release operation.
 
-TestFlight Public Link in [`docs/TESTFLIGHT_PUBLIC_LINK.md`](docs/TESTFLIGHT_PUBLIC_LINK.md). The pre-submission gate in [`docs/SUBMISSION_DECISION.md`](docs/SUBMISSION_DECISION.md) closed at launch; ongoing work targets v1.1.
+TestFlight Public Link in [`docs/TESTFLIGHT_PUBLIC_LINK.md`](docs/TESTFLIGHT_PUBLIC_LINK.md). The pre-submission gate in [`docs/SUBMISSION_DECISION.md`](docs/SUBMISSION_DECISION.md) closed at launch.
 
 ## What it does
 
 **Content tab.** Search every post, reply, repost, and like in your archive. Advanced Search provides required terms, excluded terms, exact phrases, content types, dates, and a live estimate against the loaded archive; media, engagement, alt-text, subject, and DID filters remain available under More filters. Sort results (newest/oldest/highest or lowest engagement). Save named filter presets per account. Open **Insights** for on-device analytics (engagement distribution, posting hours/days, top words) plus optional **word-pattern stats** (lexicon hits; not sentiment) behind `sm.feature.wordPatterns`. Swipe-delete one at a time or Select All from a search result and delete a hundred at once. Bulk delete shows a **preflight scope** (how many Bluesky records will actually delete vs. skipped selections). Bulk delete ≥ 100 items goes through a typed-confirm sheet so the intent is unambiguous.
 
-**Scope tab.** Local-cache Account Graph, Post Graph, attributed interaction timeline, and posting heatmap. Every relationship comes from cached content or scanned accounts; missing relationships are labeled rather than synthesized. Scope is default-on via `sm.feature.visualizationHub`.
+**Scope tab.** Local-cache Account Graph, Post Graph, attributed interaction timeline, and posting heatmap. Every relationship comes from cached content or scanned accounts; missing relationships are labeled rather than synthesized. Scope is default-on via `sm.feature.visualizationHub`. Since build 53 (not yet in the App Store), Scope also has an **Interactive Visuals** card that opens `skymarshal.blue/visualize` in an app-bound web view; it is the one Scope surface that is not local.
 
 **About → Backup & restore (optional).** Import Skymarshal JSON exports with handle/DID checks and merge-or-replace apply — gated by `sm.feature.backupRestore` (default off).
 
@@ -28,7 +28,9 @@ TestFlight Public Link in [`docs/TESTFLIGHT_PUBLIC_LINK.md`](docs/TESTFLIGHT_PUB
 
 ## Privacy
 
-Data Not Collected. Your handle, posts, and follows stay on this device. The only server Skymarshal talks to is Bluesky itself (`bsky.social` and `public.api.bsky.app`) — no analytics, no third-party SDKs, no telemetry.
+Data Not Collected. Your handle, posts, and follows stay on this device. The only server the live build talks to is Bluesky itself (`bsky.social` and `public.api.bsky.app`) — no analytics, no third-party SDKs, no telemetry.
+
+Build 53 changes this: the Interactive Visuals card loads `skymarshal.blue`, and signing in there goes through the Skymarshal web server, which keeps a copy of the Bluesky session tokens. The App Store privacy label and `privacy.html` describe the live build and need review before any build with this card ships.
 
 Your app password is **never persisted** — it's used once to obtain an AT Protocol session and then discarded. The rotating session tokens (`accessJwt` + `refreshJwt`) issued by Bluesky are stored in the iOS Keychain (`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`, no iCloud sync). When the access token expires the app refreshes it transparently against `com.atproto.server.refreshSession`; only an expired or revoked refresh token returns you to the sign-in screen. Bluesky communications go directly from your device to Bluesky's public XRPC endpoints.
 

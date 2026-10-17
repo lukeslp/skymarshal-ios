@@ -12,11 +12,12 @@ import Foundation
 /// | `sm.feature.savedSearchPresets` | on | Presets in Content options menu |
 /// | `sm.feature.cleanupPresets` | on | Followers cleanup chips |
 /// | `sm.feature.profileExplorer` | on | Account sheet explorer |
-/// | `sm.feature.unfollowDryRun` | on | Dry-run unfollow preview |
+/// | `sm.feature.unfollowDryRun` | **off** | The Followers dry-run toggle itself; when on, unfollows are previewed and nothing is written |
 /// | `sm.feature.visualizationHub` | **on** | Scope tab in root `TabView` (Make-parity default) |
 /// | `sm.feature.wordPatterns` | **on** | Lexicon stats in Insights |
 /// | `sm.feature.backupRestore` | **off** | About → backup import. Stays opt-in: the import path
 ///   can leave an archive partially restored, and this app's primary action is irreversible. |
+/// | `sm.feature.webShell` | **off** | Web tab hosting skymarshal.blue (see `webShellKey`) |
 /// | `sm.ui.contentPowerToolsExpanded` | **off** | Content tab: full stats strip + empty-state filter chips |
 @available(iOS 17, *)
 public enum FeatureFlags {

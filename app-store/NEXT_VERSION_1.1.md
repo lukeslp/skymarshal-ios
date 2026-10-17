@@ -1,7 +1,8 @@
 # App Store release state — 1.1 submitted
 
-> **2026-08-05:** **1.1.0 / build 52 is submitted** and `WAITING_FOR_REVIEW`, build
-> attached, manual release after approval. **1.0.3 is the live version.**
+> **2026-10-16:** **1.1.0 is live** (`READY_FOR_SALE`). The attached binary is build 52
+> from the 1.0.4 train, so the app reports 1.0.4. Build 53 (1.1.0 train, 2026-09-04) is
+> valid and unattached. The 2026-08-05 notes below record the submission as it stood then.
 >
 > 1.1 shipped as the **native SwiftUI app**. The June plan in which "1.1 = the Option B
 > Capacitor rebuild" was **not taken**; that framing is dead, not deferred. The Capacitor

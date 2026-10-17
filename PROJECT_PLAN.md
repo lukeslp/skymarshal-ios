@@ -66,7 +66,7 @@ found no separate feature backlog to import.
 
 ## Current milestone
 
-- **Source release:** Native v1.1.0 / build 52 — submitted 2026-08-05, `WAITING_FOR_REVIEW` with build 52 attached, manual release after approval. **1.0.3 is live in the App Store** (verified against ASC, not inferred; run `fastlane asc_state`). 1.0.4 was opened as a version record, never submitted, and its record was renamed to 1.1.0. The submission gate in [`docs/SUBMISSION_DECISION.md`](docs/SUBMISSION_DECISION.md) is closed.
+- **Source release:** Native v1.1.0 / build 53 — uploaded 2026-09-04, valid, not attached. **1.1.0 is live in the App Store** with build 52 from the 1.0.4 train attached (verified against ASC 2026-10-16, not inferred; run `fastlane asc_state`). 1.0.4 was opened as a version record, never submitted, and its record was renamed to 1.1.0. The submission gate in [`docs/SUBMISSION_DECISION.md`](docs/SUBMISSION_DECISION.md) is closed.
 - **Launch pricing (decided 2026-06-10):** Free, no IAP at launch. Supersedes the 2026-05-14 tiering ($2.99/mo / $19.99/yr / $49.99 lifetime). A paywall is a v1.1 decision; early adopters get grandfathered if one ships.
 - **Quality bar:** Full `xcodebuild test` green before release-worthy changes; preserve 429 backoff and deletion URI semantics ([`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)).
 - **Invalid-handle safety:** `handle.invalid` is an unverified-handle sentinel only. Native scans prefer the detailed profile handle, status-based bulk filters do not infer bot/deleted/inactive state from the sentinel, and cold-start hydration recomputes only affected cached scan rows.
