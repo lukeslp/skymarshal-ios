@@ -24,8 +24,9 @@ train, so the installed app reports 1.0.4; the 1.1.0-train build 52 uploaded
 Current native source is **1.1.0 / build 53** (uploaded 2026-09-04, valid,
 unattached). Build 53 adds the Scope **Interactive Visuals** card, which loads
 `skymarshal.blue/visualize` in a web view — review the privacy label and
-`privacy.html` before shipping any build that includes it. Build 53 itself
-probably cannot ship: 1.1.0 is live, and a new version must be numbered higher.
+`privacy.html` before shipping any build that includes it. Shipping build 53
+needs a new version record above 1.1.0; try attaching it there before
+rebuilding, since App Store Connect accepted a 1.0.4-train build for 1.1.0.
 The Capacitor path remains a
 proposed alternative only. This repo also remains the source for:
 - the **safety-critical deletion engine** in `SkymarshalCore` (the sacred 429
