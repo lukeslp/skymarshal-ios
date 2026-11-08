@@ -1,5 +1,11 @@
 # Repository Guidelines
 
+## Current replacement direction — November 8, 2026
+
+Luke chose the shared Web content-manager interface bundled locally through Capacitor to replace the SwiftUI product. Canonical replacement source, `ios/App/project.yml`, tests and build instructions are in [`lukeslp/skymarshal-web`](https://github.com/lukeslp/skymarshal-web), documented in `docs/IOS_CONTENT_MANAGER.md`. This repository preserves legacy source and release history. Do not extend the old Patterns/Scope UI or submit its builds as the replacement. Bundle identity stays `blue.skymarshal.ios`. Existing native Keychain/SwiftData data must remain intact; no old pending deletion is imported as an executable job. Store submission remains a separate operation.
+
+The guidance below applies to the preserved legacy implementation only.
+
 ## Project Structure & Module Organization
 
 Skymarshal is a native SwiftUI iOS app targeting iOS 17+. The active app lives in `ios/`; `reference/` contains prior Python and web implementations, and `app-store/` contains submission copy.
