@@ -14,7 +14,8 @@ uploaded to TestFlight on September 4, 2026 and was never released publicly.
 Skymarshal continues as a shared content manager. It runs on the web at
 https://skymarshal.blue and ships as the iOS app from version 2.0.0, under the
 same bundle ID, `blue.skymarshal.ios`. As of November 10, 2026, version 2.0.0
-is in TestFlight and the App Store still serves 1.1.0 from this code.
+is in TestFlight and waiting for App Store review, and the App Store still
+serves 1.1.0 from this code.
 
 That work happens in a separate repository. A build from this repository is not
 the replacement and should not be submitted as one. The replacement leaves this
