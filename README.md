@@ -1,5 +1,8 @@
 # Skymarshal for iOS (retired native app)
 
+[![Status: end of life](https://img.shields.io/badge/status-end_of_life-lightgrey?style=flat-square)](#skymarshal-for-ios-retired-native-app)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
+
 **Status: end of life.** I have stopped developing this app. It gets no further
 features, fixes or support from me. The code stays here under the MIT license
 as a record, and for anyone who wants to read or reuse it.
