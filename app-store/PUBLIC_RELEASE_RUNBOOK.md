@@ -1,5 +1,7 @@
 # Skymarshal iOS Public Release Runbook
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 Last updated: 2026-05-12
 
 This runbook is the operational checklist for submitting and launching the public release.

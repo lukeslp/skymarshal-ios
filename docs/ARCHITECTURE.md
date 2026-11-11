@@ -1,5 +1,7 @@
 # Architecture (native iOS)
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 This document describes the **shipping** SwiftUI app. Historical Python CLI architecture (manager pattern, CAR pipelines, Flask) lives in [`reference/docs/ARCHITECTURE.md`](../reference/docs/ARCHITECTURE.md) — useful for provenance only.
 
 ## Layers

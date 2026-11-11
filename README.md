@@ -1,23 +1,62 @@
-# Skymarshal iOS
+# Skymarshal for iOS (retired native app)
 
-The replacement iOS app uses the shared content manager from [skymarshal-web](https://github.com/lukeslp/skymarshal-web), bundled locally through Capacitor. Its canonical XcodeGen project is `ios/App/project.yml` in that repository. Web and iOS use the same management screens and execution engine.
+**Status: end of life.** I have stopped developing this app. It gets no further
+features, fixes or support from me. The code stays here under the MIT license
+as a record, and for anyone who wants to read or reuse it.
 
-This repository preserves the earlier SwiftUI app and its release history. New content-manager work belongs in `skymarshal-web`; do not submit an old SwiftUI build as the replacement.
+This repository holds the native SwiftUI version of Skymarshal, a Bluesky
+content manager for iPhone and iPad. Its last public release is 1.1.0
+(build 52), which reached the App Store on August 10, 2026. Build 53 was
+uploaded to TestFlight on September 4, 2026 and was never released publicly.
 
-## Replacement
+## What replaced it
 
-The candidate keeps bundle ID `blue.skymarshal.ios`, the existing icon and signing team, and iPhone/iPad support from iOS 17. It provides inventory, filtering, frozen scope review, exports, durable jobs and verified receipts. Bluedrop remains a separate messenger.
+Skymarshal continues as a shared content manager. It runs on the web at
+https://skymarshal.blue and ships as the iOS app from version 2.0.0, under the
+same bundle ID, `blue.skymarshal.ios`. As of November 10, 2026, version 2.0.0
+is in TestFlight and the App Store still serves 1.1.0 from this code.
 
-Authentication uses the official OAuth client with a narrow native system-browser bridge. Explicit app-password fallback and saved accounts use a new Keychain namespace. Old native Keychain and SwiftData data are preserved without importing old cleanup operations.
+That work happens in a separate repository. A build from this repository is not
+the replacement and should not be submitted as one. The replacement leaves this
+app's Keychain and SwiftData data in place and does not import its pending
+cleanup operations.
 
-Build commands, platform boundaries, measured checks and remaining release gates are in [the replacement handoff](https://github.com/lukeslp/skymarshal-web/blob/main/docs/IOS_CONTENT_MANAGER.md).
+## What this app did
 
-## Release state observed November 8, 2026
+- **Content:** posts, replies, likes and reposts, with search, filters, saved
+  searches, sorting, media and alt text review, on-device insights, and CSV or
+  JSON export.
+- **Patterns:** a review of the accounts you follow, with activity signals,
+  an allowlist, presets, interaction history and unfollow actions.
+- **Scope:** local graphs of your account and posts, interaction summaries and
+  a heatmap.
+- **Cleanup safety:** a preflight count, typed confirmation for large batches,
+  resumable deletion, pacing, cancellation, and a stop after repeated failures.
+- **Widgets:** five Home Screen widgets that read snapshots written by the app.
 
-App Store Connect serves **1.1.0 (52)**. Uploaded build **53** is not the public build. The shared-manager candidate is **2.0.0 (54)** and has not been submitted to Apple. Historical documentation below `docs/` and `app-store/` describes the earlier native implementation; it does not qualify the replacement.
+It signs in with a Bluesky app password, keeps the session in the Keychain, and
+talks to Bluesky directly through its own AT Protocol client built on
+`URLSession`. It has no third-party AT Protocol SDK.
 
-The legacy source remains buildable from `ios/project.yml` for diagnosis and recovery. Use XcodeGen rather than editing its generated project. Its tests do not replace the shared manager's browser and native qualification gates.
+## Building it
+
+The app targets iOS 17 and later on iPhone and iPad. The project is defined in
+`ios/project.yml` for XcodeGen, with the scheme `Skymarshal`. Change settings
+in the YAML, not in the generated Xcode project.
+
+The source was last built for release in September 2026, for build 53. I have
+not rebuilt it since.
+
+## The documents here
+
+Everything under `docs/` and `app-store/` describes this app as it was. Those
+documents are kept as written and are not maintained. Each one carries a short
+note saying so.
+
+`reference/` holds Python and TypeScript material copied from earlier
+Skymarshal tools on May 9, 2026. [MIGRATION.md](MIGRATION.md) records where it
+came from.
 
 ## License
 
-MIT — © 2026 Luke Steuber.
+MIT. © 2026 Luke Steuber.

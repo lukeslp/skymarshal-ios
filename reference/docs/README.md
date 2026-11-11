@@ -1,5 +1,7 @@
 # Archived documentation — Python CLI (upstream)
 
+> **Retired.** This is reference material copied from earlier Skymarshal tools for the native iOS app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../../README.md).
+
 **Navigation:** This file was lifted from the upstream Python CLI product and preserved under `reference/docs/` for historical context. It does **not** describe the native iOS app in this repository.
 
 | Looking for | See |

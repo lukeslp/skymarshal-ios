@@ -1,5 +1,7 @@
 # App Store release state — 1.1 submitted
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 > **2026-08-05:** **1.1.0 / build 52 is submitted** and `WAITING_FOR_REVIEW`, build
 > attached, manual release after approval. **1.0.3 is the live version.**
 >

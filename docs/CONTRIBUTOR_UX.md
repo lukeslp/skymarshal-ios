@@ -1,5 +1,7 @@
 # Contributor UX — SwiftUI surfaces
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 This repo treats **documentation as part of the product boundary**: new screens should feel like Skymarshal, not like a generic template. The goal is **intentional** layout, typography, color, and motion — the same discipline as strong web product design, applied to SwiftUI and Apple HIG.
 
 These rules align with workspace guidance and [`ios/SkymarshalCore/Standards/Theme.swift`](../ios/SkymarshalCore/Standards/Theme.swift). Visualization-specific tokens and graph rules: [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md).

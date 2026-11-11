@@ -1,5 +1,7 @@
 # Reference tree (frozen snapshot)
 
+> **Retired.** This is reference material copied from earlier Skymarshal tools for the native iOS app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 This directory is **not** the shipping product. It preserves Python and TypeScript source lifted from upstream repos for **behavioral parity** when implementing and auditing the native iOS app.
 
 ## Shipping code

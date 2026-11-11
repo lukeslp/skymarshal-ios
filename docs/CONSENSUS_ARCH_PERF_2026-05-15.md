@@ -1,3 +1,5 @@
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 ## Consensus on architecture / cold-launch (external)
 
 **Prompt (verbatim):**  

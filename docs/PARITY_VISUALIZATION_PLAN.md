@@ -1,5 +1,7 @@
 # Parity + Visualization Implementation Plan (iOS)
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 **Status:** In progress — Phases 1–2 largely **shipped** on `main` (2026-05); Phase 3+ remain planning / partial  
 **Updated:** 2026-05-13  
 **Scope:** Bring upstream CLI/web parity into native iOS where it improves safe cleanup outcomes, plus account/post/interaction visualizations.

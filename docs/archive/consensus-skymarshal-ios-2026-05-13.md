@@ -1,5 +1,7 @@
 # Consensus run — Skymarshal iOS (2026-05-13)
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../../README.md).
+
 Advisory only. Prompt: **`/tmp/consensus-skymarshal-ios.txt`** (if present) and repo copy [`consensus-skymarshal-ios-PROMPT.txt`](consensus-skymarshal-ios-PROMPT.txt).
 
 **Re-run Codex** (stdin form avoids “Reading additional input from stdin” hang when the prompt is long):

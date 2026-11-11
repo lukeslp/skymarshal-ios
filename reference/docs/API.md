@@ -1,5 +1,7 @@
 # Skymarshal Feature & API Reference
 
+> **Retired.** This is reference material copied from earlier Skymarshal tools for the native iOS app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../../README.md).
+
 Complete documentation for Skymarshal’s interactive interface and programmatic API.
 
 Note on interface: Skymarshal currently runs as an interactive CLI. The subcommand-style examples in this document are a roadmap and reflect planned direct commands. For now, all capabilities are accessible via the guided menus when you run `skymarshal` or `python -m skymarshal`.

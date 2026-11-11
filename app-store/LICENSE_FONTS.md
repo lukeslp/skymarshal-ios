@@ -1,5 +1,7 @@
 # Font licenses
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 Skymarshal bundles the following open-source typefaces under the SIL Open Font
 License 1.1. The full license text ships inside the app bundle alongside each
 typeface (see `ios/Skymarshal/Resources/Fonts/`).

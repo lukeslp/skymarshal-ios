@@ -1,5 +1,7 @@
 # Scope navigation experiment (Q2 split)
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 ## Hypothesis
 
 Some users never enable the **Scope** tab (Feature lab default off) or bounce on an empty Scope surface. Others want Scope as a stable third tab. Consensus: collect **signal**, then choose **tab vs sheet-from-Insights**.

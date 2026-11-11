@@ -1,5 +1,7 @@
 # Consensus delta — implementation vs 2026-05-13 matrix
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../../README.md).
+
 This note records what shipped after [`consensus-skymarshal-ios-2026-05-13.md`](consensus-skymarshal-ios-2026-05-13.md) so Q4/Q6 readers are not misled by the original “next slice” wording alone.
 
 ## Q4 (background refresh / checkpoints)

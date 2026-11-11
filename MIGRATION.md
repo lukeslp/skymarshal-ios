@@ -1,5 +1,7 @@
 # Migration provenance
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](README.md).
+
 **iOS docs index:** [`docs/README.md`](docs/README.md) (architecture, UX checklist, upstream gap, review artifacts).
 
 This repo is a fresh start. The Python and TypeScript material under `reference/`

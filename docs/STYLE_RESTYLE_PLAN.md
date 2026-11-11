@@ -1,5 +1,7 @@
 # Style restyle plan — Move #2 + Move #3
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 > **Status note (2026-05-16):** This plan is structured around a v1.0.1 / v1.0.2 split that has since been retired. The v1.0.1 work in §§2–6 + 7.1 (Plex Mono, Saturn buttons, ScopePill, TokenCoverageTests) shipped into **v1.0.0 / build 5**; nothing was ever released to the App Store under v1.0.1. The v1.0.2 work (Fraunces serif + paper/bone backgrounds + cinematic OLED chrome) is a candidate for **v1.0.1 post-launch** — but the rollback / soak gates described below still apply. Treat "v1.0.1" in the text below as "the typography pass already in build 5" and "v1.0.2" as "the next visual increment, post-App-Store-launch."
 
 **2026-05-15 — Cinematic OLED chosen for the next visual increment:** After `/team`

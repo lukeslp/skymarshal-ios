@@ -1,5 +1,7 @@
 # /doubt — Paper zine / broadsheet direction (`riso_scope`)
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 **Date:** 2026-05-15  
 **Assumption:** Paper-zine is the **provisional front-runner** for “more stylized than default iOS” without going full CRT brutalism. This document is the **adversarial** pass — not a rejection, a stress test.
 

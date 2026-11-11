@@ -1,5 +1,7 @@
 # Changelog
 
+> **Retired.** This is reference material copied from earlier Skymarshal tools for the native iOS app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../../README.md).
+
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) + [Semver](https://semver.org/).
 
 ## [Unreleased]

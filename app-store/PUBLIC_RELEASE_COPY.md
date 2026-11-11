@@ -1,5 +1,7 @@
 # Skymarshal iOS Public Release Copy
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 Reconciled against native 1.0.3, build 44.
 
 Paste these values directly into App Store Connect for the public iOS release.

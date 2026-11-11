@@ -1,5 +1,7 @@
 # UI/UX Specification: Skymarshal iOS Expansion
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 **Version:** 1.0.0  
 **Last Updated:** 2026-05-12  
 **Status:** Draft  

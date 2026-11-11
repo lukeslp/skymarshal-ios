@@ -1,5 +1,7 @@
 # Skymarshal iOS public release assets
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 ## App icon
 
 - `1024 × 1024` PNG, RGB, no alpha.

@@ -1,5 +1,7 @@
 # Project plan — Skymarshal iOS
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](README.md).
+
 Living snapshot of objectives and boundaries. Product copy and build commands stay in [`README.md`](README.md); contributor rules in [`AGENTS.md`](AGENTS.md).
 
 > **Direction change — 2026-06-21: explored "Option B" (Capacitor web-wrapper).**
