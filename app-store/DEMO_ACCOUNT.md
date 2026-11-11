@@ -1,5 +1,7 @@
 # App Review demo account
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 **Purpose:** Reduce first-submission rejection rate (~40% of rejections cite missing demo credentials per council scout estimate).
 
 ## Account to create

@@ -1,5 +1,7 @@
 # Guided Mode — Design Spec (Draft 1)
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 **Date:** 2026-07-20 · **Author:** Luke Steuber · **Status:** draft for discussion — sequenced after the a11y P0 branch lands
 **Applies to:** Skymarshal iOS (native, `skymarshal-app`) and Skymarshal web (`skymarshal-web`, incl. Capacitor builds)
 

@@ -1,5 +1,7 @@
 # Phase 4 — Decision package (perf + aesthetic)
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 **Date:** 2026-05-15
 
 You asked for cold-launch efficiency work **and** a full aesthetic rethink with `/team`-style rigor. This package is the **decision surface** — pick once, then execute in a follow-up branch.

@@ -1,5 +1,7 @@
 # Skymarshal Architecture Guide
 
+> **Retired.** This is reference material copied from earlier Skymarshal tools for the native iOS app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../../README.md).
+
 Architecture overview — design patterns, modules, and how they connect.
 
 ## Table of Contents

@@ -1,5 +1,7 @@
 # Upstream vs iOS — scope map
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 This document compares **upstream Skymarshal** (Python CLI, Flask API, React web client, npm toolkit) to the **native iOS app** in this repository.
 
 **It is a scope map and parity checklist, not an implicit roadmap.** Items marked **Non-goal** align with [`PROJECT_PLAN.md`](../PROJECT_PLAN.md). Only rows marked **Future** are candidates for intentional work.

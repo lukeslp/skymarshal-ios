@@ -1,5 +1,7 @@
 # Cold-launch performance — signposts, measurement, observation graph
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 **Date:** 2026-05-15  
 **Scope:** iOS app cold launch + tab switching (user-reported freeze locus).  
 **Code:** [`ColdLaunchSignposts.swift`](../ios/Skymarshal/Profiling/ColdLaunchSignposts.swift), [`AppModel.swift`](../ios/Skymarshal/UI/AppModel.swift), [`RootView.swift`](../ios/Skymarshal/UI/RootView.swift).

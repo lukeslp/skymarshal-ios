@@ -1,5 +1,7 @@
 # Submission decision checklist (Day 16+)
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 > **RESOLVED 2026-07-20:** Skymarshal 1.0.2 (build 40) was submitted, approved, and is **live in the App Store**. Login verified in production. This gate is closed; the checklist below is retained as the historical record.
 
 Use after Week 1–3 engineering + soak work. **Do not edit the council plan file** — this is the operational gate.

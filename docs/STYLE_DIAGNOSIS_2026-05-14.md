@@ -1,5 +1,7 @@
 # Style diagnosis — 2026-05-14
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 > **Status note (2026-05-16):** Two of the acceptance criteria below reference a `v1.0.1` working label that has since been retired. The fixes shipped into **v1.0.0 / build 5** — nothing was ever released to the App Store under v1.0.1. Substitute "v1.0.0 / build 5" mentally as you read.
 
 **Purpose:** Move #1 of the visual-restyle plan: before touching tokens or fonts,

@@ -1,5 +1,7 @@
 # Team + consensus decision package
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 **Branch:** `cursor/ios-roadmap-imports` → `main`  
 **PR:** https://github.com/lukeslp/skymarshal-ios/pull/2  
 **Canonical brief:** [REVIEW_BRIEF_IOS_ROADMAP_BRANCH.md](REVIEW_BRIEF_IOS_ROADMAP_BRANCH.md) (identical prompt seed: `/tmp/consensus-ios-roadmap.txt`)

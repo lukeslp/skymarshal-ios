@@ -1,5 +1,7 @@
 # Soak artifacts
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../../README.md).
+
 Commit soak outputs here before public App Store submission (**kill criterion #1**).
 
 ## Required for Run 1 (≥10k-post account)

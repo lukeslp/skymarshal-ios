@@ -1,5 +1,7 @@
 # Skymarshal — App Store listing
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 Last revised 2026-07-22. Paste these into App Store Connect when submitting.
 
 Reconciliation note (2026-05-12): canonical execution now lives in

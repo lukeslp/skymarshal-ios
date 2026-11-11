@@ -1,5 +1,7 @@
 # Reference docs — not the iOS project root
 
+> **Retired.** This is reference material copied from earlier Skymarshal tools for the native iOS app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../../README.md).
+
 This file lives under `reference/docs/`, a **frozen snapshot** of upstream documentation from the Python CLI era. It does not describe the current repository layout.
 
 ## Work on the iOS app

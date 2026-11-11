@@ -1,5 +1,7 @@
 # Scope navigation decision (tab vs Insights entry)
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../../README.md).
+
 **Date:** 2026-05-14  
 **Inputs:** [`docs/SCOPE_IA_EXPERIMENT.md`](../SCOPE_IA_EXPERIMENT.md), on-device counters in [`ScopeExperimentTelemetry`](../../ios/SkymarshalCore/Standards/ScopeExperimentTelemetry.swift).
 

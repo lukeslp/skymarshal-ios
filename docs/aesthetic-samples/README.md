@@ -1,5 +1,7 @@
 # Aesthetic HTML samples
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../../README.md).
+
 Static HTML mockups for the three 2026-05-15 directions. Open **`index.html`** in a browser, or open each file directly.
 
 | File | Direction |

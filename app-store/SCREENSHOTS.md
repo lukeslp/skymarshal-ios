@@ -1,5 +1,7 @@
 # Skymarshal App Store screenshots
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 The checked-in release set contains five screenshots for iPhone 6.9-inch and
 iPad 13-inch. These are the same images staged under
 `ios/fastlane/screenshots/en-US/` and shown on the live listing.

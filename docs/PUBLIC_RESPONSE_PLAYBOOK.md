@@ -1,5 +1,7 @@
 # Public response playbook
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 **Trigger:** A user posts publicly that Skymarshal deleted the wrong content, broke their account, or caused unexpected data loss — especially on Bluesky in month 1–2 after launch.
 
 **Goal:** Respond within **24 hours** with calm, factual, accountable copy. No legal threats, no "AI", no internal tooling names.

@@ -1,5 +1,7 @@
 # Large-account soak protocol (release gate)
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 Use this checklist before a public TestFlight build or App Store submission when reliability work shipped. Evidence belongs in your release folder (notes + attachments).
 
 ## Environment

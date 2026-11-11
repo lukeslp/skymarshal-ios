@@ -1,5 +1,7 @@
 # Open-link public TestFlight
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 Use when soak artifacts or cynic runbooks are **not** ready but you want real-user signal without burning App Store first impression.
 
 ## When to choose this path

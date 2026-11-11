@@ -1,5 +1,7 @@
 # Archive load checkpoints
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 ## Purpose
 
 Large-account `ensureContentLoaded` runs for a long time. If the app is suspended or killed mid-pagination, SwiftData may already contain **partial** pages while the in-memory `loadedContent` snapshot is lost. Checkpoints record the **next XRPC cursor** and **page count** per phase so the next load can resume without duplicating rows (in-memory dedupe by `ContentItem.id`).

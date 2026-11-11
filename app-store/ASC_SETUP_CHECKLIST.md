@@ -1,5 +1,7 @@
 # App Store Connect setup checklist
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 Manual steps — cannot be automated from this repo.
 
 ## Prerequisites

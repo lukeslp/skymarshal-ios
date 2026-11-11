@@ -1,5 +1,7 @@
 # Aesthetic direction B — Paper zine / broadsheet
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 **Date:** 2026-05-15 · **Codename:** `riso_scope`
 
 ## Thesis

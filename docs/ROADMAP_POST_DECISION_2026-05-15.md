@@ -1,5 +1,7 @@
 # Roadmap after decision (perf + chosen aesthetic)
 
+> **Retired.** This document describes the native SwiftUI Skymarshal app, which reached end of life in November 2026. It is kept as written and is not maintained. See the [README](../README.md).
+
 **Date:** 2026-05-15  
 **Depends on:** [PHASE4_DECISION_PACKAGE_2026-05-15.md](PHASE4_DECISION_PACKAGE_2026-05-15.md) — you must pick **A / B / C** (or request new moodboards).
 
